@@ -3,4 +3,6 @@ annoy==1.17.0
 sentence-transformers==2.2.0
 llm>=0.1
 azure-devops
+crewai
+duckduckgo-search
 
