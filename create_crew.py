@@ -1,10 +1,12 @@
-from crewai import Agent, Task, Crew, Process
 from dotenv import load_dotenv
 import os
-
 load_dotenv()
 
-os.environ['OPENAI_API_BASE'] = 'http://192.168.0.46:11434/v1'
+from crewai import Agent, Task, Crew, Process
+
+os.environ["OPENAI_API_BASE"]='http://192.168.0.46:11434/v1'
+os.environ["OPENAI_MODEL_NAME"]='openhermes'
+os.environ["OPENAI_API_KEY"]=''
 
 
 from ado_integrations.ado_tools import ado_tools
