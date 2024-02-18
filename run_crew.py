@@ -29,11 +29,6 @@ chatgpt = ChatOpenAI(
     model_name=os.getenv("OPENAI_MODEL_NAME"),
 )
 
-chatgpt = ChatOpenAI(
-    model_name="gpt-3.5-turbo-0125",
-    api_key="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",
-)
-
 hugging_face = HuggingFaceEndpoint(
     endpoint_url=os.getenv("HUGGINGFACE_API_BASE"), 
     huggingfacehub_api_token=os.getenv("HUGGINGFACE_API_KEY"),
