@@ -4,7 +4,8 @@ import os
 import requests
 from dotenv import load_dotenv
 
-from ado_integrations.ado_connection import ADOBase
+from ado_integrations.ado_connection import ADOConnection
+from ado_integrations.base_ado_workitems_api import BaseAdoWorkitemsApi
 
 class WorkItemType(Enum):
     Bug = "Bug"
@@ -16,7 +17,7 @@ class WorkItemType(Enum):
 
 load_dotenv()
 
-class ADOBoard(ADOBase):
+class ADOWorkitemsApi(ADOConnection, BaseAdoWorkitemsApi):
     def get_headers(self, method_type="GET"):
         encoded_bytes = base64.b64encode(f':{self.personal_access_token}'.encode('ascii'))
         encoded_pat = str(encoded_bytes, 'ascii')
@@ -38,13 +39,14 @@ class ADOBoard(ADOBase):
         work_items = response_data["workItems"]
         return [self.fetch_object_details(work_item['id']) for work_item in work_items]
 
-    def fetch_object_details(self, work_item_id):
+    def fetch_object_details(self, work_item_id: int):
         url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/{work_item_id}?api-version=6.0"
         work_item_details = self.make_request('GET', url)
         return {
             'id': work_item_details['id'],
             'title': work_item_details['fields']['System.Title'],
-            'state': work_item_details['fields']['System.State']
+            'state': work_item_details['fields']['System.State'],
+            'description': work_item_details['fields']['System.Description']
         }
     
     def update_object_state(self, work_item_id, new_state):
@@ -116,7 +118,7 @@ class ADOBoard(ADOBase):
 
 
 if __name__ == "__main__":
-    interface = ADOBoard()
+    interface = ADOWorkitemsApi()
     objects = interface.fetch_all_objects()
     print(objects)
     if objects:

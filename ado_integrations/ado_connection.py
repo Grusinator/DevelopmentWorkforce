@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-class ADOBase:
+class ADOConnection:
     def __init__(self):
         self.organization_url = os.getenv("ADO_ORGANIZATION_URL")
         self.personal_access_token = os.getenv("ADO_PERSONAL_ACCESS_TOKEN")

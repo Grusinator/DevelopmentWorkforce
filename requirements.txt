@@ -1,8 +1,11 @@
-transformers==4.19.0
-annoy==1.17.0
-sentence-transformers==2.2.0
-llm>=0.1
+# transformers==4.19.0
+# annoy==1.17.0
+# sentence-transformers==2.2.0
+# llm>=0.1
 azure-devops
 crewai
 duckduckgo-search
+huggingface-hub
+python-dotenv
+langchain
 

@@ -1,8 +1,8 @@
 import pytest
-from ado_integrations.ado_board import ADOBoard
+from ado_integrations.ado_workitems_api import ADOWorkitemsApi
 
 def test_fetch_all_objects():
-    interface = ADOBoard()
+    interface = ADOWorkitemsApi()
     objects = interface.fetch_all_objects()
 
     assert isinstance(objects, list)
@@ -10,8 +10,8 @@ def test_fetch_all_objects():
     assert all('id' in obj and 'title' in obj and 'state' in obj for obj in objects)
 
 def test_fetch_object_details():
-    interface = ADOBoard()
-    work_item_id = 12345
+    interface = ADOWorkitemsApi()
+    work_item_id = 1
     details = interface.fetch_object_details(work_item_id)
 
     assert isinstance(details, dict)

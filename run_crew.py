@@ -1,29 +1,67 @@
-from dotenv import load_dotenv
 import os
-load_dotenv()
+from langchain_openai import ChatOpenAI
+from dotenv import load_dotenv
+
 
 from crewai import Agent, Task, Crew, Process
-
-os.environ["OPENAI_API_BASE"]='http://192.168.0.46:11434/v1'
-os.environ["OPENAI_MODEL_NAME"]='openhermes'
-os.environ["OPENAI_API_KEY"]=''
-
-
-from ado_integrations.ado_tools import ado_tools
-
-from langchain_community.llms import Ollama
-codellama_llm = Ollama(model="codellama:7b")
-default_llm = Ollama(model="openhermes:latest")
-default_llm = codellama_llm # for now keep it simple  
-
 from langchain_community.tools import DuckDuckGoSearchRun
+import os
+from langchain_community.llms.huggingface_endpoint import HuggingFaceEndpoint
+from langchain_community.llms.ollama import Ollama
+
+from ado_integrations.ado_workitems_api_tools import AdoWorkitemsApiTools
+from ado_integrations.mock_ado_workitems_api import MockAdoWorkitemsApi
+
+load_dotenv()
+
+ollama_instruct = Ollama(
+    model=os.getenv("OLLAMA_MODEL_NAME"),
+    base_url=os.getenv("OLLAMA_API_BASE")
+)
+
+ollama_python = Ollama(
+    model=os.getenv("OLLAMA_MODEL_NAME_2"),
+    base_url=os.getenv("OLLAMA_API_BASE_2")
+)
+
+chatgpt = ChatOpenAI(
+    api_key=os.getenv("OPENAI_API_KEY"),
+    model_name=os.getenv("OPENAI_MODEL_NAME"),
+)
+
+chatgpt = ChatOpenAI(
+    model_name="gpt-3.5-turbo-0125",
+    api_key="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",
+)
+
+hugging_face = HuggingFaceEndpoint(
+    endpoint_url=os.getenv("HUGGINGFACE_API_BASE"), 
+    huggingfacehub_api_token=os.getenv("HUGGINGFACE_API_KEY"),
+    task="text-generation",
+    model_kwargs={
+        "max_new_tokens": 1000,  # Adjust based on input size to keep total under 1024
+        "top_k": 50,
+        "temperature": 0.7,
+        "repetition_penalty": 1.03,
+        "max_length": 15000,  # Ensure input + max_new_tokens <= 1024
+    }
+)
+
+
+
+default_llm = chatgpt
+developer_llm = default_llm
+print(default_llm)
+
 # from langchain_community.tools.file_management import CopyFileTool, DeleteFileTool, FileSearchTool, ListDirectoryTool, MoveFileTool, ReadFileTool, WriteFileTool
 
 search_tool = DuckDuckGoSearchRun()
 
+api = MockAdoWorkitemsApi()
+ado_api_tools = AdoWorkitemsApiTools(ado_workitems_api=api)
 
 
-tools = [] + ado_tools
+tools = [] + ado_api_tools.get_tools()
 
 product_owner = Agent( 
     role='Product Owner', 
@@ -32,7 +70,7 @@ product_owner = Agent(
     verbose=True, 
     allow_delegation=True, 
     tools=tools,
-    llm=default_llm 
+    llm=default_llm
 )
 
 scrum_master = Agent(
@@ -52,7 +90,7 @@ tester = Agent(
   verbose=True,
   allow_delegation=True,
   tools=tools,
-  llm=codellama_llm
+  llm=default_llm
 )
 
 
@@ -63,7 +101,7 @@ developer = Agent(
   verbose=True,
   allow_delegation=False,
   tools=tools,
-  llm=codellama_llm
+  llm=developer_llm
 )
 
 
@@ -93,7 +131,7 @@ crew = Crew(
   agents=[product_owner],
   tasks=[research_user_stories],
   verbose=2, # You can set it to 1 or 2 to different logging levels
-  manager_llm=codellama_llm,
+  manager_llm=default_llm,
   process=Process.hierarchical
 )
 
