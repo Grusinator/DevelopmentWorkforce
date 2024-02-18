@@ -42,9 +42,7 @@ hugging_face = HuggingFaceEndpoint(
     }
 )
 
-
-
-default_llm = chatgpt
+default_llm = ollama_instruct
 developer_llm = default_llm
 print(default_llm)
 

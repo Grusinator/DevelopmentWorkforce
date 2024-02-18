@@ -1,32 +1,7 @@
-from typing import List, Dict
-from langchain.tools import tool
-
-from ado_integrations.ado_workitems_api import ADOWorkitemsApi
-
-
-import logging
-
 from ado_integrations.base_ado_workitems_api import BaseAdoWorkitemsApi
-
-logger = logging.getLogger(__name__)
-
-
-# Mock function to simulate fetching all work items from the ADO board
-@tool
-def ado_read_work_items() -> List[Dict]:
-    """Fetch all work items from the ADO board."""
-    try:
-        return ADOWorkitemsApi().fetch_all_work_items()
-    except Exception as e:
-        logger.error(f"Error fetching work items: {e}")
-        return {"error": str(e)}
-    
-
-from typing import List
 from ado_integrations.mock_ado_workitems_api import AdoWorkItem
 from typing import List, Dict
 from langchain.tools import tool
-from ado_integrations.ado_workitems_api import ADOWorkitemsApi
 import logging
 
 logger = logging.getLogger(__name__)

@@ -8,15 +8,15 @@ if TYPE_CHECKING:
 
 class BaseAdoWorkitemsApi(ABC):
     @abstractmethod
-    def create_work_item(self, work_item: AdoWorkItem) -> int:
+    def create_work_item(self, work_item: "AdoWorkItem") -> int:
         pass
 
     @abstractmethod
-    def get_work_item(self, work_item_id: int) -> AdoWorkItem:
+    def get_work_item(self, work_item_id: int) -> "AdoWorkItem":
         pass
 
     @abstractmethod
-    def update_work_item(self, work_item_id: int, updated_work_item: AdoWorkItem) -> None:
+    def update_work_item(self, work_item_id: int, updated_work_item: "AdoWorkItem") -> None:
         pass
 
     @abstractmethod
@@ -24,5 +24,5 @@ class BaseAdoWorkitemsApi(ABC):
         pass
 
     @abstractmethod
-    def list_work_items(self, work_item_type: str = None, assigned_to: str = None) -> List[AdoWorkItem]:
+    def list_work_items(self, work_item_type: str = None, assigned_to: str = None) -> List["AdoWorkItem"]:
         pass
