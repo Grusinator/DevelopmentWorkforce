@@ -1,7 +1,7 @@
 from typing import List, Dict
 from langchain.tools import tool
 
-from ado_integrations.ado_workitems_api import ADOWorkitemsApi
+from development_workforce.ado_integrations.ado_workitems_api import ADOWorkitemsApi
 
 
 import logging

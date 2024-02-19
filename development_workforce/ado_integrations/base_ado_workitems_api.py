@@ -4,7 +4,7 @@ from typing import List
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ado_integrations.mock_ado_workitems_api import AdoWorkItem
+    from development_workforce.ado_integrations.mock_ado_workitems_api import AdoWorkItem
 
 class BaseAdoWorkitemsApi(ABC):
     @abstractmethod

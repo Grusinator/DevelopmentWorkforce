@@ -9,3 +9,5 @@ huggingface-hub
 python-dotenv
 langchain
 
+pytest
+pytest-coverage

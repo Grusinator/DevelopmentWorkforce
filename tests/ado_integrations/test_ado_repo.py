@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 import tempfile
 
-from ado_integrations.ado_repo import GitHelper
+from development_workforce.ado_integrations.ado_repo import GitHelper
 
 @pytest.fixture
 def temp_repo_folder():

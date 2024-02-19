@@ -1,7 +1,7 @@
 from typing import List
 
-from ado_integrations.ado_models import AdoWorkItem
-from ado_integrations.base_ado_workitems_api import BaseAdoWorkitemsApi
+from development_workforce.ado_integrations.ado_models import AdoWorkItem
+from development_workforce.ado_integrations.base_ado_workitems_api import BaseAdoWorkitemsApi
 
 
 class MockAdoWorkitemsApi(BaseAdoWorkitemsApi):
@@ -18,12 +18,17 @@ class MockAdoWorkitemsApi(BaseAdoWorkitemsApi):
                 return work_item
         raise ValueError(f"Work item with ID {work_item_id} not found.")
 
-    def update_work_item(self, work_item_id: int, updated_work_item: AdoWorkItem) -> None:
+    def update_work_item(self, work_item_id: int, updated_fields: dict) -> bool:
         for i, work_item in enumerate(self.work_items):
             if work_item.id == work_item_id:
-                self.work_items[i] = updated_work_item
-                return
+                self.work_items[i] = self._update_work_item_fields(work_item, updated_fields)
+                return work_item_id
         raise ValueError(f"Work item with ID {work_item_id} not found.")
+
+    def _update_work_item_fields(self, work_item: AdoWorkItem, updated_fields: dict) -> AdoWorkItem:
+        for key, value in updated_fields.items():
+            setattr(work_item, key, value)
+        return work_item
 
     def delete_work_item(self, work_item_id: int) -> None:
         for i, work_item in enumerate(self.work_items):

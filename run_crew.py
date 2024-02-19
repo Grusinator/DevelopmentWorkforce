@@ -1,18 +1,15 @@
 import os
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
-
-
 from crewai import Agent, Task, Crew, Process
 from langchain_community.tools import DuckDuckGoSearchRun
-import os
 from langchain_community.llms.huggingface_endpoint import HuggingFaceEndpoint
 from langchain_community.llms.ollama import Ollama
+from development_workforce.ado_integrations.ado_workitems_api_tools import AdoWorkitemsApiTools
+from development_workforce.ado_integrations.mock_ado_workitems_api import MockAdoWorkitemsApi
+from development_workforce.ado_integrations.ado_models import AdoWorkItem
 
-from ado_integrations.ado_workitems_api_tools import AdoWorkitemsApiTools
-from ado_integrations.mock_ado_workitems_api import MockAdoWorkitemsApi
-
-load_dotenv()
+load_dotenv(".env", override=True)
 
 ollama_instruct = Ollama(
     model=os.getenv("OLLAMA_MODEL_NAME"),
@@ -34,16 +31,16 @@ hugging_face = HuggingFaceEndpoint(
     huggingfacehub_api_token=os.getenv("HUGGINGFACE_API_KEY"),
     task="text-generation",
     model_kwargs={
-        "max_new_tokens": 1000,  # Adjust based on input size to keep total under 1024
+        "max_new_tokens": 2000,  # Adjust based on input size to keep total under 1024
         "top_k": 50,
         "temperature": 0.7,
         "repetition_penalty": 1.03,
-        "max_length": 15000,  # Ensure input + max_new_tokens <= 1024
+        "max_length": 4000,  # Ensure input + max_new_tokens <= 1024
     }
 )
 
-default_llm = ollama_instruct
-developer_llm = default_llm
+default_llm = hugging_face
+developer_llm = ollama_instruct
 print(default_llm)
 
 # from langchain_community.tools.file_management import CopyFileTool, DeleteFileTool, FileSearchTool, ListDirectoryTool, MoveFileTool, ReadFileTool, WriteFileTool
@@ -51,6 +48,15 @@ print(default_llm)
 search_tool = DuckDuckGoSearchRun()
 
 api = MockAdoWorkitemsApi()
+workitem = AdoWorkItem(
+  id=1,
+  type="Epic",
+  assigned_to="John",
+  title="Make a tick tac toe game",
+  description="update the description",
+  tags=[]
+)
+api.create_work_item(workitem)
 ado_api_tools = AdoWorkitemsApiTools(ado_workitems_api=api)
 
 
@@ -100,7 +106,7 @@ developer = Agent(
 
 research_user_stories = Task(
   description="""research the user stories, by using the ado search tool to find information about the user stories and the acceptance criteria""",
-  expected_output="a list of acceptance criteria for the user stories in the ado backlog",
+  expected_output="a list of acceptance criteria for the user stories in the ado backlog, if the tools fail, return me the error message from the tool",
   agent=product_owner
 )
 
@@ -125,7 +131,8 @@ crew = Crew(
   tasks=[research_user_stories],
   verbose=2, # You can set it to 1 or 2 to different logging levels
   manager_llm=default_llm,
-  process=Process.hierarchical
+  process=Process.hierarchical,
+  allow_delegation=True
 )
 
 # Get your crew to work!

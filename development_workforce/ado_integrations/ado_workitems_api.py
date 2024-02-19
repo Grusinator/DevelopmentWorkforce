@@ -4,8 +4,8 @@ import os
 import requests
 from dotenv import load_dotenv
 
-from ado_integrations.ado_connection import ADOConnection
-from ado_integrations.base_ado_workitems_api import BaseAdoWorkitemsApi
+from development_workforce.ado_integrations.ado_connection import ADOConnection
+from development_workforce.ado_integrations.base_ado_workitems_api import BaseAdoWorkitemsApi
 
 class WorkItemType(Enum):
     Bug = "Bug"
