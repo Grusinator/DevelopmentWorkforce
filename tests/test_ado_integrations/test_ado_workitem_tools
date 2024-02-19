@@ -1,13 +1,9 @@
 from development_workforce.ado_integrations.ado_workitems_api_tools import AdoWorkitemsApiTools
 from development_workforce.ado_integrations.mock_ado_workitems_api import AdoWorkItem, MockAdoWorkitemsApi
 
-import logging
 import pytest
 
-
-logger = logging.getLogger(__name__)
-
-class TestAdoWorkitemsApiTools:
+class Test_AdoWorkitemsApiTools2:
 
     @pytest.fixture
     def mock_ado_workitems_api(self):
@@ -23,7 +19,7 @@ class TestAdoWorkitemsApiTools:
     def ado_workitems_api_tools(self, mock_ado_workitems_api):
         return AdoWorkitemsApiTools(mock_ado_workitems_api)
 
-    def test_create_work_item(self,mock_ado_workitems_api, ado_workitems_api_tools):
+    def test_create_work_item(self, mock_ado_workitems_api, ado_workitems_api_tools):
         work_item = {"title": "Test Work Item", "description": "This is a test work item"}
         work_item_id = ado_workitems_api_tools.create_work_item(work_item)
         assert isinstance(work_item_id, int)
