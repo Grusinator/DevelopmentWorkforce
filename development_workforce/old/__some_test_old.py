@@ -1,5 +1,5 @@
 import pytest
-from development_workforce.main import prompt_llm_with_context
+from development_workforce.old.main import prompt_llm_with_context
 
 def test_prompt_llm_with_context():
     # Test prompt instructing the model to return "Hello, World!"

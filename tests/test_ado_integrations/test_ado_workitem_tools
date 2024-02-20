@@ -39,7 +39,7 @@ class Test_AdoWorkitemsApiTools2:
         ado_workitems_api_tools.delete_work_item(add_ado_test_item)
         assert mock_ado_workitems_api.work_items == []
 
-    def test_list_work_items(self, ado_workitems_api_tools,mock_ado_workitems_api , add_ado_test_item: int):
+    def test_list_work_items(self, ado_workitems_api_tools: AdoWorkitemsApiTools, mock_ado_workitems_api , add_ado_test_item: int):
         work_items = ado_workitems_api_tools.list_work_items()
         assert isinstance(work_items, list)
         assert mock_ado_workitems_api.work_items == work_items

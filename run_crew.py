@@ -6,6 +6,7 @@ from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_community.llms.huggingface_endpoint import HuggingFaceEndpoint
 from langchain_community.llms.ollama import Ollama
 from development_workforce.ado_integrations.ado_workitems_api_tools import AdoWorkitemsApiTools
+from development_workforce.ado_integrations.ado_workitems_api_tools2 import instantiate_ado_tools
 from development_workforce.ado_integrations.mock_ado_workitems_api import MockAdoWorkitemsApi
 from development_workforce.ado_integrations.ado_models import AdoWorkItem
 
@@ -32,14 +33,14 @@ hugging_face = HuggingFaceEndpoint(
     task="text-generation",
     model_kwargs={
         "max_new_tokens": 2000,  # Adjust based on input size to keep total under 1024
-        "top_k": 50,
-        "temperature": 0.7,
-        "repetition_penalty": 1.03,
+        # "top_k": 50,
+        # "temperature": 0.2,
+        "repetition_penalty": 1.1,
         "max_length": 4000,  # Ensure input + max_new_tokens <= 1024
     }
 )
 
-default_llm = hugging_face
+default_llm = chatgpt
 developer_llm = ollama_instruct
 print(default_llm)
 
@@ -47,7 +48,7 @@ print(default_llm)
 
 search_tool = DuckDuckGoSearchRun()
 
-api = MockAdoWorkitemsApi()
+ado_workitems_api = MockAdoWorkitemsApi()
 workitem = AdoWorkItem(
   id=1,
   type="Epic",
@@ -56,16 +57,18 @@ workitem = AdoWorkItem(
   description="update the description",
   tags=[]
 )
-api.create_work_item(workitem)
-ado_api_tools = AdoWorkitemsApiTools(ado_workitems_api=api)
+ado_workitems_api.create_work_item(workitem)
 
+ado_workitems_tools = instantiate_ado_tools(ado_workitems_api=ado_workitems_api)
 
-tools = [] + ado_api_tools.get_tools()
+tools = [search_tool] + ado_workitems_tools
 
 product_owner = Agent( 
     role='Product Owner', 
     goal='Define and prioritize product features', 
-    backstory="""You are an experienced Product Owner, responsible for defining the vision and roadmap of the product. You work closely with stakeholders and development teams to ensure the product meets customer needs. your primary interface is the board, using the ado tools.""", 
+    backstory="""You are an experienced Product Owner, responsible for defining the vision and roadmap of the product. 
+    You work closely with stakeholders and development teams to ensure the product meets customer needs. 
+    your primary interface is the board, using the ado tools.""", 
     verbose=True, 
     allow_delegation=True, 
     tools=tools,
@@ -75,7 +78,8 @@ product_owner = Agent(
 scrum_master = Agent(
   role='Scrum Master',
   goal='Facilitate the development process',
-  backstory="""You are a certified Scrum Master, responsible for ensuring the team follows the Scrum framework. You help the team to self-organize and remove any obstacles that may affect the development process.""",
+  backstory="""You are a certified Scrum Master, responsible for ensuring the team follows the Scrum framework. 
+  You help the team to self-organize and remove any obstacles that may affect the development process.""",
   verbose=True,
   allow_delegation=True,
   tools=tools,
@@ -85,7 +89,8 @@ scrum_master = Agent(
 tester = Agent(
   role='QA Tester',
   goal='Ensure the quality of the product',
-  backstory="""You are a skilled QA Tester, responsible for ensuring the quality of the product. You perform various tests to identify any issues or bugs in the software.""",
+  backstory="""You are a skilled QA Tester, responsible for ensuring the quality of the product. 
+  You perform various tests to identify any issues or bugs in the software.""",
   verbose=True,
   allow_delegation=True,
   tools=tools,
@@ -96,13 +101,13 @@ tester = Agent(
 developer = Agent(
   role='Developer',
   goal='Develop the software application',
-  backstory="""You are a talented Developer, responsible for writing code and implementing the features of the software application. You have expertise in various programming languages and technologies.""",
+  backstory="""You are a talented Developer, responsible for writing code and implementing the features of the software application. 
+  You have expertise in various programming languages and technologies.""",
   verbose=True,
   allow_delegation=False,
   tools=tools,
   llm=developer_llm
 )
-
 
 research_user_stories = Task(
   description="""research the user stories, by using the ado search tool to find information about the user stories and the acceptance criteria""",
@@ -130,9 +135,9 @@ crew = Crew(
   agents=[product_owner],
   tasks=[research_user_stories],
   verbose=2, # You can set it to 1 or 2 to different logging levels
-  manager_llm=default_llm,
-  process=Process.hierarchical,
-  allow_delegation=True
+  # manager_llm=default_llm,
+  # process=Process.hierarchical,
+  # allow_delegation=True
 )
 
 # Get your crew to work!
