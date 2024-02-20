@@ -5,8 +5,7 @@ from crewai import Agent, Task, Crew, Process
 from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_community.llms.huggingface_endpoint import HuggingFaceEndpoint
 from langchain_community.llms.ollama import Ollama
-from development_workforce.ado_integrations.ado_workitems_api_tools import AdoWorkitemsApiTools
-from development_workforce.ado_integrations.ado_workitems_api_tools2 import instantiate_ado_tools
+from development_workforce.ado_integrations.ado_workitems_api_tools import instantiate_ado_tools
 from development_workforce.ado_integrations.mock_ado_workitems_api import MockAdoWorkitemsApi
 from development_workforce.ado_integrations.ado_models import AdoWorkItem
 
@@ -41,7 +40,7 @@ hugging_face = HuggingFaceEndpoint(
 )
 
 default_llm = chatgpt
-developer_llm = ollama_instruct
+developer_llm = chatgpt
 print(default_llm)
 
 # from langchain_community.tools.file_management import CopyFileTool, DeleteFileTool, FileSearchTool, ListDirectoryTool, MoveFileTool, ReadFileTool, WriteFileTool
@@ -68,6 +67,7 @@ product_owner = Agent(
     goal='Define and prioritize product features', 
     backstory="""You are an experienced Product Owner, responsible for defining the vision and roadmap of the product. 
     You work closely with stakeholders and development teams to ensure the product meets customer needs. 
+    Make sure that all tasks are described in full detail and approved by the developers, before setting the state to ready for development.
     your primary interface is the board, using the ado tools.""", 
     verbose=True, 
     allow_delegation=True, 
@@ -79,7 +79,10 @@ scrum_master = Agent(
   role='Scrum Master',
   goal='Facilitate the development process',
   backstory="""You are a certified Scrum Master, responsible for ensuring the team follows the Scrum framework. 
-  You help the team to self-organize and remove any obstacles that may affect the development process.""",
+  You help the team to self-organize and remove any obstacles that may affect the development process. 
+  Make sure that all tasks are broken down into manageable tasks and assigned to the right team members.
+  Make sure that all tasks have acceptance criteria""",
+
   verbose=True,
   allow_delegation=True,
   tools=tools,
@@ -90,7 +93,8 @@ tester = Agent(
   role='QA Tester',
   goal='Ensure the quality of the product',
   backstory="""You are a skilled QA Tester, responsible for ensuring the quality of the product. 
-  You perform various tests to identify any issues or bugs in the software.""",
+  You perform various tests to identify any issues or bugs in the software.
+  You are responisble for reviewing all the unit tests and make sure that the code is tested according to the acceptance criteria.""",
   verbose=True,
   allow_delegation=True,
   tools=tools,
@@ -102,7 +106,8 @@ developer = Agent(
   role='Developer',
   goal='Develop the software application',
   backstory="""You are a talented Developer, responsible for writing code and implementing the features of the software application. 
-  You have expertise in various programming languages and technologies.""",
+  You have expertise in various programming languages and technologies. You are responsible for raising consern if the acceptance criteria
+  are not clear and testable. You shold come up with a short description to each task on how to implement it.""",
   verbose=True,
   allow_delegation=False,
   tools=tools,
@@ -111,12 +116,15 @@ developer = Agent(
 
 research_user_stories = Task(
   description="""research the user stories, by using the ado search tool to find information about the user stories and the acceptance criteria""",
-  expected_output="a list of acceptance criteria for the user stories in the ado backlog, if the tools fail, return me the error message from the tool",
+  expected_output="a list of current items in ado, if the tools fail, return me the error message from the tool",
   agent=product_owner
 )
 
 define_project_scope = Task(
-  description="""develop the software project by breaking down the project into subtasks in azure devops""",
+  description="""develop the software project by breaking down the project described in ADO into subtasks. 
+  prepare each task with a description and acceptance criteria. 
+  Make sure all team members approve the list of tasks, upload task descriptions to ADO using the create and update tools.""",
+  expected_output="an extensive list of tasks required to complete the project, with descriptions and acceptance criteria, uploaded to ADO",
   agent=product_owner
 )
 
@@ -132,8 +140,8 @@ development = Task(
 
 # Instantiate your crew with a sequential process
 crew = Crew(
-  agents=[product_owner],
-  tasks=[research_user_stories],
+  agents=[product_owner, scrum_master, tester, developer],
+  tasks=[research_user_stories, define_project_scope],
   verbose=2, # You can set it to 1 or 2 to different logging levels
   # manager_llm=default_llm,
   # process=Process.hierarchical,

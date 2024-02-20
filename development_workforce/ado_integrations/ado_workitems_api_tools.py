@@ -1,8 +1,8 @@
 from typing import Dict, List, Optional, Type
 from pydantic import BaseModel, Field
 from langchain.tools import BaseTool
+from development_workforce.ado_integrations.ado_models import AdoWorkItemBase, AdoWorkItem, CreateWorkItemInput, UpdateWorkItemInput
 from development_workforce.ado_integrations.base_ado_workitems_api import BaseAdoWorkitemsApi
-from development_workforce.ado_integrations.mock_ado_workitems_api import AdoWorkItem
 import logging
 
 from langchain.callbacks.manager import (
@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 # Base class for ADO Work Item operations to handle dependency injection
 class AdoWorkitemToolBase(BaseTool):
+    _ado_workitems_api: BaseAdoWorkitemsApi
     def __init__(self, ado_workitems_api: BaseAdoWorkitemsApi):
         super().__init__()
         # this is in order to dodge pydantics type checking to allow for dependency injection into thic class. is similar to 
@@ -21,32 +22,36 @@ class AdoWorkitemToolBase(BaseTool):
         object.__setattr__(self, '_ado_workitems_api', ado_workitems_api)
 
 
+
+
 class CreateWorkItemTool(AdoWorkitemToolBase):
     name = "create ADO workitem"
     description = "Tool to create a new ADO work item"
-    args_schema: Type[BaseModel] = AdoWorkItem
+    args_schema: Type[BaseModel] = CreateWorkItemInput
 
-    def _run(self, work_item: AdoWorkItem, run_manager: Optional[CallbackManagerForToolRun] = None) -> int:
+    def _run(self, input_model: CreateWorkItemInput, run_manager: Optional[CallbackManagerForToolRun] = None) -> Dict[str, str]:
+        # Convert CreateNewADOItem to AdoWorkItem if necessary, or directly use the data to create the work item
         try:
-            return self._ado_workitems_api.create_work_item(work_item)
+            # Assume create_work_item accepts a dictionary that matches CreateNewADOItem's structure
+            return self._ado_workitems_api.create_work_item(input_model)
         except Exception as e:
             logger.error(f"Error creating work item: {e}")
             return {"error": str(e)}
         
 
 
-class ADOWorkItemID(BaseModel):
+class GetWorkItemInput(BaseModel):
     id: int = Field(description="ID of the work item to get")
 
 class GetWorkItemTool(AdoWorkitemToolBase):
     name = "get ADO work item"
     description = "Tool to get a single ADO work item"
-    args_schema: Type[BaseModel] = ADOWorkItemID
+    args_schema: Type[BaseModel] = GetWorkItemInput
 
-    def _run(self, ado_work_item_id: ADOWorkItemID, run_manager: Optional[CallbackManagerForToolRun] = None) -> Dict[str, str]:
+    def _run(self, input_model: GetWorkItemInput, run_manager: Optional[CallbackManagerForToolRun] = None) -> Dict[str, str]:
         try:
-            ado_work_item = self._ado_workitems_api.get_work_item(ado_work_item_id.id)
-            return ado_work_item.model_dump_json()
+            ado_work_item = self._ado_workitems_api.get_work_item(input_model.id)
+            return ado_work_item.model_dump()
         except Exception as e:
             logger.error(f"Error getting work item: {e}")
             return {"error": str(e)}
@@ -54,9 +59,6 @@ class GetWorkItemTool(AdoWorkitemToolBase):
 
 
         
-class UpdateWorkItemInput(BaseModel):
-    id: int = Field(description="ID of the work item to update")
-    work_item: Dict[str, str] = Field(description="Updated fields of the work item")
 
         
 class UpdateWorkItemTool(AdoWorkitemToolBase):
@@ -66,8 +68,9 @@ class UpdateWorkItemTool(AdoWorkitemToolBase):
 
     def _run(self, input_model: UpdateWorkItemInput, run_manager: Optional[CallbackManagerForToolRun] = None) -> Dict[str, str]:
         try:
-            ado_work_item = AdoWorkItem(**input_model.work_item)
-            self._ado_workitems_api.update_work_item(input_model.id, ado_work_item)
+            input_model = input_model.model_dump()
+            id = input_model.pop("id")
+            self._ado_workitems_api.update_work_item(id, input_model)
             return {"message": "Work item updated successfully"}
         except Exception as e:
             logger.error(f"Error updating work item: {e}")
@@ -105,7 +108,7 @@ class ListWorkItemsTool(AdoWorkitemToolBase):
     def _run(self, input_model: ListWorkItemsInput = None, run_manager: Optional[CallbackManagerForToolRun] = None) -> List[Dict[str, str]]:
         try:
             work_items = self._ado_workitems_api.list_work_items()
-            return [item.model_dump_json() for item in work_items]
+            return [item.model_dump() for item in work_items]
         except Exception as e:
             logger.error(f"Error listing work items: {e}")
             return [{"error": str(e)}]

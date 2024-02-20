@@ -4,11 +4,11 @@ from typing import List
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from development_workforce.ado_integrations.mock_ado_workitems_api import AdoWorkItem
+    from development_workforce.ado_integrations.ado_models import AdoWorkItem, CreateWorkItemInput
 
 class BaseAdoWorkitemsApi(ABC):
     @abstractmethod
-    def create_work_item(self, work_item: "AdoWorkItem") -> int:
+    def create_work_item(self, work_item: "CreateWorkItemInput") -> int:
         pass
 
     @abstractmethod

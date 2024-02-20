@@ -1,6 +1,6 @@
 from typing import List
 
-from development_workforce.ado_integrations.ado_models import AdoWorkItem
+from development_workforce.ado_integrations.ado_models import AdoWorkItem, CreateWorkItemInput
 from development_workforce.ado_integrations.base_ado_workitems_api import BaseAdoWorkitemsApi
 
 
@@ -8,7 +8,9 @@ class MockAdoWorkitemsApi(BaseAdoWorkitemsApi):
     def __init__(self):
         self.work_items = []
 
-    def create_work_item(self, work_item: AdoWorkItem) -> int:
+    def create_work_item(self, work_item: CreateWorkItemInput) -> int:
+        next_id = max([work_item.id for work_item in self.work_items], default=0) + 1
+        work_item = AdoWorkItem(id=next_id, **work_item.model_dump())
         self.work_items.append(work_item)
         return work_item.id
 
