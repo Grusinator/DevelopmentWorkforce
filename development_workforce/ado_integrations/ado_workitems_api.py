@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from development_workforce.ado_integrations.ado_connection import ADOConnection
 from development_workforce.ado_integrations.base_ado_workitems_api import BaseAdoWorkitemsApi
 
+
 class WorkItemType(Enum):
     Bug = "Bug"
     Task = "Task"
@@ -17,6 +18,7 @@ class WorkItemType(Enum):
 
 load_dotenv()
 
+
 class ADOWorkitemsApi(ADOConnection, BaseAdoWorkitemsApi):
     def get_headers(self, method_type="GET"):
         encoded_bytes = base64.b64encode(f':{self.personal_access_token}'.encode('ascii'))
@@ -25,7 +27,7 @@ class ADOWorkitemsApi(ADOConnection, BaseAdoWorkitemsApi):
             'Authorization': f'Basic {encoded_pat}',
             'Content-Type': 'application/json-patch+json' if method_type == "PATCH" else 'application/json',
         }
-    
+
     def make_request(self, method, url, **kwargs):
         headers = self.get_headers(method)
         response = requests.request(method, url, headers=headers, **kwargs)
@@ -48,7 +50,7 @@ class ADOWorkitemsApi(ADOConnection, BaseAdoWorkitemsApi):
             'state': work_item_details['fields']['System.State'],
             'description': work_item_details['fields']['System.Description']
         }
-    
+
     def update_object_state(self, work_item_id, new_state):
         url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/{work_item_id}?api-version=7.0"
         document = [
@@ -59,7 +61,6 @@ class ADOWorkitemsApi(ADOConnection, BaseAdoWorkitemsApi):
             }
         ]
         self.make_request('PATCH', url, json=document)
-
 
     def create_object(self, title, description, work_item_type):
         url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/${work_item_type}?api-version=6.0"
@@ -127,7 +128,3 @@ if __name__ == "__main__":
         # Update the details of the first object
         # interface.update_object_details(first_object['id'], "Updated Title", "Updated Description")
         interface.update_object_state(first_object['id'], "Closed")
-
-    
-
-

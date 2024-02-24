@@ -29,3 +29,7 @@ class UpdateWorkItemInput(AdoWorkItemBase):
     id: int = Field(description="ID of the work item to update")
     title: Optional[str] = None
     type: Optional[str] = None
+
+
+class GetWorkItemInput(BaseModel):
+    id: int = Field(description="ID of the work item to get")

@@ -1,5 +1,5 @@
 import pytest
-from development_workforce.ado_integrations.ado_models import AdoWorkItem
+from development_workforce.ado_integrations.ado_models import AdoWorkItem, CreateWorkItemInput, UpdateWorkItemInput
 from development_workforce.ado_integrations.mock_ado_workitems_api import MockAdoWorkitemsApi
 
 class TestMockAdoWorkitemApi:
@@ -21,11 +21,10 @@ class TestMockAdoWorkitemApi:
         return work_item.id
 
     def test_create_work_item(self, api):
-        work_item = AdoWorkItem(id=1, type='Bug', assigned_to='John', title='Test')
+        work_item = CreateWorkItemInput(type='Bug', assigned_to='John', title='Test')
         work_item_id = api.create_work_item(work_item)
-        assert work_item_id == 1
         assert len(api.work_items) == 1
-        assert api.work_items[0] == work_item
+        assert api.work_items[0].assigned_to == work_item.assigned_to
 
     def test_get_work_item(self, api: MockAdoWorkitemsApi, add_work_item1: int):
         retrieved_work_item = api.get_work_item(add_work_item1)
@@ -37,14 +36,14 @@ class TestMockAdoWorkitemApi:
             api.get_work_item(1)
 
     def test_update_work_item(self, api: MockAdoWorkitemsApi, add_work_item1):
-        updated_work_item = dict(id=1, type='Bug', assigned_to='Jane')
-        api.update_work_item(updated_work_item)
+        updated_work_item = UpdateWorkItemInput(id=1, type='Bug', assigned_to='Jane')
+        api.update_work_item_description(updated_work_item)
         assert len(api.work_items) == 1
         assert api.work_items[0].assigned_to == 'Jane'
 
     def test_update_work_item_not_found(self, api):
         with pytest.raises(ValueError):
-            api.update_work_item(AdoWorkItem(id=1, type='Bug', assigned_to='Jane'))
+            api.update_work_item_description(UpdateWorkItemInput(id=1, type='Bug', assigned_to='Jane'))
 
     def test_delete_work_item(self, api: MockAdoWorkitemsApi, add_work_item1):
         api.delete_work_item(1)

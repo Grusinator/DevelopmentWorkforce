@@ -1,17 +1,27 @@
-from typing import Dict, List, Optional, Type
+from typing import Dict, List, Optional, Type, Union
 from pydantic import BaseModel, Field
 from langchain.tools import BaseTool
-from development_workforce.ado_integrations.ado_models import AdoWorkItemBase, AdoWorkItem, CreateWorkItemInput, \
-    UpdateWorkItemInput
+from development_workforce.ado_integrations.ado_models import CreateWorkItemInput, \
+    UpdateWorkItemInput, GetWorkItemInput
 from development_workforce.ado_integrations.base_ado_workitems_api import BaseAdoWorkitemsApi
 import logging
 
 from langchain.callbacks.manager import (
-    AsyncCallbackManagerForToolRun,
     CallbackManagerForToolRun,
 )
 
 logger = logging.getLogger(__name__)
+
+
+def log_inputs(func):
+    # Decorator to log function inputs
+    def wrapper(*args, **kwargs):
+        arg_types = [type(arg) for arg in args]
+        kwarg_types = {k: type(v) for k, v in kwargs.items()}
+        logger.info(f"Running {func.__name__} with args: {args}, types: {arg_types}")
+        logger.info(f"and kwargs: {kwargs}, types: {kwarg_types}")
+        return func(*args, **kwargs)
+    return wrapper
 
 
 # Base class for ADO Work Item operations to handle dependency injection
@@ -28,32 +38,32 @@ class AdoWorkitemToolBase(BaseTool):
 class CreateWorkItemTool(AdoWorkitemToolBase):
     name = "create ADO workitem"
     description = "Tool to create a new ADO work item"
-    args_schema: Type[BaseModel] = CreateWorkItemInput
+    # args_schema: Type[BaseModel] = CreateWorkItemInput
 
-    def _run(self, input_model: CreateWorkItemInput, run_manager: Optional[CallbackManagerForToolRun] = None) -> Dict[
-        str, str]:
-        # Convert CreateNewADOItem to AdoWorkItem if necessary, or directly use the data to create the work item
+    @log_inputs
+    def _run(self, args, kwargs, run_manager: Optional[CallbackManagerForToolRun] = None) -> Dict[
+        str, Union[str, int]]:
         try:
-            # Assume create_work_item accepts a dictionary that matches CreateNewADOItem's structure
-            return self._ado_workitems_api.create_work_item(input_model)
+            input_model = CreateWorkItemInput(**kwargs)
+            created_id = self._ado_workitems_api.create_work_item(input_model)
+            return {"id": created_id}
         except Exception as e:
             logger.error(f"Error creating work item: {e}")
             return {"error": str(e)}
 
 
-class GetWorkItemInput(BaseModel):
-    id: int = Field(description="ID of the work item to get")
-
-
 class GetWorkItemTool(AdoWorkitemToolBase):
     name = "get ADO work item"
     description = "Tool to get a single ADO work item"
-    args_schema: Type[BaseModel] = GetWorkItemInput
+    # args_schema: Type[BaseModel] = GetWorkItemInput
+    # This is a workaround to avoid the type checking of pydantic.
 
-    def _run(self, input_model: GetWorkItemInput, run_manager: Optional[CallbackManagerForToolRun] = None) -> Dict[
+    @log_inputs
+    def _run(self, args, kwargs, run_manager: Optional[CallbackManagerForToolRun] = None) -> Dict[
         str, str]:
         try:
-            ado_work_item = self._ado_workitems_api.get_work_item(input_model.id)
+            work_item = GetWorkItemInput(**kwargs)
+            ado_work_item = self._ado_workitems_api.get_work_item(work_item.id)
             return ado_work_item.model_dump()
         except Exception as e:
             logger.error(f"Error getting work item: {e}")
@@ -62,13 +72,18 @@ class GetWorkItemTool(AdoWorkitemToolBase):
 
 class UpdateWorkItemTool(AdoWorkitemToolBase):
     name = "update ADO work item"
-    description = "Tool to update an existing ADO work item"
-    args_schema: Type[BaseModel] = UpdateWorkItemInput
+    description = "Tool to update an existing ADO work item. The ID of the work item to update must be provided." \
+                  "The action Input field can be filled out as following:" \
+                  "title: Example title, type: Example type, description: Example description, assigned_to: Example assigned_to"
 
-    def _run(self, input_model: UpdateWorkItemInput, run_manager: Optional[CallbackManagerForToolRun] = None) -> Dict[
+    # args_schema: Type[BaseModel] = UpdateWorkItemInput
+
+    @log_inputs
+    def _run(self, args, kwargs, run_manager: Optional[CallbackManagerForToolRun] = None) -> Dict[
         str, str]:
         try:
-            work_item_id = self._ado_workitems_api.update_work_item(input_model)
+            input_model = UpdateWorkItemInput(**kwargs)
+            work_item_id = self._ado_workitems_api.update_work_item_description(input_model)
             return {"message": "Work item updated successfully", "id": work_item_id}
         except Exception as e:
             logger.error(f"Error updating work item: {e}")
@@ -82,11 +97,13 @@ class DeleteWorkItemInput(BaseModel):
 class DeleteWorkItemTool(AdoWorkitemToolBase):
     name = "delete ADO work item"
     description = "Tool to delete an ADO work item"
-    args_schema: Type[BaseModel] = DeleteWorkItemInput
+    # args_schema: Type[BaseModel] = DeleteWorkItemInput
 
-    def _run(self, input_model: DeleteWorkItemInput, run_manager: Optional[CallbackManagerForToolRun] = None) -> Dict[
+    @log_inputs
+    def _run(self, args, kwargs, run_manager: Optional[CallbackManagerForToolRun] = None) -> Dict[
         str, str]:
         try:
+            input_model = DeleteWorkItemInput(**kwargs)
             self._ado_workitems_api.delete_work_item(input_model.id)
             return {"message": "Work item deleted successfully"}
         except Exception as e:
@@ -102,11 +119,13 @@ class ListWorkItemsInput(BaseModel):
 class ListWorkItemsTool(AdoWorkitemToolBase):
     name = "list ADO work items"
     description = "Tool to list all ADO work items"
-    args_schema: Type[BaseModel] = ListWorkItemsInput  # Adjust if you add filters
+    # args_schema: Type[BaseModel] = ListWorkItemsInput  # Adjust if you add filters
 
-    def _run(self, input_model: ListWorkItemsInput = None, run_manager: Optional[CallbackManagerForToolRun] = None) -> \
-    List[Dict[str, str]]:
+    @log_inputs
+    def _run(self, args, kwargs, run_manager: Optional[CallbackManagerForToolRun] = None) -> \
+            List[Dict[str, str]]:
         try:
+            # input_model = ListWorkItemsInput(**kwargs)
             work_items = self._ado_workitems_api.list_work_items()
             return [item.model_dump() for item in work_items]
         except Exception as e:

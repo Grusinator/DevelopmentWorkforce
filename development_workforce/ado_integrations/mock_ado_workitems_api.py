@@ -20,7 +20,7 @@ class MockAdoWorkitemsApi(BaseAdoWorkitemsApi):
                 return work_item
         raise ValueError(f"Work item with ID {work_item_id} not found.")
 
-    def update_work_item(self, updated_work_item: UpdateWorkItemInput) -> int:
+    def update_work_item_description(self, updated_work_item: UpdateWorkItemInput) -> int:
         for i, work_item in enumerate(self.work_items):
             if work_item.id == updated_work_item.id:
                 self.work_items[i] = self._update_work_item_fields(work_item, updated_work_item.model_dump())
