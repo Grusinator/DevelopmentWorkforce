@@ -38,13 +38,13 @@ class TestMockAdoWorkitemApi:
 
     def test_update_work_item(self, api: MockAdoWorkitemsApi, add_work_item1):
         updated_work_item = dict(id=1, type='Bug', assigned_to='Jane')
-        api.update_work_item(1, updated_work_item)
+        api.update_work_item(updated_work_item)
         assert len(api.work_items) == 1
         assert api.work_items[0].assigned_to == 'Jane'
 
     def test_update_work_item_not_found(self, api):
         with pytest.raises(ValueError):
-            api.update_work_item(1, AdoWorkItem(id=1, type='Bug', assigned_to='Jane'))
+            api.update_work_item(AdoWorkItem(id=1, type='Bug', assigned_to='Jane'))
 
     def test_delete_work_item(self, api: MockAdoWorkitemsApi, add_work_item1):
         api.delete_work_item(1)
