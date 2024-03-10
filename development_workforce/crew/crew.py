@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 from crewai import Agent, Task, Crew, Process
@@ -8,6 +9,8 @@ from langchain_community.llms.ollama import Ollama
 from development_workforce.ado_integrations.ado_workitems_api_tools import instantiate_ado_tools
 from development_workforce.ado_integrations.mock_ado_workitems_api import MockAdoWorkitemsApi
 from development_workforce.ado_integrations.ado_models import AdoWorkItem, CreateWorkItemInput
+from langchain_community.agent_toolkits import FileManagementToolkit
+from tempfile import TemporaryDirectory
 
 load_dotenv(".env", override=True)
 
@@ -56,7 +59,6 @@ def get_llm(llm_name):
 default_llm = chatgpt
 developer_llm = default_llm
 
-# from langchain_community.tools.file_management import CopyFileTool, DeleteFileTool, FileSearchTool, ListDirectoryTool, MoveFileTool, ReadFileTool, WriteFileTool
 
 search_tool = DuckDuckGoSearchRun()
 
@@ -72,14 +74,25 @@ ado_workitems_api.create_work_item(workitem)
 
 ado_workitems_tools = instantiate_ado_tools(ado_workitems_api=ado_workitems_api)
 
-tools = [search_tool] + ado_workitems_tools
+working_directory = Path("workspace/")
+
+working_directory = TemporaryDirectory()
+
+
+toolkit = FileManagementToolkit(
+    root_dir=str(working_directory.name)
+)  # If you don't provide a root_dir, operations will default to the current working directory
+
+
+tools = [search_tool] + ado_workitems_tools + toolkit.get_tools()
 
 product_owner = Agent(
     role='Product Owner',
     goal='Define and prioritize product features',
     backstory="""You are an experienced Product Owner, responsible for defining the vision and roadmap of the product. 
     You work closely with stakeholders and development teams to ensure the product meets customer needs. 
-    Make sure that all tasks are described in full detail and approved by the developers, before setting the state to ready for development.
+    Make sure that all tasks are described in full detail and approved by the developers, 
+    before setting the state to ready for development.
     your primary interface is the board, using the ado tools.""",
     verbose=True,
     allow_delegation=True,
@@ -106,7 +119,8 @@ tester = Agent(
     goal='Ensure the quality of the product',
     backstory="""You are a skilled QA Tester, responsible for ensuring the quality of the product. 
   You perform various tests to identify any issues or bugs in the software.
-  You are responisble for reviewing all the unit tests and make sure that the code is tested according to the acceptance criteria.""",
+  You are responisble for reviewing all the unit tests and make sure that the code is tested 
+  according to the acceptance criteria.""",
     verbose=True,
     allow_delegation=True,
     tools=tools,
