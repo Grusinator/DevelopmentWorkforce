@@ -1,3 +1,4 @@
+from abc import ABC
 from typing import Dict, List, Optional, Type, Union
 from pydantic import BaseModel, Field
 from langchain.tools import BaseTool
@@ -25,7 +26,7 @@ def log_inputs(func):
 
 
 # Base class for ADO Work Item operations to handle dependency injection
-class AdoWorkitemToolBase(BaseTool):
+class AdoWorkitemToolBase(BaseTool, ABC):
     _ado_workitems_api: BaseAdoWorkitemsApi
 
     def __init__(self, ado_workitems_api: BaseAdoWorkitemsApi):

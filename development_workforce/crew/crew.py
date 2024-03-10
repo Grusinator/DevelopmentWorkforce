@@ -1,90 +1,10 @@
-import os
-from pathlib import Path
-from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
-from crewai import Agent, Task, Crew, Process
-from langchain_community.tools import DuckDuckGoSearchRun
-from langchain_community.llms.huggingface_endpoint import HuggingFaceEndpoint
-from langchain_community.llms.ollama import Ollama
-from development_workforce.ado_integrations.ado_workitems_api_tools import instantiate_ado_tools
-from development_workforce.ado_integrations.mock_ado_workitems_api import MockAdoWorkitemsApi
-from development_workforce.ado_integrations.ado_models import AdoWorkItem, CreateWorkItemInput
-from langchain_community.agent_toolkits import FileManagementToolkit
-from tempfile import TemporaryDirectory
+from crewai import Agent
+
+from development_workforce.crew.models import default_llm, developer_llm
+from development_workforce.crew.tools import default_tools
 
 load_dotenv(".env", override=True)
-
-
-ollama_instruct = Ollama(
-    model=os.getenv("OLLAMA_MODEL_NAME"),
-    base_url=os.getenv("OLLAMA_API_BASE")
-)
-
-ollama_python = Ollama(
-    model=os.getenv("OLLAMA_MODEL_NAME_2"),
-    base_url=os.getenv("OLLAMA_API_BASE_2")
-)
-
-chatgpt = ChatOpenAI(
-    api_key=os.getenv("OPENAI_API_KEY"),
-    model_name=os.getenv("OPENAI_MODEL_NAME"),
-)
-
-hugging_face = HuggingFaceEndpoint(
-    endpoint_url=os.getenv("HUGGINGFACE_API_BASE"),
-    huggingfacehub_api_token=os.getenv("HUGGINGFACE_API_KEY"),
-    task="text-generation",
-    model_kwargs={
-        "max_new_tokens": 2000,  # Adjust based on input size to keep total under 1024
-        # "top_k": 50,
-        # "temperature": 0.2,
-        "repetition_penalty": 1.1,
-        "max_length": 4000,  # Ensure input + max_new_tokens <= 1024
-    }
-)
-
-
-def get_llm(llm_name):
-    llm_mapping = {
-        "ollama_instruct": ollama_instruct,
-        "ollama_python": ollama_python,
-        "chatgpt": chatgpt,
-        "hugging_face": hugging_face
-    }
-    llm = llm_mapping.get(llm_name)
-    if llm is None:
-        raise ValueError(f"Invalid llm_name: {llm_name}")
-
-
-default_llm = chatgpt
-developer_llm = default_llm
-
-
-search_tool = DuckDuckGoSearchRun()
-
-ado_workitems_api = MockAdoWorkitemsApi()
-workitem = CreateWorkItemInput(
-    type="Epic",
-    assigned_to="John",
-    title="Make a tick tac toe game",
-    description="update the description",
-    tags=[]
-)
-ado_workitems_api.create_work_item(workitem)
-
-ado_workitems_tools = instantiate_ado_tools(ado_workitems_api=ado_workitems_api)
-
-working_directory = Path("workspace/")
-
-working_directory = TemporaryDirectory()
-
-
-toolkit = FileManagementToolkit(
-    root_dir=str(working_directory.name)
-)  # If you don't provide a root_dir, operations will default to the current working directory
-
-
-tools = [search_tool] + ado_workitems_tools + toolkit.get_tools()
 
 product_owner = Agent(
     role='Product Owner',
@@ -96,7 +16,7 @@ product_owner = Agent(
     your primary interface is the board, using the ado tools.""",
     verbose=True,
     allow_delegation=True,
-    tools=tools,
+    tools=default_tools,
     llm=default_llm
 )
 
@@ -110,7 +30,7 @@ scrum_master = Agent(
 
     verbose=True,
     allow_delegation=True,
-    tools=tools,
+    tools=default_tools,
     llm=default_llm
 )
 
@@ -123,7 +43,7 @@ tester = Agent(
   according to the acceptance criteria.""",
     verbose=True,
     allow_delegation=True,
-    tools=tools,
+    tools=default_tools,
     llm=default_llm
 )
 
@@ -135,6 +55,6 @@ developer = Agent(
   are not clear and testable. You shold come up with a short description to each task on how to implement it.""",
     verbose=True,
     allow_delegation=False,
-    tools=tools,
+    tools=default_tools,
     llm=developer_llm
 )

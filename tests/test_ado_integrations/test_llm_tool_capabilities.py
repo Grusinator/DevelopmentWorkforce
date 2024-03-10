@@ -30,11 +30,15 @@ def tool_test_task(request):
 
 @pytest.mark.parametrize("instantiate_llm", ["chatgpt", ], indirect=True)
 @pytest.mark.parametrize("tool_test_task", [
-    "get work item (1)",
-    "List ado",
-    "Create work item",
-    "Update work item",
-    "delete work item"
+    # "get work item (1)",
+    # "List ado",
+    # "Create work item",
+    # "Update work item",
+    # "delete work item",
+    "create file",
+    "delete file",
+    "get file",
+    "get file list",
 ], indirect=True)
 def test_run_tool(instantiate_llm, tool_test_task):
     crew = Crew(

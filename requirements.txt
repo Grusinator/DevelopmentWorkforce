@@ -8,6 +8,8 @@ duckduckgo-search
 huggingface-hub
 python-dotenv
 langchain
+pygithub
+GitPython
 
 pytest
 pytest-coverage
