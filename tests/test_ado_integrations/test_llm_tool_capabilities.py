@@ -1,7 +1,8 @@
 import pytest
 from crewai import Task, Crew
 from dotenv import load_dotenv
-from development_workforce.crew import tester, get_llm
+from development_workforce.crew.crew import tester
+from development_workforce.crew.models import get_llm
 
 
 @pytest.fixture(autouse=True)
@@ -39,6 +40,8 @@ def tool_test_task(request):
     "delete file",
     "get file",
     "get file list",
+    "run pytests",
+    "git commit a test file"
 ], indirect=True)
 def test_run_tool(instantiate_llm, tool_test_task):
     crew = Crew(

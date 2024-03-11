@@ -14,6 +14,9 @@ from langchain.agents import AgentType, initialize_agent
 from langchain_community.agent_toolkits.github.toolkit import GitHubToolkit
 from langchain_community.utilities.github import GitHubAPIWrapper
 from langchain_openai import ChatOpenAI
+import pytest
+
+from development_workforce.git_tool.git_tool import instantiate_git_tools
 
 # Set your environment variables using os.environ
 os.environ["GITHUB_APP_ID"] = "123456"
@@ -50,4 +53,23 @@ toolkit = FileManagementToolkit(
 )  # If you don't provide a root_dir, operations will default to the current working directory
 file_mgt_tools = toolkit.get_tools()
 
-default_tools: List[BaseTool] = search_tools + ado_workitems_tools + file_mgt_tools + github_tools
+
+
+
+class PytestTool(BaseTool):
+    """This tool runs pytest in the working directory"""
+    def run(self):
+        pytest.main([str(working_directory)])
+
+pytest_tool = [PytestTool()]
+
+git_tools = instantiate_git_tools()
+
+default_tools: List[BaseTool] = (
+    search_tools +
+    ado_workitems_tools +
+    file_mgt_tools +
+    github_tools +
+    pytest_tool +
+    git_tools
+)
