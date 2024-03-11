@@ -13,3 +13,5 @@ GitPython
 
 pytest
 pytest-coverage
+pytest-dotenv
+pytest-json-report

@@ -1,7 +1,7 @@
 from crewai import Task, Crew
 
 from development_workforce.crew.crew import product_owner, scrum_master, tester, developer
-from development_workforce.crew.tools import ado_workitems_api
+from development_workforce.crew.tools import _ado_workitems_api
 
 research_user_stories = Task(
     description="""research the user stories, by using the ado search tool
@@ -49,4 +49,4 @@ result = crew.kickoff()
 print("######################")
 print(result)
 
-print(ado_workitems_api.work_items)
+print(_ado_workitems_api.work_items)

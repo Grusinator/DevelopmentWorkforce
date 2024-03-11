@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Dict, List, Optional, Type, Union
+from typing import Dict, List, Optional, Union
 from pydantic import BaseModel, Field
 from langchain.tools import BaseTool
 from development_workforce.ado_integrations.ado_models import CreateWorkItemInput, \
@@ -11,22 +11,13 @@ from langchain.callbacks.manager import (
     CallbackManagerForToolRun,
 )
 
+from development_workforce.utils import log_inputs
+
 logger = logging.getLogger(__name__)
 
 
-def log_inputs(func):
-    # Decorator to log function inputs
-    def wrapper(*args, **kwargs):
-        arg_types = [type(arg) for arg in args]
-        kwarg_types = {k: type(v) for k, v in kwargs.items()}
-        logger.info(f"Running {func.__name__} with args: {args}, types: {arg_types}")
-        logger.info(f"and kwargs: {kwargs}, types: {kwarg_types}")
-        return func(*args, **kwargs)
-    return wrapper
-
-
-# Base class for ADO Work Item operations to handle dependency injection
 class AdoWorkitemToolBase(BaseTool, ABC):
+    # Base class for ADO Work Item operations to handle dependency injection
     _ado_workitems_api: BaseAdoWorkitemsApi
 
     def __init__(self, ado_workitems_api: BaseAdoWorkitemsApi):

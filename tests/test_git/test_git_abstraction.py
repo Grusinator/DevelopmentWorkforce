@@ -9,13 +9,12 @@ import time
 
 
 @pytest.fixture(scope="function")
-def git_abstraction():
-    with TemporaryDirectory() as temp_dir:
-        repo_url = "https://github.com/Grusinator/ai-test-project.git"
-        repo_path = Path(temp_dir) / "repo"
-        repo_path.mkdir()
-        git = GitAbstraction(repo_url, repo_path)
-        yield git
+def git_abstraction(create_working_dir):
+    repo_url = "https://github.com/Grusinator/ai-test-project.git"
+    git = GitAbstraction(repo_url, create_working_dir, main_branch_name="automated_testing")
+    yield git
+
+
 @pytest.fixture
 def git_cloned_repo(git_abstraction):
     git_abstraction.clone_repo()
@@ -54,3 +53,9 @@ def test_push(git_with_commit):
 def test_pull(git_cloned_repo):
     git_cloned_repo.pull()
     # Add assertions to check if the repository was pulled successfully
+
+
+def test_clone_branch_add_commit_push_pull(git_cloned_repo, add_test_file):
+    git_cloned_repo.create_and_checkout_branch("test_branch")
+    git_cloned_repo.commit_all("Test commit")
+    git_cloned_repo.push()

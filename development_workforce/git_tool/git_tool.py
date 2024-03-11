@@ -10,21 +10,13 @@ from langchain.callbacks.manager import (
     CallbackManagerForToolRun,
 )
 
+from development_workforce.utils import log_inputs
+
 logger = logging.getLogger(__name__)
+
 
 class CreateBranchInput(BaseModel):
     branch_name: str = Field(..., title="Branch Name", description="Name of the branch to be created")
-
-
-
-def log_inputs(func):
-    def wrapper(*args, **kwargs):
-        arg_types = [type(arg) for arg in args]
-        kwarg_types = {k: type(v) for k, v in kwargs.items()}
-        logger.info(f"Running {func.__name__} with args: {args}, types: {arg_types}")
-        logger.info(f"and kwargs: {kwargs}, types: {kwarg_types}")
-        return func(*args, **kwargs)
-    return wrapper
 
 
 class GitToolBase(BaseTool, ABC):

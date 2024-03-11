@@ -40,6 +40,7 @@ def get_llm(llm_name):
     llm = llm_mapping.get(llm_name)
     if llm is None:
         raise ValueError(f"Invalid llm_name: {llm_name}")
+    return llm
 
 
 default_llm = chatgpt

@@ -1,10 +1,27 @@
+from pathlib import Path
 from dotenv import load_dotenv
 from crewai import Agent
+from development_workforce.ado_integrations.mock_ado_workitems_api import MockAdoWorkitemsApi
+from development_workforce.crew.tools import ToolsBuilder
 
 from development_workforce.crew.models import default_llm, developer_llm
-from development_workforce.crew.tools import default_tools
+
 
 load_dotenv(".env", override=True)
+
+working_directory = Path("workspace/")
+builder = ToolsBuilder(working_directory)
+git_url = "https://github.com/Grusinator/ai-test-project.git"
+ado_workitems_api = MockAdoWorkitemsApi()  # Assuming this is initialized elsewhere as per original script
+
+tools_list = builder \
+    .add_search_tools() \
+    .add_ado_tools(ado_workitems_api) \
+    .add_file_management_tools() \
+    .add_pytest_tool() \
+    .add_git_tools(git_url) \
+    .build()
+
 
 product_owner = Agent(
     role='Product Owner',
@@ -16,7 +33,7 @@ product_owner = Agent(
     your primary interface is the board, using the ado tools.""",
     verbose=True,
     allow_delegation=True,
-    tools=default_tools,
+    tools=tools_list,
     llm=default_llm
 )
 
@@ -30,7 +47,7 @@ scrum_master = Agent(
 
     verbose=True,
     allow_delegation=True,
-    tools=default_tools,
+    tools=tools_list,
     llm=default_llm
 )
 
@@ -43,7 +60,7 @@ tester = Agent(
   according to the acceptance criteria.""",
     verbose=True,
     allow_delegation=True,
-    tools=default_tools,
+    tools=tools_list,
     llm=default_llm
 )
 
@@ -55,6 +72,6 @@ developer = Agent(
   are not clear and testable. You shold come up with a short description to each task on how to implement it.""",
     verbose=True,
     allow_delegation=False,
-    tools=default_tools,
+    tools=tools_list,
     llm=developer_llm
 )
