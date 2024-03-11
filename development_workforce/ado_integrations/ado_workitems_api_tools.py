@@ -114,7 +114,7 @@ class ListWorkItemsTool(AdoWorkitemToolBase):
     # args_schema: Type[BaseModel] = ListWorkItemsInput  # Adjust if you add filters
 
     @log_inputs
-    def _run(self, args, kwargs, run_manager: Optional[CallbackManagerForToolRun] = None) -> \
+    def _run(self, args=None, kwargs=None, run_manager: Optional[CallbackManagerForToolRun] = None) -> \
             List[Dict[str, str]]:
         try:
             # input_model = ListWorkItemsInput(**kwargs)

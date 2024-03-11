@@ -1,14 +1,12 @@
-from datetime import datetime
-from pathlib import Path
+
 import pytest
-from crewai import Task, Crew
+from crewai import Task, Crew, Agent
 from dotenv import load_dotenv
+
+from development_workforce.ado_integrations.ado_models import CreateWorkItemInput
 from development_workforce.ado_integrations.mock_ado_workitems_api import MockAdoWorkitemsApi
 from development_workforce.crew.tools import ToolsBuilder
-from development_workforce.crew.crew import tester
 from development_workforce.crew.models import get_llm
-import os
-from uuid import uuid4
 
 
 @pytest.fixture(autouse=True)
@@ -20,6 +18,13 @@ def load_env_vars():
 def create_toolset(create_working_dir):
     git_url = "https://github.com/Grusinator/ai-test-project.git"
     ado_workitems_api = MockAdoWorkitemsApi()  # Assuming this is initialized elsewhere as per original script
+    ado_workitems_api.create_work_item(
+        CreateWorkItemInput(
+            title="maka a calculator widget",
+            description="This is a widget that can add, sub, div, and mul numbers",
+            type="Feature",
+        )
+    )
 
     tools_list = ToolsBuilder(create_working_dir) \
         .add_search_tools() \
@@ -40,9 +45,18 @@ def instantiate_llm(request):
 
 @pytest.fixture
 def agent_tester(create_toolset, instantiate_llm):
-    tester.tools = create_toolset
-    tester.llm = instantiate_llm
-    return tester
+    return Agent(
+        role='QA Tester',
+        goal='Ensure the quality of the product',
+        backstory="""You are a skilled QA Tester, responsible for ensuring the quality of the product. 
+      You perform various tests to identify any issues or bugs in the software.
+      You are responisble for reviewing all the unit tests and make sure that the code is tested 
+      according to the acceptance criteria.""",
+        verbose=True,
+        allow_delegation=True,
+        tools=create_toolset,
+        llm=instantiate_llm
+    )
 
 
 @pytest.fixture
@@ -89,8 +103,10 @@ def test_run_tool(instantiate_llm, tool_test_task, agent_tester):
 @pytest.mark.parametrize("instantiate_llm", ["chatgpt", ], indirect=True)
 @pytest.mark.parametrize("instruction", [
     # "write a small python test that asserts that 1 + 1 equals 2, and run the python test locally",
-    "write a function in one file, and a test in another. and run the test",
-    "pull from the origin repo, create a new branch, add a file and push the branch to origin"
+    # "write a function in one file, and a test in another. and run the test",
+    # "pull from the origin repo, create a new branch, add a file and push the branch to origin",
+    # "write a user story and add it to ado",
+    "list user stories, pick one and implement the story, by cloning, creating a branch, commit files and pushing the branch to origin",
 ])
 def test_run_instruction(instruction, agent_tester, instantiate_llm):
     task = Task(

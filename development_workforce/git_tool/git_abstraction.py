@@ -19,6 +19,8 @@ class GitAbstraction:
             self.repo = None
 
     def clone_repo(self):
+        if isinstance(self.repo, Repo):
+            raise ValueError("Repository already exists at the specified path.")
         self.repo = Repo.clone_from(self.repo_url, self.repo_path)
         logger.info(f"Repo cloned successfully from {self.repo_url} into {self.repo_path}")
 
