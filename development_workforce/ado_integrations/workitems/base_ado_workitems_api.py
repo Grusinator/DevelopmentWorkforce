@@ -4,7 +4,7 @@ from typing import List
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from development_workforce.ado_integrations.ado_models import AdoWorkItem, CreateWorkItemInput, UpdateWorkItemInput
+    from development_workforce.ado_integrations.workitems.ado_workitem_models import AdoWorkItem, CreateWorkItemInput, UpdateWorkItemInput
 
 
 class BaseAdoWorkitemsApi(ABC):

@@ -1,12 +1,15 @@
+import os
 from pathlib import Path
 from typing import List
 
 from langchain.tools import BaseTool
 from langchain_community.agent_toolkits import FileManagementToolkit
+from langchain_community.agent_toolkits.github.toolkit import GitHubToolkit
 from langchain_community.tools.ddg_search import DuckDuckGoSearchRun
+from langchain_community.utilities.github import GitHubAPIWrapper
 
-from development_workforce.ado_integrations.ado_workitems_api_tools import instantiate_ado_tools
-from development_workforce.ado_integrations.mock_ado_workitems_api import MockAdoWorkitemsApi
+from development_workforce.ado_integrations.workitems.ado_workitems_api_tools import instantiate_ado_tools
+from development_workforce.ado_integrations.workitems.mock_ado_workitems_api import MockAdoWorkitemsApi
 from development_workforce.git_tool.git_abstraction import GitAbstraction
 from development_workforce.git_tool.git_tool import instantiate_git_tools
 from development_workforce.pytest_tool import PytestTool
@@ -19,6 +22,13 @@ class ToolsBuilder:
 
     def add_search_tools(self):
         self.tools.append(DuckDuckGoSearchRun())
+        return self
+
+    def add_github_tools(self):
+        private_key = os.getenv("GITHUB_APP_PRIVATE_KEY")
+        github = GitHubAPIWrapper(github_app_private_key=private_key)
+        toolkit = GitHubToolkit.from_github_api_wrapper(github)
+        self.tools += toolkit.get_tools()
         return self
 
     def add_ado_tools(self, ado_workitems_api):
@@ -59,6 +69,7 @@ if __name__ == "__main__":
         .add_file_management_tools() \
         .add_pytest_tool() \
         .add_git_tools(_git_url) \
+        .add_github_tools() \
         .build()
 
 # tools_list now contains all the tools added through the builder pattern

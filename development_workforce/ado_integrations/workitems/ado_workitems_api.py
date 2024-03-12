@@ -1,11 +1,8 @@
-import base64
 from enum import Enum
-import os
-import requests
 from dotenv import load_dotenv
 
 from development_workforce.ado_integrations.ado_connection import ADOConnection
-from development_workforce.ado_integrations.base_ado_workitems_api import BaseAdoWorkitemsApi
+from development_workforce.ado_integrations.workitems.base_ado_workitems_api import BaseAdoWorkitemsApi
 
 
 class WorkItemType(Enum):
@@ -20,19 +17,6 @@ load_dotenv()
 
 
 class ADOWorkitemsApi(ADOConnection, BaseAdoWorkitemsApi):
-    def get_headers(self, method_type="GET"):
-        encoded_bytes = base64.b64encode(f':{self.personal_access_token}'.encode('ascii'))
-        encoded_pat = str(encoded_bytes, 'ascii')
-        return {
-            'Authorization': f'Basic {encoded_pat}',
-            'Content-Type': 'application/json-patch+json' if method_type == "PATCH" else 'application/json',
-        }
-
-    def make_request(self, method, url, **kwargs):
-        headers = self.get_headers(method)
-        response = requests.request(method, url, headers=headers, **kwargs)
-        response.raise_for_status()
-        return response.json()
 
     def fetch_all_objects(self):
         url = f"{self.organization_url}/{self.project_name}/_apis/wit/wiql?api-version=6.0"

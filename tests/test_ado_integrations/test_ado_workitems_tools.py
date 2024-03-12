@@ -1,13 +1,12 @@
-import json
 import pytest
-from development_workforce.ado_integrations.mock_ado_workitems_api import MockAdoWorkitemsApi, AdoWorkItem
-from development_workforce.ado_integrations.ado_workitems_api_tools import (CreateWorkItemInput,
-                                                                            CreateWorkItemTool, GetWorkItemTool, UpdateWorkItemTool,
-                                                                            DeleteWorkItemTool, ListWorkItemsTool,
-                                                                            UpdateWorkItemInput, DeleteWorkItemInput,
-                                                                            ListWorkItemsInput
-                                                                            )
-from development_workforce.ado_integrations.ado_models import GetWorkItemInput
+from development_workforce.ado_integrations.workitems.mock_ado_workitems_api import MockAdoWorkitemsApi
+from development_workforce.ado_integrations.workitems.ado_workitems_api_tools import (CreateWorkItemInput,
+                                                                                      CreateWorkItemTool, GetWorkItemTool, UpdateWorkItemTool,
+                                                                                      DeleteWorkItemTool, ListWorkItemsTool,
+                                                                                      UpdateWorkItemInput, DeleteWorkItemInput,
+                                                                                      ListWorkItemsInput
+                                                                                      )
+from development_workforce.ado_integrations.workitems.ado_workitem_models import GetWorkItemInput
 
 
 class TestAdoWorkitemsApiTools:

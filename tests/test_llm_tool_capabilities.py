@@ -3,8 +3,8 @@ import pytest
 from crewai import Task, Crew, Agent
 from dotenv import load_dotenv
 
-from development_workforce.ado_integrations.ado_models import CreateWorkItemInput
-from development_workforce.ado_integrations.mock_ado_workitems_api import MockAdoWorkitemsApi
+from development_workforce.ado_integrations.workitems.ado_workitem_models import CreateWorkItemInput
+from development_workforce.ado_integrations.workitems.mock_ado_workitems_api import MockAdoWorkitemsApi
 from development_workforce.crew.tools import ToolsBuilder
 from development_workforce.crew.models import get_llm
 
@@ -32,6 +32,7 @@ def create_toolset(create_working_dir):
         .add_file_management_tools() \
         .add_pytest_tool() \
         .add_git_tools(git_url, main_branch_name="automated_testing") \
+        .add_github_tools() \
         .build()
 
     return tools_list
@@ -87,6 +88,7 @@ def tool_test_task(request, agent_tester):
     # "run pytests",
     # "git commit a test file",
     # "create git branch",
+    "create pull request",
     "push test file to origin git"
 ], indirect=True)
 def test_run_tool(instantiate_llm, tool_test_task, agent_tester):

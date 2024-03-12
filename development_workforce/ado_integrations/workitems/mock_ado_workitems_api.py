@@ -1,7 +1,7 @@
 from typing import List
 
-from development_workforce.ado_integrations.ado_models import AdoWorkItem, CreateWorkItemInput, UpdateWorkItemInput
-from development_workforce.ado_integrations.base_ado_workitems_api import BaseAdoWorkitemsApi
+from development_workforce.ado_integrations.workitems.ado_workitem_models import AdoWorkItem, CreateWorkItemInput, UpdateWorkItemInput
+from development_workforce.ado_integrations.workitems.base_ado_workitems_api import BaseAdoWorkitemsApi
 
 
 class MockAdoWorkitemsApi(BaseAdoWorkitemsApi):

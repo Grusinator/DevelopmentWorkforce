@@ -1,7 +1,7 @@
 from pathlib import Path
 from dotenv import load_dotenv
 from crewai import Agent
-from development_workforce.ado_integrations.mock_ado_workitems_api import MockAdoWorkitemsApi
+from development_workforce.ado_integrations.workitems.mock_ado_workitems_api import MockAdoWorkitemsApi
 from development_workforce.crew.tools import ToolsBuilder
 
 from development_workforce.crew.models import default_llm, developer_llm

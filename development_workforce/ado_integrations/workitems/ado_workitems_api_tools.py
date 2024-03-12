@@ -2,9 +2,9 @@ from abc import ABC
 from typing import Dict, List, Optional, Union
 from pydantic import BaseModel, Field
 from langchain.tools import BaseTool
-from development_workforce.ado_integrations.ado_models import CreateWorkItemInput, \
+from development_workforce.ado_integrations.workitems.ado_workitem_models import CreateWorkItemInput, \
     UpdateWorkItemInput, GetWorkItemInput
-from development_workforce.ado_integrations.base_ado_workitems_api import BaseAdoWorkitemsApi
+from development_workforce.ado_integrations.workitems.base_ado_workitems_api import BaseAdoWorkitemsApi
 import logging
 
 from langchain.callbacks.manager import (
