@@ -17,7 +17,7 @@ class BaseAdoWorkitemsApi(ABC):
         pass
 
     @abstractmethod
-    def update_work_item_description(self, updated_work_item: "UpdateWorkItemInput") -> int:
+    def update_work_item(self, updated_work_item: "UpdateWorkItemInput") -> int:
         pass
 
     @abstractmethod

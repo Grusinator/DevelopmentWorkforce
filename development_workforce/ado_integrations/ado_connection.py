@@ -26,8 +26,9 @@ class ADOConnection:
         }
 
     def make_request(self, method, url, **kwargs):
-        headers = self.get_headers(method)
-        response = requests.request(method, url, headers=headers, **kwargs)
+        if 'headers' not in kwargs:
+            kwargs['headers'] = self.get_headers(method)
+        response = requests.request(method, url, **kwargs)
         response.raise_for_status()
         return response.json()
 

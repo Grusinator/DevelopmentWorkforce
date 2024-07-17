@@ -1,11 +1,8 @@
 from enum import Enum
 from typing import List
-
 from dotenv import load_dotenv
-
 from development_workforce.ado_integrations.ado_connection import ADOConnection
-from development_workforce.ado_integrations.workitems.ado_workitem_models import AdoWorkItem, CreateWorkItemInput, \
-    UpdateWorkItemInput
+from development_workforce.ado_integrations.workitems.ado_workitem_models import AdoWorkItem, CreateWorkItemInput, UpdateWorkItemInput
 from development_workforce.ado_integrations.workitems.base_ado_workitems_api import BaseAdoWorkitemsApi
 
 
@@ -21,26 +18,26 @@ load_dotenv()
 
 
 class ADOWorkitemsApi(ADOConnection, BaseAdoWorkitemsApi):
-    api_version = "7.1"  # Assuming all API calls use this version
+    api_version = "7.1-preview.3"
 
     def create_work_item(self, work_item: CreateWorkItemInput) -> int:
-        url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/${work_item.type}?api-version={self.api_version}"
+        url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/${{type}}?api-version={self.api_version}"
         document = [
             {"op": "add", "path": "/fields/System.Title", "value": work_item.title},
             {"op": "add", "path": "/fields/System.Description", "value": work_item.description}
         ]
-        response = self.make_request('POST', url, json=document)
+        response = self.make_request('PATCH', url, headers={'Content-Type': 'application/json-patch+json'}, json=document)
         return response['id']
 
     def get_work_item(self, work_item_id: int) -> AdoWorkItem:
         url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/{work_item_id}?api-version={self.api_version}"
         response = self.make_request('GET', url)
-        return AdoWorkItem.from_response(response)
+        return AdoWorkItem.from_api(response)
 
-    def update_work_item(self, work_item_id: int, updates: UpdateWorkItemInput) -> None:
+    def update_work_item(self, updates: UpdateWorkItemInput) -> None:
         url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/{work_item_id}?api-version={self.api_version}"
         document = [{"op": "replace", "path": field, "value": value} for field, value in updates.items()]
-        self.make_request('PATCH', url, json=document)
+        self.make_request('PATCH', url, headers={'Content-Type': 'application/json-patch+json'}, json=document)
 
     def delete_work_item(self, work_item_id: int) -> None:
         url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/{work_item_id}?api-version={self.api_version}"
@@ -76,7 +73,7 @@ class ADOWorkitemsApi(ADOConnection, BaseAdoWorkitemsApi):
                 "value": updated_work_item.description
             }
         ]
-        response = self.make_request('PATCH', url, json=document)
+        response = self.make_request('PATCH', url, headers={'Content-Type': 'application/json-patch+json'}, json=document)
         return response['id']
 
     def update_workitem_state(self, work_item_id, new_state):
@@ -88,7 +85,7 @@ class ADOWorkitemsApi(ADOConnection, BaseAdoWorkitemsApi):
                 "value": new_state
             }
         ]
-        self.make_request('PATCH', url, json=document)
+        self.make_request('PATCH', url, headers={'Content-Type': 'application/json-patch+json'}, json=document)
 
     def set_workitem_relationship(self, source_id, target_id, relationship):
         url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/{source_id}?api-version={self.api_version}"
@@ -102,4 +99,4 @@ class ADOWorkitemsApi(ADOConnection, BaseAdoWorkitemsApi):
                 }
             }
         ]
-        self.make_request('PATCH', url, json=document)
+        self.make_request('PATCH', url, headers={'Content-Type': 'application/json-patch+json'}, json=document)
