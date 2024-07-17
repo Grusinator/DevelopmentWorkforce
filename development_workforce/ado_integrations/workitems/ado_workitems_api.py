@@ -1,7 +1,11 @@
 from enum import Enum
+from typing import List
+
 from dotenv import load_dotenv
 
 from development_workforce.ado_integrations.ado_connection import ADOConnection
+from development_workforce.ado_integrations.workitems.ado_workitem_models import AdoWorkItem, CreateWorkItemInput, \
+    UpdateWorkItemInput
 from development_workforce.ado_integrations.workitems.base_ado_workitems_api import BaseAdoWorkitemsApi
 
 
@@ -17,26 +21,66 @@ load_dotenv()
 
 
 class ADOWorkitemsApi(ADOConnection, BaseAdoWorkitemsApi):
+    api_version = "7.1"  # Assuming all API calls use this version
 
-    def fetch_all_objects(self):
-        url = f"{self.organization_url}/{self.project_name}/_apis/wit/wiql?api-version=6.0"
-        query = {"query": "SELECT [Id], [Title], [State] FROM WorkItems WHERE [System.TeamProject] = @project"}
-        response_data = self.make_request('POST', url, json=query)
-        work_items = response_data["workItems"]
-        return [self.fetch_object_details(work_item['id']) for work_item in work_items]
+    def create_work_item(self, work_item: CreateWorkItemInput) -> int:
+        url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/${work_item.type}?api-version={self.api_version}"
+        document = [
+            {"op": "add", "path": "/fields/System.Title", "value": work_item.title},
+            {"op": "add", "path": "/fields/System.Description", "value": work_item.description}
+        ]
+        response = self.make_request('POST', url, json=document)
+        return response['id']
 
-    def fetch_object_details(self, work_item_id: int):
-        url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/{work_item_id}?api-version=6.0"
-        work_item_details = self.make_request('GET', url)
-        return {
-            'id': work_item_details['id'],
-            'title': work_item_details['fields']['System.Title'],
-            'state': work_item_details['fields']['System.State'],
-            'description': work_item_details['fields']['System.Description']
-        }
+    def get_work_item(self, work_item_id: int) -> AdoWorkItem:
+        url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/{work_item_id}?api-version={self.api_version}"
+        response = self.make_request('GET', url)
+        return AdoWorkItem.from_response(response)
 
-    def update_object_state(self, work_item_id, new_state):
-        url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/{work_item_id}?api-version=7.0"
+    def update_work_item(self, work_item_id: int, updates: UpdateWorkItemInput) -> None:
+        url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/{work_item_id}?api-version={self.api_version}"
+        document = [{"op": "replace", "path": field, "value": value} for field, value in updates.items()]
+        self.make_request('PATCH', url, json=document)
+
+    def delete_work_item(self, work_item_id: int) -> None:
+        url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/{work_item_id}?api-version={self.api_version}"
+        self.make_request('DELETE', url)
+
+    def list_work_items(self, work_item_type: str = None, assigned_to: str = None) -> List[AdoWorkItem]:
+        query = "SELECT [System.Id], [System.Title], [System.State], [System.AssignedTo], [System.WorkItemType], [System.Description] FROM WorkItems"
+        conditions = []
+        if work_item_type:
+            conditions.append(f"[System.WorkItemType] = '{work_item_type}'")
+        if assigned_to:
+            conditions.append(f"[System.AssignedTo] = '{assigned_to}'")
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+        query += " ORDER BY [System.CreatedDate] DESC"
+
+        url = f"{self.organization_url}/{self.project_name}/_apis/wit/wiql?api-version={self.api_version}"
+        response_data = self.make_request('POST', url, json={"query": query})
+        work_items_ids = [item["id"] for item in response_data.get("workItems", [])]
+
+        work_items = [self.get_work_item(work_item_id) for work_item_id in work_items_ids]
+        return work_items
+
+    def update_work_item_description(self, updated_work_item: UpdateWorkItemInput) -> int:
+        if not updated_work_item.description:
+            raise ValueError("Description is required to update a work item's description.")
+
+        url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/{updated_work_item.id}?api-version={self.api_version}"
+        document = [
+            {
+                "op": "replace",
+                "path": "/fields/System.Description",
+                "value": updated_work_item.description
+            }
+        ]
+        response = self.make_request('PATCH', url, json=document)
+        return response['id']
+
+    def update_workitem_state(self, work_item_id, new_state):
+        url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/{work_item_id}?api-version={self.api_version}"
         document = [
             {
                 "op": "replace",
@@ -46,49 +90,8 @@ class ADOWorkitemsApi(ADOConnection, BaseAdoWorkitemsApi):
         ]
         self.make_request('PATCH', url, json=document)
 
-    def create_object(self, title, description, work_item_type):
-        url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/${work_item_type}?api-version=6.0"
-        document = [
-            {
-                "op": "add",
-                "path": "/fields/System.Title",
-                "value": title
-            },
-            {
-                "op": "add",
-                "path": "/fields/System.Description",
-                "value": description
-            }
-        ]
-        self.make_request('POST', url, json=document)
-
-    def update_object_details(self, work_item_id, title, description):
-        url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/{work_item_id}?api-version=6.0"
-        document = [
-            {
-                "op": "test",
-                "path": "/rev",
-                "value": work_item_id
-            },
-            {
-                "op": "replace",
-                "path": "/fields/System.Title",
-                "value": title
-            },
-            {
-                "op": "replace",
-                "path": "/fields/System.Description",
-                "value": description
-            }
-        ]
-        self.make_request('PATCH', url, json=document)
-
-    def delete_object(self, work_item_id):
-        url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/{work_item_id}?api-version=6.0"
-        self.make_request('DELETE', url)
-
-    def set_relationship(self, source_id, target_id, relationship):
-        url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/{source_id}?api-version=6.0"
+    def set_workitem_relationship(self, source_id, target_id, relationship):
+        url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/{source_id}?api-version={self.api_version}"
         document = [
             {
                 "op": "add",
@@ -100,15 +103,3 @@ class ADOWorkitemsApi(ADOConnection, BaseAdoWorkitemsApi):
             }
         ]
         self.make_request('PATCH', url, json=document)
-
-
-if __name__ == "__main__":
-    interface = ADOWorkitemsApi()
-    objects = interface.fetch_all_objects()
-    print(objects)
-    if objects:
-        # Choose the first object in the list
-        first_object = objects[0]
-        # Update the details of the first object
-        # interface.update_object_details(first_object['id'], "Updated Title", "Updated Description")
-        interface.update_object_state(first_object['id'], "Closed")
