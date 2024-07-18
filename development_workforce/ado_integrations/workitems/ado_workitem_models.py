@@ -9,6 +9,7 @@ class AdoWorkItemBase(BaseModel):
     description: Optional[str] = None
     assigned_to: Optional[str] = None
     tags: List[str] = []
+    state: Optional[str] = "New"
 
 
 class AdoWorkItem(AdoWorkItemBase):

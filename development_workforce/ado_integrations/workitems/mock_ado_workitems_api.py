@@ -1,12 +1,19 @@
 from typing import List
 
-from development_workforce.ado_integrations.workitems.ado_workitem_models import AdoWorkItem, CreateWorkItemInput, UpdateWorkItemInput
+from development_workforce.ado_integrations.workitems.ado_workitem_models import AdoWorkItem, CreateWorkItemInput, \
+    UpdateWorkItemInput
 from development_workforce.ado_integrations.workitems.base_ado_workitems_api import BaseAdoWorkitemsApi
 
 
 class MockAdoWorkitemsApi(BaseAdoWorkitemsApi):
     def __init__(self):
         self.work_items = []
+
+    def update_work_item(self, updated_work_item: "UpdateWorkItemInput") -> int:
+        for i, work_item in enumerate(self.work_items):
+            if work_item.id == updated_work_item.id:
+                self.work_items[i] = self._update_work_item_fields(work_item, updated_work_item.model_dump())
+                return updated_work_item.id
 
     def create_work_item(self, work_item: CreateWorkItemInput) -> int:
         next_id = max([work_item.id for work_item in self.work_items], default=0) + 1
@@ -29,7 +36,8 @@ class MockAdoWorkitemsApi(BaseAdoWorkitemsApi):
 
     def _update_work_item_fields(self, work_item: AdoWorkItem, updated_fields: dict) -> AdoWorkItem:
         for key, value in updated_fields.items():
-            setattr(work_item, key, value)
+            if value:
+                setattr(work_item, key, value)
         return work_item
 
     def delete_work_item(self, work_item_id: int) -> None:
@@ -44,7 +52,6 @@ class MockAdoWorkitemsApi(BaseAdoWorkitemsApi):
         if work_item_type:
             filtered_work_items = [work_item for work_item in filtered_work_items if work_item.type == work_item_type]
         if assigned_to:
-            filtered_work_items = [work_item for work_item in filtered_work_items if work_item.assigned_to == assigned_to]
+            filtered_work_items = [work_item for work_item in filtered_work_items if
+                                   work_item.assigned_to == assigned_to]
         return filtered_work_items
-
-

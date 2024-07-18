@@ -10,6 +10,7 @@ python-dotenv
 langchain
 pygithub
 GitPython
+loguru
 
 pytest
 pytest-coverage

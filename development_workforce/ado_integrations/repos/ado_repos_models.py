@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 class CreatePullRequestInput(BaseModel):
     source_branch: str
-    target_branch: str
+    target_branch: Optional[str] = "main"
     title: str
     description: Optional[str] = None
 
