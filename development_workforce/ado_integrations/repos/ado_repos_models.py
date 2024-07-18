@@ -1,4 +1,6 @@
-from typing import List, Optional
+from datetime import datetime
+from typing import Optional
+
 from pydantic import BaseModel
 
 
@@ -16,3 +18,10 @@ class AdoPullRequest(BaseModel):
     source_branch: str
     target_branch: str
     status: str
+
+
+class PullRequestComment(BaseModel):
+    id: Optional[int]
+    content: str
+    created_by: Optional[str]
+    created_date: Optional[datetime]

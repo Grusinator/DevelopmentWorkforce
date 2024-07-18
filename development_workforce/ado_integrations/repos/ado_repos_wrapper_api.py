@@ -4,11 +4,16 @@ from typing import List
 
 from azure.devops.connection import Connection
 from azure.devops.v7_1.git import GitPullRequestCompletionOptions, GitPullRequest, GitRefUpdate, \
-    GitPullRequestSearchCriteria
+    GitPullRequestSearchCriteria, GitClient
 from msrest.authentication import BasicAuthentication
 
+from development_workforce.ado_integrations.repos.ado_repo import AdoRepo
 from development_workforce.ado_integrations.repos.base_repos_api import BaseAdoReposApi
-from development_workforce.ado_integrations.repos.ado_repos_models import CreatePullRequestInput, AdoPullRequest
+from development_workforce.ado_integrations.repos.ado_repos_models import CreatePullRequestInput, AdoPullRequest, \
+    PullRequestComment
+
+from azure.devops.v7_1.git.models import Comment, CommentThread
+
 
 
 class ADOReposWrapperApi(BaseAdoReposApi):
@@ -19,7 +24,9 @@ class ADOReposWrapperApi(BaseAdoReposApi):
         self.repo_name = os.getenv("ADO_REPO_NAME")
         credentials = BasicAuthentication('', self.personal_access_token)
         self.connection = Connection(base_url=self.organization_url, creds=credentials)
-        self.client = self.connection.clients.get_git_client()
+        self.client: GitClient = self.connection.clients.get_git_client()
+        self.build_client = self.connection.clients.get_build_client()
+        self.ado_repo_api = AdoRepo(self.repo_name)
 
     def create_pull_request(self, pr_input: CreatePullRequestInput) -> int:
         repository_id = self.get_repository_id()
@@ -44,12 +51,11 @@ class ADOReposWrapperApi(BaseAdoReposApi):
             status=pr.status
         )
 
-    def update_pull_request_description(self, pr_id: int, description: str) -> int:
+    def update_pull_request_description(self, pr_id: int, description: str):
         repository_id = self.get_repository_id()
         pr = self.client.get_pull_request(repository_id, pr_id)
         pr.description = description
-        updated_pr = self.client.update_pull_request(pr, repository_id, pr_id)
-        return updated_pr.pull_request_id
+        self.ado_repo_api.update_pull_request(pr_id, description=description)
 
     def list_pull_requests(self, repository_id: str, status: str = None) -> List[AdoPullRequest]:
         search_criteria = GitPullRequestSearchCriteria(status=status)
@@ -64,18 +70,20 @@ class ADOReposWrapperApi(BaseAdoReposApi):
         ) for pr in prs]
 
     def complete_pull_request(self, pr_id: int) -> None:
-        repository_id = self.get_repository_id()
-        pr = self.client.get_pull_request(repository_id, pr_id, project=self.project_name)
-        completion_options = GitPullRequestCompletionOptions(delete_source_branch=False)
-        pr.status = "completed"  # Assuming 'completed' is a valid status; adjust as necessary
-        self.client.update_pull_request(pr, repository_id, pr_id, project=self.project_name,
-                                        completion_options=completion_options)
+        return self.ado_repo_api.approve_pull_request(pr_id)
+        # repository_id = self.get_repository_id()
+        # pr = self.client.get_pull_request(repository_id, pr_id, project=self.project_name)
+        # completion_options = GitPullRequestCompletionOptions(delete_source_branch=False)
+        # pr.status = "completed"  # Assuming 'completed' is a valid status; adjust as necessary
+        # self.client.update_pull_request(pr, repository_id, pr_id, project=self.project_name,
+        #                                 completion_options=completion_options)
 
     def abandon_pull_request(self, pr_id: int) -> None:
-        repository_id = self.get_repository_id()
-        pr = self.client.get_pull_request(repository_id, pr_id)
-        pr.status = 'abandoned'
-        self.client.update_pull_request(pr, repository_id, pr_id)
+        return self.ado_repo_api.abandon_pull_request(pr_id)
+        # repository_id = self.get_repository_id()
+        # pr = self.client.get_pull_request(repository_id, pr_id)
+        # pr.status = 'abandoned'
+        # self.client.update_pull_request(pr, repository_id, pr_id)
 
     def create_branch(self, repository_id: str, branch_name: str, source_branch: str) -> None:
         refs = self.client.get_refs(repository_id, filter=f"heads/{source_branch}")
@@ -89,7 +97,6 @@ class ADOReposWrapperApi(BaseAdoReposApi):
         )
         self.client.update_refs(ref_updates=[new_ref], repository_id=repository_id, project=self.project_name)
 
-
     def branch_exists(self, repository_id: str, branch_name: str) -> bool:
         refs = self.client.get_refs(repository_id, filter=f"heads/{branch_name}")
         return len(refs) > 0
@@ -99,3 +106,41 @@ class ADOReposWrapperApi(BaseAdoReposApi):
         repositories = self.client.get_repositories(self.project_name)
         repo = [repo for repo in repositories if repo.name == self.repo_name][0]
         return repo.id if repositories else None
+
+    def add_pull_request_comment(self, pr_id: int, content: str) -> int:
+        repository_id = self.get_repository_id()
+        comment = Comment(content=content)
+        comment_thread = CommentThread(
+            comments=[comment]
+        )
+        created_thread = self.client.create_thread(comment_thread, repository_id, pr_id, project=self.project_name)
+        return created_thread.id
+
+    def get_pull_request_comments(self, pr_id: int) -> List[PullRequestComment]:
+        repository_id = self.get_repository_id()
+        threads = self.client.get_threads(repository_id, pr_id, project=self.project_name)
+        comments = []
+        for thread in threads:
+            for comment in thread.comments:
+                comments.append(PullRequestComment(
+                    id=comment.id,
+                    content=comment.content,
+                    created_by=comment.author.display_name,
+                    created_date=comment.published_date
+                ))
+        return comments
+
+    def run_build(self, pr_id: int) -> int:
+        build_definition_id = pr_id
+        build = {
+            'definition': {'id': build_definition_id}
+        }
+        build = self.build_client.queue_build(build, project=self.project_name)
+        return build.id
+
+    def get_build_status(self, pr_id: int) -> str:
+        builds = self.build_client.get_builds(project=self.project_name, definitions=[pr_id])
+        if not builds:
+            return "No builds found"
+        build = builds[0]
+        return build.status

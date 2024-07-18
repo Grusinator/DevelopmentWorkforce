@@ -37,11 +37,22 @@ class TestADOReposApiIntegration:
         prs = api.list_pull_requests(api.get_repository_id())
         open_pr = next((pr for pr in prs if pr.title == pr_input.title and pr.status == 'active'), None)
 
-        if open_pr:
-            return open_pr.id
+        pr_id = open_pr.id if open_pr else api.create_pull_request(pr_input)
+        yield pr_id
+        api.abandon_pull_request(pr_id)
 
-        pr_id = api.create_pull_request(pr_input)
-        return pr_id
+    @pytest.fixture
+    def run_build(self, api: ADOReposWrapperApi, open_pull_request):
+        pr_id = open_pull_request
+        build_id = api.run_build(pr_id)
+        yield build_id
+
+    @pytest.fixture
+    def add_pull_request_comment(self, api: ADOReposWrapperApi, open_pull_request):
+        pr_id = open_pull_request
+        comment_content = "This is a test comment."
+        comment_id = api.add_pull_request_comment(pr_id, comment_content)
+        yield comment_id
 
     def test_create_branch(self, api: ADOReposWrapperApi):
         repository_id = api.get_repository_id()
@@ -54,7 +65,15 @@ class TestADOReposApiIntegration:
         api.create_branch(repository_id, new_branch, source_branch)
         assert api.branch_exists(repository_id, new_branch)
 
-    def test_create_pull_request(self, api: ADOReposWrapperApi, setup_feature_branch):
+    @pytest.fixture
+    def no_active_pull_request_for_feature_branch(self, api: ADOReposWrapperApi, setup_feature_branch):
+        prs = api.list_pull_requests(api.get_repository_id())
+        open_pr = next((pr for pr in prs if pr.title == "Create Test PR" and pr.status == 'active'), None)
+
+        if open_pr:
+            api.abandon_pull_request(open_pr.id)
+
+    def test_create_pull_request(self, api: ADOReposWrapperApi, no_active_pull_request_for_feature_branch):
         pr_input = CreatePullRequestInput(
             source_branch="feature-branch",
             target_branch="main",
@@ -63,13 +82,13 @@ class TestADOReposApiIntegration:
         )
         pr_id = api.create_pull_request(pr_input)
         assert isinstance(pr_id, int)
-        # api.abandon_pull_request(pr_id)
+        api.abandon_pull_request(pr_id)
 
     def test_get_pull_request(self, api: ADOReposWrapperApi, open_pull_request):
         pr_id = open_pull_request
         pr_details = api.get_pull_request(pr_id)
         assert pr_details.id == pr_id
-        # api.abandon_pull_request(pr_id)
+        api.abandon_pull_request(pr_id)
 
     def test_update_pull_request_description(self, api: ADOReposWrapperApi, open_pull_request):
         pr_id = open_pull_request
@@ -95,3 +114,21 @@ class TestADOReposApiIntegration:
         api.abandon_pull_request(pr_id)
         abandoned_pr = api.get_pull_request(pr_id)
         assert abandoned_pr.status == 'abandoned'
+
+
+    def test_add_pull_request_comment(self, api: ADOReposWrapperApi, open_pull_request):
+        pr_id = open_pull_request
+        comment_content = "This is a test comment."
+        comment_id = api.add_pull_request_comment(pr_id, comment_content)
+        assert isinstance(comment_id, int)
+
+    def test_get_pull_request_comments(self, api: ADOReposWrapperApi, open_pull_request, add_pull_request_comment):
+        pr_id = open_pull_request
+        comments = api.get_pull_request_comments(pr_id)
+        assert isinstance(comments, list)
+        assert len(comments) == 1
+
+    def test_get_build_status(self, api: ADOReposWrapperApi, open_pull_request, run_build):
+        pr_id = open_pull_request
+        status = api.get_build_status(pr_id)
+        assert status in ['succeeded', 'failed', 'canceled', 'inProgress']
