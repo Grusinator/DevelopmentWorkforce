@@ -5,11 +5,11 @@ from typing import List, Optional
 class AdoWorkItemBase(BaseModel):
     # Define all fields except 'id'
     title: str
-    type: str = "Task"
+    type: str
     description: Optional[str] = None
     assigned_to: Optional[str] = None
     tags: List[str] = []
-    state: Optional[str] = "New"
+    state: str
 
 
 class AdoWorkItem(AdoWorkItemBase):
@@ -23,7 +23,8 @@ class AdoWorkItem(AdoWorkItemBase):
     @staticmethod
     def from_api(api_response: dict) -> "AdoWorkItem":
         fields = api_response.get("fields", {})
-        assigned_to = fields.get("System.AssignedTo", {}).get("displayName") if fields.get("System.AssignedTo") else None
+        assigned_to = fields.get("System.AssignedTo", {}).get("displayName") if fields.get(
+            "System.AssignedTo") else None
 
         tags = fields.get("System.Tags", "")
         tags_list = tags.split("; ") if tags else []

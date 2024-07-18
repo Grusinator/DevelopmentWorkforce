@@ -41,7 +41,8 @@ class ADOWorkitemsWrapperApi(BaseAdoWorkitemsApi):
             description=work_item.fields.get('System.Description', None),
             assigned_to=work_item.fields.get('System.AssignedTo', {}).get('displayName') if work_item.fields.get(
                 'System.AssignedTo') else None,
-            tags=work_item.fields.get('System.Tags', '').split('; ') if work_item.fields.get('System.Tags') else []
+            tags=work_item.fields.get('System.Tags', '').split('; ') if work_item.fields.get('System.Tags') else [],
+            state=work_item.fields.get('System.State', None)
         )
 
     def update_work_item(self, updates: UpdateWorkItemInput) -> None:

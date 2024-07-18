@@ -32,3 +32,5 @@ ENV/
 .DS_Store
 Thumbs.db
 *.env
+
+test_workspace/*

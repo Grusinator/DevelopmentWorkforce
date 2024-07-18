@@ -1,30 +1,27 @@
 from pathlib import Path
-from dotenv import load_dotenv
+
 from crewai import Agent
-from development_workforce.ado_integrations.workitems.mock_ado_workitems_api import MockAdoWorkitemsApi
-from development_workforce.crew.tools import ToolsBuilder
+from dotenv import load_dotenv
 
 from development_workforce.crew.models import Models
+from development_workforce.crew.tools import ToolsBuilder
 
 load_dotenv(".env", override=True)
 
-working_directory = Path("workspace/")
-builder = ToolsBuilder(working_directory)
+
 git_url = "https://github.com/Grusinator/ai-test-project.git"
 
 
-# ado_workitems_api = MockAdoWorkitemsApi()  # Assuming this is initialized elsewhere as per original script
-
-class Agents():
+class Agents:
 
     def __init__(self, workspace_dir):
         self.working_directory = Path(workspace_dir)
-        self.tools_builder = ToolsBuilder(working_directory)
+        self.tools_builder = ToolsBuilder(self.working_directory)
         self.tools = self.setup_tools()
         self.models = Models()
 
     def setup_tools(self):
-        tools_list = builder \
+        tools_list = self.tools_builder \
             .add_search_tools() \
             .add_file_management_tools() \
             .add_pytest_tool() \

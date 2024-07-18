@@ -3,6 +3,7 @@ import time
 from typing import List
 
 from azure.devops.connection import Connection
+from azure.devops.exceptions import AzureDevOpsServiceError
 from azure.devops.v7_1.git import GitPullRequestCompletionOptions, GitPullRequest, GitRefUpdate, \
     GitPullRequestSearchCriteria, GitClient
 from msrest.authentication import BasicAuthentication
@@ -30,14 +31,33 @@ class ADOReposWrapperApi(BaseAdoReposApi):
 
     def create_pull_request(self, pr_input: CreatePullRequestInput) -> int:
         repository_id = self.get_repository_id()
+        # Define the pull request object
         pr = GitPullRequest(
             source_ref_name=f"refs/heads/{pr_input.source_branch}",
             target_ref_name=f"refs/heads/{pr_input.target_branch}",
             title=pr_input.title,
             description=pr_input.description
         )
-        created_pr = self.client.create_pull_request(pr, repository_id, self.project_name)
-        return created_pr.pull_request_id
+        try:
+            # Attempt to create a new pull request
+            created_pr = self.client.create_pull_request(pr, repository_id, self.project_name)
+            return created_pr.pull_request_id
+        except AzureDevOpsServiceError as e:
+            if "TF401179" in str(e):
+                # If an active pull request already exists, search for it
+                search_criteria = GitPullRequestSearchCriteria(
+                    source_ref_name=pr.source_ref_name,
+                    target_ref_name=pr.target_ref_name,
+                    status="active"
+                )
+                existing_prs = self.client.get_pull_requests(
+                    repository_id, search_criteria, project=self.project_name)
+                if existing_prs:
+                    # Return the ID of the first matching pull request found
+                    return existing_prs[0].pull_request_id
+            else:
+                # If the error is not about an existing pull request, re-raise it
+                raise
 
     def get_pull_request(self, pr_id: int) -> AdoPullRequest:
         repository_id = self.get_repository_id()

@@ -30,6 +30,7 @@ class TaskAutomation:
         for work_item in new_work_items:
             if work_item.assigned_to == self.user_name and work_item.state == 'New':
                 return self.process_task(work_item)
+            loguru.logger.info(f"No new tasks found for {self.user_name}, going to sleep...")
 
     def process_task(self, work_item: AdoWorkItem):
         work_item_input = UpdateWorkItemInput(id=work_item.id, state="Active")

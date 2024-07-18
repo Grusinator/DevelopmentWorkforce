@@ -1,27 +1,25 @@
 from crewai import Task, Crew
 
 from development_workforce.ado_integrations.workitems.ado_workitem_models import AdoWorkItem
-from development_workforce.crew.crew import Agents
+from development_workforce.crew.agents import Agents
 
 
 class CrewTaskRunner:
 
     def run(self, work_item: AdoWorkItem, workspace_dir):
         self.get_agents(workspace_dir)
-        self.create_tasks(work_item.description)
+        self.create_tasks(work_item)
         self.create_crew()
         return self.crew.kickoff()
 
     def get_agents(self, workspace_dir):
-        agents = Agents(workspace_dir).create_agents()
         self.agents = Agents(workspace_dir).create_agents()
         self.developer = self.agents["developer"]
         self.tester = self.agents["tester"]
         self.product_owner = self.agents["product_owner"]
         self.scrum_master = self.agents["scrum_master"]
-        return agents
 
-    def create_tasks(self, description):
+    def create_tasks(self, work_item):
         research_user_stories = Task(
             description="""research the user stories, by using the ado search tool
              to find information about the user stories and the acceptance criteria""",
@@ -40,30 +38,38 @@ class CrewTaskRunner:
         )
 
         test = Task(
-            description="""test the app, by addding unit tests to the repository
-             based on the requirements and the acceptance criteria from user stories""",
+            description=f"""test the app, by addding unit tests to the repository
+             based on the requirements and the acceptance criteria from user stories,
+             
+             add a test and write in the name of the function the user story id for backtracking..
+             
+             {work_item.id}
+             """,
+
+
             agent=self.tester
         )
 
         development = Task(
-            description=f"""develop the app, by implementing the features of the software application, 
-            based on the requirements and the acceptance criteria from user stories. 
-            create pull requests and merge them to the main branch
+            description=f"""develop the app, by writing code to files based on the requirements and the acceptance 
+            criteria from user stories. Use the tools to write files, 
+            the infrastructure will handle the rest, eg. cloning repo, pushing etc.
             
             the user story looks like this:
+            {work_item.title}
             
-            {description}
+            {work_item.description}
             
             """,
             agent=self.developer
         )
 
-        self.tasks = [test, development]
+        self.tasks = [development, test]
 
     def create_crew(self):
         # Instantiate your crew with a sequential process
         self.crew = Crew(
-            agents=[self.developer, self.tester],
+            agents=[self.developer],
             tasks=self.tasks,
             verbose=2,  # You can set it to 1 or 2 to different logging levels
             # manager_llm=default_llm,
