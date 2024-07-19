@@ -9,12 +9,13 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
-
+import os
 from pathlib import Path
+
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -25,8 +26,34 @@ SECRET_KEY = "django-insecure-b&3a27#y3y@pcd&)e_+wo3e+(1ffuuo)-so=izb4mc2u!+l0t6
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'localhost',
+    "c41e-45-10-152-239.ngrok-free.app",
+]
 
+load_dotenv()
+
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:8000',
+    'https://localhost:8000',
+    'http://127.0.0.1:8000',
+    'https://127.0.0.1:8000',
+    'https://c41e-45-10-152-239.ngrok-free.app',
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5000",  # Svelte app URL
+    "http://localhost:8000",  # Django server URL for development
+    "http://localhost:8080",  # Django server URL for development
+    'https://c41e-45-10-152-239.ngrok-free.app',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://c41e-45-10-152-239.ngrok-free.app',
+]
+
+CORS_ALLOW_CREDENTIALS = True
 
 # Application definition
 
@@ -37,6 +64,20 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    'corsheaders',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.headless',
+    'django_extensions',
+    'allauth.socialaccount.providers.microsoft',
+    'allauth.socialaccount.providers.github',
+    'accounts',
+    'core',
+    "development",
+    "organization",
+    'crispy_forms',
+    'crispy_bootstrap4',
 ]
 
 MIDDLEWARE = [
@@ -47,6 +88,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = "development_workforce.urls"
@@ -54,7 +96,7 @@ ROOT_URLCONF = "development_workforce.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        'DIRS': [BASE_DIR / 'core' / 'templates'],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -69,7 +111,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "development_workforce.wsgi.application"
 
-
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
@@ -79,7 +120,6 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -99,6 +139,35 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+ENV_PATH = os.path.abspath(os.path.dirname(__file__))
+STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
+
+STATICFILES_DIRS = [
+    BASE_DIR / 'core/static',
+    BASE_DIR / 'svelte-app' / 'public'
+]
+STATIC_ROOT = BASE_DIR / "static"
+# MEDIA_ROOT = os.path.join(ENV_PATH, "media/")
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap4'
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
+
+# Allauth settings
+ACCOUNT_EMAIL_VERIFICATION = "none" if DEBUG else "mandatory"
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_AUTHENTICATION_METHOD = "email"
+SOCIALACCOUNT_STORE_TOKENS = True
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.getenv('EMAIL_HOST')  # 'smtp.gmail.comm
+EMAIL_PORT = 587  # SMTP port (usually 587 for TLS, 465 for SSL)
+EMAIL_USE_TLS = True  # Use TLS (recommended)
+EMAIL_USE_SSL = False  # Use SSL (alternative to TLS)
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
@@ -111,9 +180,10 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
+
+APPEND_SLASH = True
 
 STATIC_URL = "static/"
 
@@ -121,3 +191,73 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+SOCIALACCOUNT_PROVIDERS = {
+    "microsoft": {
+        "APPS": [
+            {
+                "tenant": os.getenv("MICROSOFT_OAUTH2_TENANT_ID"),
+                "client_id": os.getenv("MICROSOFT_OAUTH2_CLIENT_ID"),
+                "secret": os.getenv("MICROSOFT_OAUTH2_CLIENT_SECRET"),
+                "settings": {
+                    # "tenant": "organizations",
+                    # Optional: override URLs (use base URLs without path)
+                    # "login_url": "https://login.microsoftonline.com",
+                    # "graph_url": "https://graph.microsoft.com",
+                    "redirect_uri": "http://localhost:8001/accounts/microsoft/login/callback/"
+                }
+            }
+        ]
+    },
+    'github': {
+        'SCOPE': [
+            'user',
+            'repo',
+            'read:org',
+        ],
+        'APP': {
+            'client_id': os.getenv("GITHUB_CLIENT_ID"),
+            'secret': os.getenv("GITHUB_CLIENT_SECRET"),
+        }
+    }
+
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': 'django_debug.log',
+            'formatter': 'verbose',
+        },
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file', 'console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'allauth': {
+            'handlers': ['file', 'console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}

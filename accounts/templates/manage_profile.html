@@ -27,8 +27,8 @@
             {% else %}
                 <p>Your GitHub account is connected.</p>
             {% endif %}
-            {% if not linkedin_connected %}
-                <a href="{% provider_login_url 'linkedin_oauth2' process='connect' %}" class="btn btn-primary">Link with LinkedIn</a>
+            {% if not microsoft_connected %}
+                <a href="{% provider_login_url 'microsoft' process='connect' %}" class="btn btn-primary">Link with Microsoft</a>
             {% else %}
                 <p>Your LinkedIn account is connected.</p>
             {% endif %}

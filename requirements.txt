@@ -33,3 +33,4 @@ crispy-bootstrap4
 django_extensions
 psycopg2-binary
 pgvector
+Pillow # Profile picture

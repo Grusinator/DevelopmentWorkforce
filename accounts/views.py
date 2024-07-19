@@ -13,7 +13,7 @@ def manage_profile(request):
     profile, created = ProfileModel.objects.get_or_create(user=request.user)
 
     github_connected = SocialAccount.objects.filter(user=request.user, provider='github').exists()
-    linkedin_connected = SocialAccount.objects.filter(user=request.user, provider='linkedin_oauth2').exists()
+    microsoft_connected = SocialAccount.objects.filter(user=request.user, provider='microsoft').exists()
 
     if request.method == 'POST':
         form = ProfileForm(request.POST, request.FILES, instance=profile)
@@ -27,7 +27,7 @@ def manage_profile(request):
         'form': form,
         'profile': profile,
         'github_connected': github_connected,
-        'linkedin_connected': linkedin_connected,
+        'microsoft_connected': microsoft_connected,
     }
 
     return render(request, 'manage_profile.html', context)
