@@ -2,7 +2,7 @@ from abc import ABC
 from typing import Dict, List, Optional, Type, Union
 from pydantic import BaseModel, Field
 from langchain.tools import BaseTool
-from development_workforce.git_tool.git_abstraction import GitAbstraction
+from src.git_tool.git_abstraction import GitAbstraction
 import logging
 from pydantic import BaseModel, Field
 
@@ -10,7 +10,7 @@ from langchain.callbacks.manager import (
     CallbackManagerForToolRun,
 )
 
-from development_workforce.utils import log_inputs
+from src.utils import log_inputs
 
 logger = logging.getLogger(__name__)
 

@@ -3,8 +3,8 @@ from pathlib import Path
 from crewai import Agent
 from dotenv import load_dotenv
 
-from development_workforce.crew.models import Models
-from development_workforce.crew.tools import ToolsBuilder
+from src.crew.models import Models
+from src.crew.tools import ToolsBuilder
 
 load_dotenv(".env", override=True)
 

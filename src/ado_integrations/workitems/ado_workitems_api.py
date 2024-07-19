@@ -1,9 +1,9 @@
 from enum import Enum
 from typing import List
 from dotenv import load_dotenv
-from development_workforce.ado_integrations.ado_connection import ADOConnection
-from development_workforce.ado_integrations.workitems.ado_workitem_models import AdoWorkItem, CreateWorkItemInput, UpdateWorkItemInput
-from development_workforce.ado_integrations.workitems.base_ado_workitems_api import BaseAdoWorkitemsApi
+from src.ado_integrations.ado_connection import ADOConnection
+from src.ado_integrations.workitems.ado_workitem_models import AdoWorkItem, CreateWorkItemInput, UpdateWorkItemInput
+from src.ado_integrations.workitems.base_ado_workitems_api import BaseAdoWorkitemsApi
 
 
 class WorkItemType(Enum):

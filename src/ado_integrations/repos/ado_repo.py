@@ -1,6 +1,6 @@
 import base64
 
-from development_workforce.ado_integrations.ado_connection import ADOConnection
+from src.ado_integrations.ado_connection import ADOConnection
 
 
 class AdoRepo(ADOConnection):

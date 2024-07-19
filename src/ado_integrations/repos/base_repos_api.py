@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from development_workforce.ado_integrations.repos.ado_repos_models import AdoPullRequest, CreatePullRequestInput
+from src.ado_integrations.repos.ado_repos_models import AdoPullRequest, CreatePullRequestInput
 
 
 class BaseAdoReposApi(ABC):

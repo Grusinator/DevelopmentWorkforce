@@ -8,9 +8,9 @@ from azure.devops.v7_1.git import GitPullRequestCompletionOptions, GitPullReques
     GitPullRequestSearchCriteria, GitClient
 from msrest.authentication import BasicAuthentication
 
-from development_workforce.ado_integrations.repos.ado_repo import AdoRepo
-from development_workforce.ado_integrations.repos.base_repos_api import BaseAdoReposApi
-from development_workforce.ado_integrations.repos.ado_repos_models import CreatePullRequestInput, AdoPullRequest, \
+from src.ado_integrations.repos.ado_repo import AdoRepo
+from src.ado_integrations.repos.base_repos_api import BaseAdoReposApi
+from src.ado_integrations.repos.ado_repos_models import CreatePullRequestInput, AdoPullRequest, \
     PullRequestComment
 
 from azure.devops.v7_1.git.models import Comment, CommentThread

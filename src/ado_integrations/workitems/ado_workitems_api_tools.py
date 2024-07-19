@@ -2,16 +2,16 @@ from abc import ABC
 from typing import Dict, List, Optional, Union
 from pydantic import BaseModel, Field
 from langchain.tools import BaseTool
-from development_workforce.ado_integrations.workitems.ado_workitem_models import CreateWorkItemInput, \
+from src.ado_integrations.workitems.ado_workitem_models import CreateWorkItemInput, \
     UpdateWorkItemInput, GetWorkItemInput
-from development_workforce.ado_integrations.workitems.base_ado_workitems_api import BaseAdoWorkitemsApi
+from src.ado_integrations.workitems.base_ado_workitems_api import BaseAdoWorkitemsApi
 import logging
 
 from langchain.callbacks.manager import (
     CallbackManagerForToolRun,
 )
 
-from development_workforce.utils import log_inputs
+from src.utils import log_inputs
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,7 @@
 from crewai import Task, Crew
 
-from development_workforce.ado_integrations.workitems.ado_workitem_models import AdoWorkItem
-from development_workforce.crew.agents import Agents
+from src.ado_integrations.workitems.ado_workitem_models import AdoWorkItem
+from src.crew.agents import Agents
 
 
 class CrewTaskRunner:

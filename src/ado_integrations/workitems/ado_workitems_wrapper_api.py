@@ -6,9 +6,9 @@ from azure.devops.v7_1.work_item_tracking.models import JsonPatchOperation
 from dotenv import load_dotenv
 from msrest.authentication import BasicAuthentication
 
-from development_workforce.ado_integrations.workitems.ado_workitem_models import CreateWorkItemInput, AdoWorkItem, \
+from src.ado_integrations.workitems.ado_workitem_models import CreateWorkItemInput, AdoWorkItem, \
     UpdateWorkItemInput
-from development_workforce.ado_integrations.workitems.base_ado_workitems_api import BaseAdoWorkitemsApi
+from src.ado_integrations.workitems.base_ado_workitems_api import BaseAdoWorkitemsApi
 
 load_dotenv()
 
