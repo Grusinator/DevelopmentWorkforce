@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% load socialaccount %}
+
+{% block content %}
+<div class="container mt-5">
+    <header class="mb-4 d-flex justify-content-between align-items-center">
+        <h2>Manage Profile</h2>
+        {% if profile.profile_picture %}
+        <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" class="img-fluid rounded-circle"
+             style="max-width: 100px; max-height: 100px;">
+        {% endif %}
+    </header>
+    <section>
+        <form method="post" enctype="multipart/form-data" class="form-horizontal">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <div class="form-group row">
+                <div class="col-sm-10 offset-sm-2">
+                    <button type="submit" class="btn btn-primary">Save Profile</button>
+                </div>
+            </div>
+        </form>
+        <div class="mt-4">
+            {% if not github_connected %}
+                <a href="{% provider_login_url 'github' process='connect' %}" class="btn btn-primary">Link with GitHub</a>
+            {% else %}
+                <p>Your GitHub account is connected.</p>
+            {% endif %}
+            {% if not linkedin_connected %}
+                <a href="{% provider_login_url 'linkedin_oauth2' process='connect' %}" class="btn btn-primary">Link with LinkedIn</a>
+            {% else %}
+                <p>Your LinkedIn account is connected.</p>
+            {% endif %}
+            <a href="{% url 'socialaccount_connections' %}" class="btn btn-primary">Manage Social connections</a>
+        </div>
+    </section>
+</div>
+{% endblock %}

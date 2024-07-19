@@ -1,0 +1,14 @@
+<!-- templates/registration/login.html -->
+{% extends "base.html" %}
+
+{% block content %}
+
+    <h2>Login</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="button primary" type="submit">Login</button>
+    </form>
+    <a href="{% url 'social:begin' 'microsoft-oauth2' %}">Log in with Microsoft</a>
+
+{% endblock %}
