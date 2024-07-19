@@ -1,12 +1,12 @@
 import os
 from time import sleep
 
-from development_workforce.ado_integrations.repos.ado_repos_models import CreatePullRequestInput
-from development_workforce.ado_integrations.repos.ado_repos_wrapper_api import ADOReposWrapperApi
-from development_workforce.ado_integrations.workitems.ado_workitem_models import AdoWorkItem, UpdateWorkItemInput
-from development_workforce.ado_integrations.workitems.ado_workitems_wrapper_api import ADOWorkitemsWrapperApi
-from development_workforce.crew.run_crew import CrewTaskRunner
-from development_workforce.git_manager import GitManager
+from src.ado_integrations.repos.ado_repos_models import CreatePullRequestInput
+from src.ado_integrations.repos.ado_repos_wrapper_api import ADOReposWrapperApi
+from src.ado_integrations.workitems.ado_workitem_models import AdoWorkItem, UpdateWorkItemInput
+from src.ado_integrations.workitems.ado_workitems_wrapper_api import ADOWorkitemsWrapperApi
+from src.crew.run_crew import CrewTaskRunner
+from src.git_manager import GitManager
 import loguru
 
 

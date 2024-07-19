@@ -7,7 +7,7 @@ import pytest
 from langchain_core.callbacks import CallbackManagerForToolRun
 from langchain_core.tools import BaseTool
 
-from development_workforce.utils import log_inputs
+from src.utils import log_inputs
 
 logger = logging.getLogger(__name__)
 

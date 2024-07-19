@@ -1,0 +1,9 @@
+{% extends "allauth/layouts/entrance.html" %}
+{% load static %}
+{% load allauth %}
+{% block content %}
+<div id="svelte-app"></div>
+<link rel="stylesheet" href="{% static 'global.css' %}">
+<link rel="stylesheet" href="{% static 'build/bundle.css' %}">
+<script src="{% static 'build/bundle.js' %}"></script>
+{% endblock content %}

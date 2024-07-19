@@ -3,7 +3,7 @@ import os
 import git
 from pathlib import Path
 
-from development_workforce.ado_integrations.workitems.ado_workitem_models import AdoWorkItem
+from src.ado_integrations.workitems.ado_workitem_models import AdoWorkItem
 
 
 class GitManager:

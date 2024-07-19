@@ -1,0 +1,19 @@
+/* custom.css */
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.navbar-nav .nav-link {
+    font-size: 1.1rem;
+}
+
+.header {
+    background-color: #343a40;
+    padding: 1rem;
+}
+
+.header a {
+    color: #ffffff;
+    text-decoration: none;
+}
