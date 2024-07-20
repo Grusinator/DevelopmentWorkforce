@@ -3,9 +3,9 @@ from unittest.mock import patch
 
 import pytest
 
-from development_workforce.ado_integrations.workitems.ado_workitem_models import AdoWorkItem
-from development_workforce.ado_integrations.workitems.mock_ado_workitems_api import MockAdoWorkitemsApi
-from development_workforce.task_listener import TaskAutomation
+from src.ado_integrations.workitems.ado_workitem_models import AdoWorkItem
+from src.ado_integrations.workitems.mock_ado_workitems_api import MockAdoWorkitemsApi
+from src.task_listener import TaskAutomation
 
 work_item = AdoWorkItem(
         id=randint(1, 99999),

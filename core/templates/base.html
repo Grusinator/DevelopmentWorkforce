@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>Selfbase</title>
+    <title>Development Workforce</title>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1, user-scalable=no" name="viewport"/>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
@@ -13,7 +13,7 @@
 
     <!-- Header -->
     <header class="bg-primary text-white text-center py-3">
-        <h1><a class="text-white" href="/">Selfbase</a></h1>
+        <h1><a class="text-white" href="/">Development Workforce</a></h1>
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
                     aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -27,7 +27,6 @@
 
                     {% if user.is_authenticated %}
                     <li class="nav-item"><a class="nav-link" href="{% url 'manage_profile' %}">Create Content</a></li>
-
                     <li class="nav-item">
                         <form method="post" action="{% url 'account_logout' %}">
                             {% csrf_token %}

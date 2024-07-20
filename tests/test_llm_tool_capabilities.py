@@ -3,10 +3,10 @@ import pytest
 from crewai import Task, Crew, Agent
 from dotenv import load_dotenv
 
-from development_workforce.ado_integrations.workitems.ado_workitem_models import CreateWorkItemInput
-from development_workforce.ado_integrations.workitems.mock_ado_workitems_api import MockAdoWorkitemsApi
-from development_workforce.crew.tools import ToolsBuilder
-from development_workforce.crew.models import get_llm
+from src.ado_integrations.workitems.ado_workitem_models import CreateWorkItemInput
+from src.ado_integrations.workitems.mock_ado_workitems_api import MockAdoWorkitemsApi
+from src.crew.tools import ToolsBuilder
+from src.crew.models import get_llm
 
 
 @pytest.fixture(autouse=True)

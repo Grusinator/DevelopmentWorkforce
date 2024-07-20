@@ -1,8 +1,8 @@
 import pytest
 
-from development_workforce.ado_integrations.workitems.ado_workitem_models import CreateWorkItemInput, \
+from src.ado_integrations.workitems.ado_workitem_models import CreateWorkItemInput, \
     UpdateWorkItemInput
-from development_workforce.ado_integrations.workitems.ado_workitems_wrapper_api import ADOWorkitemsWrapperApi
+from src.ado_integrations.workitems.ado_workitems_wrapper_api import ADOWorkitemsWrapperApi
 
 ASSIGNED_TO = "William Sandvej Hansen"
 

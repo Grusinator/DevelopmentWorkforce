@@ -1,0 +1,8 @@
+{% block content %}
+<h2>Work Permits</h2>
+<ul>
+    {% for work_permit in work_permits %}
+    <li>{{ work_permit.repository_name }} - {{ work_permit.backlog_name }}</li>
+    {% endfor %}
+</ul>
+{% endblock %}

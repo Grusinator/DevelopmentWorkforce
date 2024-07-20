@@ -1,8 +1,8 @@
 import pytest
 
-from development_workforce.ado_integrations.workitems.ado_workitem_models import CreateWorkItemInput, \
+from src.ado_integrations.workitems.ado_workitem_models import CreateWorkItemInput, \
     UpdateWorkItemInput
-from development_workforce.ado_integrations.workitems.ado_workitems_api import ADOWorkitemsApi
+from src.ado_integrations.workitems.ado_workitems_api import ADOWorkitemsApi
 
 
 @pytest.mark.skip(reason="This api does not work, should be removed.")

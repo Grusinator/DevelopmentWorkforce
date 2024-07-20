@@ -1,5 +1,5 @@
 import pytest
-from development_workforce.ado_integrations.workitems.ado_workitems_api import ADOWorkitemsApi
+from src.ado_integrations.workitems.ado_workitems_api import ADOWorkitemsApi
 
 
 @pytest.mark.skip(reason="This test is not yet implemented")

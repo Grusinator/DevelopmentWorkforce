@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import pytest
-from development_workforce.git_tool.git_abstraction import GitAbstraction
+from src.git_tool.git_abstraction import GitAbstraction
 from tempfile import TemporaryDirectory
 import shutil
 import gc

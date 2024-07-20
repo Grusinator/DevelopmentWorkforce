@@ -1,6 +1,6 @@
 import pytest
-from development_workforce.ado_integrations.repos.ado_repos_wrapper_api import ADOReposWrapperApi
-from development_workforce.ado_integrations.repos.ado_repos_models import CreatePullRequestInput
+from src.ado_integrations.repos.ado_repos_wrapper_api import ADOReposWrapperApi
+from src.ado_integrations.repos.ado_repos_models import CreatePullRequestInput
 
 @pytest.mark.integration
 class TestADOReposApiIntegration:
@@ -132,3 +132,30 @@ class TestADOReposApiIntegration:
         pr_id = open_pull_request
         status = api.get_build_status(pr_id)
         assert status in ['succeeded', 'failed', 'canceled', 'inProgress']
+
+
+    @pytest.mark.integration
+    def test_get_projects(self):
+        api = ADOReposWrapperApi()
+        projects = api.get_projects()
+
+        assert len(projects) > 0
+        for project in projects:
+            assert isinstance(project.id, str)
+            assert isinstance(project.name, str)
+            assert isinstance(project.url, str)
+
+    # Integration test for querying existing repositories within a project
+    @pytest.mark.integration
+    def test_get_repositories(self, api):
+        projects = api.get_projects()
+
+        if projects:
+            project_id = projects[0].id
+            repos = api.get_repositories(project_id)
+
+            assert len(repos) > 0
+            for repo in repos:
+                assert isinstance(repo.id, str)
+                assert isinstance(repo.name, str)
+                assert isinstance(repo.url, str)

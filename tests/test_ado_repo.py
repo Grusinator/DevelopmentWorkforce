@@ -1,4 +1,4 @@
-from development_workforce.ado_integrations.repo.ado_repo import AdoRepo
+from src.ado_integrations.repo.ado_repo import AdoRepo
 import pytest
 
 

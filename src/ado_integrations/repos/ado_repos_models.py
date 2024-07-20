@@ -25,3 +25,16 @@ class PullRequestComment(BaseModel):
     content: str
     created_by: Optional[str]
     created_date: Optional[datetime]
+
+
+class ProjectModel(BaseModel):
+    id: str
+    name: str
+    description: Optional[str] = None
+    url: str
+
+
+class RepositoryModel(BaseModel):
+    id: str
+    name: str
+    url: str

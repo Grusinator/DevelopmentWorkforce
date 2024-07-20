@@ -11,7 +11,7 @@ from msrest.authentication import BasicAuthentication
 from src.ado_integrations.repos.ado_repo import AdoRepo
 from src.ado_integrations.repos.base_repos_api import BaseAdoReposApi
 from src.ado_integrations.repos.ado_repos_models import CreatePullRequestInput, AdoPullRequest, \
-    PullRequestComment
+    PullRequestComment, ProjectModel, RepositoryModel
 
 from azure.devops.v7_1.git.models import Comment, CommentThread
 
@@ -27,6 +27,7 @@ class ADOReposWrapperApi(BaseAdoReposApi):
         self.connection = Connection(base_url=self.organization_url, creds=credentials)
         self.client: GitClient = self.connection.clients.get_git_client()
         self.build_client = self.connection.clients.get_build_client()
+        self.core_client = self.connection.clients.get_core_client()
         self.ado_repo_api = AdoRepo(self.repo_name)
 
     def create_pull_request(self, pr_input: CreatePullRequestInput) -> int:
@@ -164,3 +165,26 @@ class ADOReposWrapperApi(BaseAdoReposApi):
             return "No builds found"
         build = builds[0]
         return build.status
+
+    def get_projects(self) -> List[ProjectModel]:
+        projects = self.core_client.get_projects()
+        project_list = []
+        for project in projects:
+            project_list.append(ProjectModel(
+                name=project.name,
+                id=project.id,
+                description=project.description,
+                url=project.url
+            ))
+        return project_list
+
+    def get_repositories(self, project_id: str) -> List[RepositoryModel]:
+        repositories = self.client.get_repositories(project_id)
+        repo_list = []
+        for repo in repositories:
+            repo_list.append(RepositoryModel(
+                id=repo.id,
+                name=repo.name,
+                url=repo.url
+            ))
+        return repo_list
