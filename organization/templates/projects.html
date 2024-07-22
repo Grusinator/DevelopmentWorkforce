@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>ADO Projects and Repositories</h2>
+<button onclick="window.location.href='{% url 'sync_with_ado' %}'">Sync with ADO</button>
+<button onclick="window.location.href='{% url 'set_pat_token' %}'">Set/Update PAT Token</button>
+    <ul>
+        {% for project in projects %}
+            <li>
+                <strong>{{ project.name }}</strong>
+                <ul>
+                    {% for repo in project.repository_set.all %}
+                        <li>{{ repo.name }}</li>
+                    {% endfor %}
+                </ul>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

@@ -1,24 +1,56 @@
 # views.py
-from django.shortcuts import render, redirect
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .forms import PATTokenForm, AgentWorkPermitForm
-from .models import Agent, AgentWorkPermit
-from azure.devops.connection import Connection
-from msrest.authentication import BasicAuthentication
+from django.shortcuts import render, redirect
+
+from src.ado_integrations.repos.ado_repos_wrapper_api import ADOReposWrapperApi
+from .forms import AgentWorkPermitForm, AgentForm
+from .models import Agent, AgentWorkPermit, Project, Repository
+from loguru import logger
+
 
 @login_required
-def input_pat_token(request):
+def sync_with_ado(request):
+    api = ADOReposWrapperApi()
+    projects = api.get_projects()
+
+    for project in projects:
+        project_obj, created = Project.objects.update_or_create(
+            azure_devops_id=project.id,
+            defaults={'name': project.name}
+        )
+
+        repositories = api.get_repositories(project.id)
+        for repo in repositories:
+            Repository.objects.update_or_create(
+                azure_devops_id=repo.id,
+                defaults={'name': repo.name, 'project': project_obj}
+            )
+
+    return redirect('projects')
+
+
+@login_required
+def display_projects(request):
+    projects = Project.objects.all()
+    return render(request, 'projects.html', {'projects': projects})
+
+
+@login_required
+def set_pat_token(request):
+    agent, created = Agent.objects.get_or_create(user=request.user)
+    logger.debug(f'Agent {agent} has pat token: {bool(agent.pat_token)}')
+
     if request.method == 'POST':
-        form = PATTokenForm(request.POST)
+        form = AgentForm(request.POST, instance=agent)
         if form.is_valid():
-            pat_token = form.cleaned_data['pat_token']
-            agent, created = Agent.objects.get_or_create(user=request.user)
-            agent.pat_token = pat_token
-            agent.save()
+            form.save()
+            messages.success(request, 'PAT token updated successfully.')
             return redirect('agent_work_permits')
     else:
-        form = PATTokenForm()
-    return render(request, 'input_pat_token.html', {'form': form})
+        form = AgentForm(instance=agent)
+
+    return render(request, 'set_pat_token.html', {'form': form})
 
 @login_required
 def agent_work_permits(request):
@@ -39,30 +71,3 @@ def list_work_permits(request):
     agent = Agent.objects.get(user=request.user)
     work_permits = AgentWorkPermit.objects.filter(agent=agent)
     return render(request, 'list_work_permits.html', {'work_permits': work_permits})
-
-@login_required
-def fetch_projects_and_repos(request):
-    agent = Agent.objects.get(user=request.user)
-    pat_token = agent.pat_token
-
-    credentials = BasicAuthentication('', pat_token)
-    connection = Connection(base_url='https://dev.azure.com', creds=credentials)
-    core_client = connection.clients.get_core_client()
-    git_client = connection.clients.get_git_client()
-
-    organizations = core_client.get_organizations()
-    projects = []
-    repositories = []
-
-    for org in organizations.value:
-        org_projects = core_client.get_projects(org.id)
-        projects.extend(org_projects.value)
-        for project in org_projects.value:
-            repos = git_client.get_repositories(project.id)
-            repositories.extend(repos.value)
-
-    return render(request, 'list_projects_and_repos.html', {
-        'projects': projects,
-        'repositories': repositories
-    })
-
