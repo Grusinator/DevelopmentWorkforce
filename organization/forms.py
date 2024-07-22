@@ -1,10 +1,11 @@
 # forms.py
 from django import forms
-from .models import AgentWorkPermit
 
 # forms.py
 from django import forms
-from .models import Agent
+from django.forms import modelformset_factory
+
+from .models import Agent, AgentRepoConnection
 
 
 class AgentForm(forms.ModelForm):
@@ -15,19 +16,23 @@ class AgentForm(forms.ModelForm):
             'pat_token': forms.PasswordInput(),
         }
 
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
-    #     if self.instance and self.instance.pat_token:
-    #         self.fields['pat_token'].initial = '********'  # Dummy password
-    #
-    # def clean_pat_token(self):
-    #     pat_token = self.cleaned_data.get('pat_token')
-    #     if pat_token == '********':
-    #         return self.instance.pat_token  # Return the existing PAT token
-    #     return pat_token
 
+class AgentRepoConnectionForm(forms.ModelForm):
+    repository_name = forms.CharField(widget=forms.HiddenInput(), required=False)
+    project_name = forms.CharField(widget=forms.HiddenInput(), required=False)
+    id = forms.IntegerField(widget=forms.HiddenInput(), required=False)
 
-class AgentWorkPermitForm(forms.ModelForm):
     class Meta:
-        model = AgentWorkPermit
-        fields = ['repository_name', 'backlog_name']
+        model = AgentRepoConnection
+        fields = ['enabled', 'repository_name', 'project_name', 'id']
+
+    def __init__(self, *args, **kwargs):
+        super(AgentRepoConnectionForm, self).__init__(*args, **kwargs)
+        if self.instance and hasattr(self.instance, 'repository'):
+            repository = getattr(self.instance, 'repository', None)
+            if repository:
+                self.fields['repository_name'].initial = getattr(repository, 'name', '')
+                self.fields['project_name'].initial = getattr(repository.project, 'name', '')
+
+
+AgentRepoConnectionFormSet = modelformset_factory(AgentRepoConnection, form=AgentRepoConnectionForm, extra=0)

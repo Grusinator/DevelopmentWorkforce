@@ -1,0 +1,39 @@
+<!-- templates/projects.html -->
+{% extends "base.html" %}
+{% block content %}
+<h2>Manage Repositories</h2>
+<button onclick="window.location.href='{% url 'sync_with_ado' %}'">Sync with ADO</button>
+<button onclick="window.location.href='{% url 'set_pat_token' %}'">Set PAT Token</button>
+{% if agent %}
+    <form method="post">
+        {% csrf_token %}
+        {{ formset.management_form }}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Project</th>
+                    <th>Repository</th>
+                    <th>Enable</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for form in formset %}
+                    <tr>
+                        <td>{{ form.instance.repository.project.name }}</td>
+                        <td>{{ form.instance.repository.name }}</td>
+                        <td>{{ form.enabled }}</td>
+                        <td>
+                            <a href="{% url 'update_repository_connection' form.instance.id %}" class="btn btn-secondary">Update</a>
+                        </td>
+                        {{ form.id }}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit" class="btn btn-primary mb-3">Save Changes</button>
+    </form>
+{% else %}
+    <p>No agent set up. Please <a href="{% url 'set_pat_token' %}">add a PAT token</a> to create an agent.</p>
+{% endif %}
+
+{% endblock %}

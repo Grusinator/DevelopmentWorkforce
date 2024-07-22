@@ -4,15 +4,21 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 
 from src.ado_integrations.repos.ado_repos_wrapper_api import ADOReposWrapperApi
-from .forms import AgentWorkPermitForm, AgentForm
-from .models import Agent, AgentWorkPermit, Project, Repository
+from .forms import AgentForm, AgentRepoConnectionFormSet
+from .models import Agent, Project, Repository, AgentRepoConnection
 from loguru import logger
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from .forms import AgentRepoConnectionForm
+from .models import AgentRepoConnection
 
 
 @login_required
 def sync_with_ado(request):
     api = ADOReposWrapperApi()
     projects = api.get_projects()
+    agent, created = Agent.objects.get_or_create(user=request.user)
 
     for project in projects:
         project_obj, created = Project.objects.update_or_create(
@@ -22,18 +28,44 @@ def sync_with_ado(request):
 
         repositories = api.get_repositories(project.id)
         for repo in repositories:
-            Repository.objects.update_or_create(
+            repo_obj, created = Repository.objects.update_or_create(
                 azure_devops_id=repo.id,
                 defaults={'name': repo.name, 'project': project_obj}
             )
+            AgentRepoConnection.objects.get_or_create(
+                agent=agent,
+                repository=repo_obj,
+                defaults={'enabled': False}
+            )
 
-    return redirect('projects')
+    return redirect('display_repositories')
 
 
 @login_required
-def display_projects(request):
-    projects = Project.objects.all()
-    return render(request, 'projects.html', {'projects': projects})
+def display_repositories(request):
+    try:
+        agent = Agent.objects.get(user=request.user)
+        repositories = Repository.objects.all()
+        connections = AgentRepoConnection.objects.filter(agent=agent)
+        logger.debug(f"connections: {connections}")
+    except Agent.DoesNotExist:
+        agent = None
+        repositories = []
+        connections = AgentRepoConnection.objects.none()
+        messages.info(request, "Please set up an agent by adding a PAT token.")
+
+    if request.method == 'POST' and agent:
+        formset = AgentRepoConnectionFormSet(request.POST, queryset=connections)
+        if formset.is_valid():
+            logger.debug(f"formset is valid")
+            formset.save()
+            return redirect('display_repositories')
+        else:
+            logger.debug(f"form has errors: {formset.errors}")
+    else:
+        formset = AgentRepoConnectionFormSet(queryset=connections)
+
+    return render(request, 'repositories.html', {'formset': formset, 'repositories': repositories, 'agent': agent})
 
 
 @login_required
@@ -52,22 +84,17 @@ def set_pat_token(request):
 
     return render(request, 'set_pat_token.html', {'form': form})
 
-@login_required
-def agent_work_permits(request):
-    agent = Agent.objects.get(user=request.user)
-    if request.method == 'POST':
-        form = AgentWorkPermitForm(request.POST)
-        if form.is_valid():
-            work_permit = form.save(commit=False)
-            work_permit.agent = agent
-            work_permit.save()
-            return redirect('list_work_permits')
-    else:
-        form = AgentWorkPermitForm()
-    return render(request, 'agent_work_permits.html', {'form': form})
 
 @login_required
-def list_work_permits(request):
-    agent = Agent.objects.get(user=request.user)
-    work_permits = AgentWorkPermit.objects.filter(agent=agent)
-    return render(request, 'list_work_permits.html', {'work_permits': work_permits})
+def update_repository_connection(request, connection_id):
+    connection = get_object_or_404(AgentRepoConnection, id=connection_id)
+
+    if request.method == 'POST':
+        form = AgentRepoConnectionForm(request.POST, instance=connection)
+        if form.is_valid():
+            form.save()
+            return redirect('display_repositories')
+    else:
+        form = AgentRepoConnectionForm(instance=connection)
+
+    return render(request, 'update_repository_connection.html', {'form': form})
