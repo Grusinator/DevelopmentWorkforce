@@ -14,10 +14,10 @@ load_dotenv()
 
 
 class ADOWorkitemsWrapperApi(BaseAdoWorkitemsApi):
-    def __init__(self):
-        self.organization_url = os.getenv("ADO_ORGANIZATION_URL")
-        self.personal_access_token = os.getenv("ADO_PERSONAL_ACCESS_TOKEN")
-        self.project_name = os.getenv("ADO_PROJECT_NAME")
+    def __init__(self, pat, ado_org_name, project_name):
+        self.organization_url = "https://dev.azure.com/" + ado_org_name
+        self.personal_access_token = pat
+        self.project_name = project_name
         credentials = BasicAuthentication('', self.personal_access_token)
         self.connection = Connection(base_url=self.organization_url, creds=credentials)
         self.client = self.connection.clients.get_work_item_tracking_client()

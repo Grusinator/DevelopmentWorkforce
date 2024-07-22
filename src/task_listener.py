@@ -11,12 +11,12 @@ import loguru
 
 
 class TaskAutomation:
-    def __init__(self):
-        self.ado_workitems_api = ADOWorkitemsWrapperApi()
-        self.ado_repos_api = ADOReposWrapperApi()
-        self.git_manager = GitManager()
+    def __init__(self, repo_url, ado_org_name, project_name, pat, user_name):
+        self.ado_workitems_api = ADOWorkitemsWrapperApi(pat, ado_org_name, project_name)
+        self.ado_repos_api = ADOReposWrapperApi(pat, ado_org_name, project_name, repo_url)
+        self.git_manager = GitManager(repo_url)
         self.ai_crew_runner = CrewTaskRunner()
-        self.user_name = os.environ.get("AI_USER_NAME")
+        self.user_name = user_name
 
     def listen_and_process_tasks(self):
         # Listen for new tasks assigned to the given name

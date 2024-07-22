@@ -7,8 +7,8 @@ from src.ado_integrations.workitems.ado_workitem_models import AdoWorkItem
 
 
 class GitManager:
-    def __init__(self):
-        self.repo_url = os.getenv("REPO_URL")
+    def __init__(self, repo_url):
+        self.repo_url = repo_url
         self.workspace_root_dir = Path(os.getenv("WORKSPACE_DIR"))
 
     def clone_and_setup(self, work_item: AdoWorkItem):

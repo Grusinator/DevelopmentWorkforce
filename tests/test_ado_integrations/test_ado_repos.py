@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from src.ado_integrations.repos.ado_repos_wrapper_api import ADOReposWrapperApi
 from src.ado_integrations.repos.ado_repos_models import CreatePullRequestInput
@@ -7,7 +9,11 @@ class TestADOReposApiIntegration:
 
     @pytest.fixture
     def api(self) -> ADOReposWrapperApi:
-        return ADOReposWrapperApi()
+        pat = os.getenv("ADO_PERSONAL_ACCESS_TOKEN")
+        ado_org_name = os.getenv("ADO_ORGANIZATION_NAME")
+        project_name = os.getenv("ADO_PROJECT_NAME")
+        repo_name = os.getenv("ADO_REPO_NAME")
+        return ADOReposWrapperApi(pat, ado_org_name, project_name, repo_name)
 
     @pytest.fixture
     def setup_main_branch(self, api: ADOReposWrapperApi):
@@ -135,8 +141,7 @@ class TestADOReposApiIntegration:
 
 
     @pytest.mark.integration
-    def test_get_projects(self):
-        api = ADOReposWrapperApi()
+    def test_get_projects(self, api):
         projects = api.get_projects()
 
         assert len(projects) > 0
