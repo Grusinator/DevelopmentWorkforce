@@ -64,13 +64,16 @@ class ADOWorkitemsWrapperApi(BaseAdoWorkitemsApi):
     def delete_work_item(self, work_item_id: int) -> None:
         self.client.delete_work_item(work_item_id)
 
-    def list_work_items(self, work_item_type: str = None, assigned_to: str = None) -> List[AdoWorkItem]:
+    def list_work_items(self, work_item_type: str = None, assigned_to: str = None, state: str = None) -> List[
+        AdoWorkItem]:
         query = "SELECT [System.Id], [System.Title], [System.State], [System.AssignedTo], [System.WorkItemType], [System.Description] FROM WorkItems"
         conditions = []
         if work_item_type:
             conditions.append(f"[System.WorkItemType] = '{work_item_type}'")
         if assigned_to:
             conditions.append(f"[System.AssignedTo] = '{assigned_to}'")
+        if state:
+            conditions.append(f"[System.State] = '{state}'")
         if conditions:
             query += " WHERE " + " AND ".join(conditions)
         query += " ORDER BY [System.CreatedDate] DESC"

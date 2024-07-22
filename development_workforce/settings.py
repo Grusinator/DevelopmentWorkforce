@@ -190,6 +190,17 @@ STATIC_URL = "static/"
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
+
+# CELERY_BROKER_URL = 'memory://localhost/'
+# CELERY_RESULT_BACKEND = 'cache+memory://'
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+
+
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 SOCIALACCOUNT_PROVIDERS = {
@@ -223,42 +234,28 @@ SOCIALACCOUNT_PROVIDERS = {
 
 }
 #
-if DEBUG:
-    LOGGING = {
-        'version': 1,
-        'disable_existing_loggers': False,
-        'formatters': {
-            'verbose': {
-                'format': '{levelname} {asctime} {module} {message}',
-                'style': '{',
-            },
-            'simple': {
-                'format': '{levelname} {message}',
-                'style': '{',
-            },
-        },
-        'handlers': {
-            'file': {
-                'level': 'DEBUG',
-                'class': 'logging.FileHandler',
-                'filename': 'django_debug.log',
-                'formatter': 'verbose',
-            },
-            'console': {
-                'class': 'logging.StreamHandler',
-                'formatter': 'simple',
-            },
-        },
-        'loggers': {
-            'django': {
-                'handlers': ['file', 'console'],
-                'level': 'DEBUG',
-                'propagate': True,
-            },
-            'allauth': {
-                'handlers': ['file', 'console'],
-                'level': 'DEBUG',
-                'propagate': True,
-            },
-        },
-    }
+# if DEBUG:
+#     # settings.py
+#     LOGGING = {
+#         'version': 1,
+#         'disable_existing_loggers': False,
+#         'handlers': {
+#             'console': {
+#                 'level': 'DEBUG',
+#                 'class': 'logging.StreamHandler',
+#             },
+#         },
+#         'loggers': {
+#             'django': {
+#                 'handlers': ['console'],
+#                 'level': 'DEBUG',
+#             },
+#             'organization': {
+#                 'handlers': ['console'],
+#                 'level': 'DEBUG',
+#                 'propagate': True,
+#             },
+#         },
+#     }
+
+

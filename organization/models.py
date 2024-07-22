@@ -17,6 +17,7 @@ class Repository(models.Model):
     name = models.CharField(max_length=255)
     azure_devops_id = models.CharField(max_length=255)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    git_url = models.URLField()
 
     def __str__(self):
         return self.name
@@ -25,10 +26,11 @@ class Repository(models.Model):
 class Agent(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    # ms_user_name = models.CharField(max_length=255)
-    pat_token = models.CharField(max_length=128)
+    pat = models.CharField(max_length=128)
     status = models.CharField(max_length=50, choices=[('idle', 'Idle'), ('working', 'Working')], default='idle')
     ado_task_id = models.CharField(max_length=255, blank=True, null=True)  # ADO Task ID it is working on
+    organization_name = models.CharField(max_length=128)
+    agent_user_name = models.CharField(max_length=255)
 
 
     def __str__(self):

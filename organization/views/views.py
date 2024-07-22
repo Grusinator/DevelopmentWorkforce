@@ -16,9 +16,9 @@ from organization.models import AgentRepoConnection
 
 @login_required
 def sync_with_ado(request):
-    api = ADOReposWrapperApi()
-    projects = api.get_projects()
     agent, created = Agent.objects.get_or_create(user=request.user)
+    api = ADOReposWrapperApi(agent.pat, agent.organization_name, None, None)
+    projects = api.get_projects()
 
     for project in projects:
         project_obj, created = Project.objects.update_or_create(
@@ -30,7 +30,7 @@ def sync_with_ado(request):
         for repo in repositories:
             repo_obj, created = Repository.objects.update_or_create(
                 azure_devops_id=repo.id,
-                defaults={'name': repo.name, 'project': project_obj}
+                defaults={'name': repo.name, 'project': project_obj, "git_url": repo.url}
             )
             AgentRepoConnection.objects.get_or_create(
                 agent=agent,
@@ -71,14 +71,14 @@ def display_repositories(request):
 @login_required
 def set_pat_token(request):
     agent, created = Agent.objects.get_or_create(user=request.user)
-    logger.debug(f'Agent {agent} has pat token: {bool(agent.pat_token)}')
+    logger.debug(f'Agent {agent} has pat token: {bool(agent.pat)}')
 
     if request.method == 'POST':
         form = AgentForm(request.POST, instance=agent)
         if form.is_valid():
             form.save()
             messages.success(request, 'PAT token updated successfully.')
-            return redirect('agent_work_permits')
+            return redirect('display_repositories')
     else:
         form = AgentForm(instance=agent)
 

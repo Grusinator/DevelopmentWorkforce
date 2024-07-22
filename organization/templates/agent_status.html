@@ -1,13 +1,23 @@
+<!-- templates/agent_status.html -->
 {% extends "base.html" %}
 
 {% block content %}
 <h2>Agent Status</h2>
-<p>Status: {{ agent.get_status_display }}</p>
-{% if agent.status == 'working' %}
-<p>ADO Task ID: {{ agent.ado_task_id }}</p>
-<button onclick="window.location.href='{% url 'stop_agent' %}'">Stop Agent</button>
-{% else %}
-<button onclick="window.location.href='{% url 'start_agent' %}'">Start Agent</button>
-{% endif %}
+<p>Status: {{ agent.status }}</p>
+
+<form method="post">
+    {% csrf_token %}
+    <label for="repository">Select Repository:</label>
+    <select id="repository" name="repository">
+        {% for repo in repositories %}
+            <option value="{{ repo.id }}">{{ repo.name }}</option>
+        {% endfor %}
+    </select>
+    <br><br>
+    <button type="submit" name="start">Start</button>
+    <button type="submit" name="stop">Stop</button>
+</form>
 {% endblock %}
+
+
 

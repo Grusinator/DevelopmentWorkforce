@@ -5,15 +5,27 @@ from django import forms
 from django import forms
 from django.forms import modelformset_factory
 
-from .models import Agent, AgentRepoConnection
+from .models import Agent, AgentRepoConnection, Repository
+
+
+class StartAgentForm(forms.Form):
+    repository = forms.ModelChoiceField(queryset=Repository.objects.filter(agentrepoconnection__enabled=True))
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user')
+        super(StartAgentForm, self).__init__(*args, **kwargs)
+        self.fields['repository'].queryset = Repository.objects.filter(
+            agentrepoconnection__agent__user=user,
+            agentrepoconnection__enabled=True
+        )
 
 
 class AgentForm(forms.ModelForm):
     class Meta:
         model = Agent
-        fields = ['pat_token']
+        fields = ['pat', "agent_user_name", "organization_name"]
         widgets = {
-            'pat_token': forms.PasswordInput(),
+            'pat': forms.PasswordInput(),
         }
 
 

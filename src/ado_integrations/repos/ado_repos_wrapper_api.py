@@ -184,6 +184,6 @@ class ADOReposWrapperApi(BaseAdoReposApi):
             repo_list.append(RepositoryModel(
                 id=repo.id,
                 name=repo.name,
-                url=repo.url
+                url=repo.remote_url
             ))
         return repo_list

@@ -1,3 +1,4 @@
+# task_automation.py
 import os
 from time import sleep
 
@@ -11,26 +12,15 @@ import loguru
 
 
 class TaskAutomation:
-    def __init__(self, repo_url, ado_org_name, project_name, pat, user_name):
+    def __init__(self, repo_url, repo_name, ado_org_name, project_name, pat, user_name):
         self.ado_workitems_api = ADOWorkitemsWrapperApi(pat, ado_org_name, project_name)
-        self.ado_repos_api = ADOReposWrapperApi(pat, ado_org_name, project_name, repo_url)
+        self.ado_repos_api = ADOReposWrapperApi(pat, ado_org_name, project_name, repo_name)
         self.git_manager = GitManager(repo_url)
         self.ai_crew_runner = CrewTaskRunner()
         self.user_name = user_name
 
-    def listen_and_process_tasks(self):
-        # Listen for new tasks assigned to the given name
-        # This is a placeholder for the actual implementation
-        while True:
-            self.find_new_task()
-            sleep(3)
-
-    def find_new_task(self):
-        new_work_items = self.ado_workitems_api.list_work_items(assigned_to=self.user_name)
-        for work_item in new_work_items:
-            if work_item.assigned_to == self.user_name and work_item.state == 'New':
-                return self.process_task(work_item)
-            loguru.logger.info(f"No new tasks found for {self.user_name}, going to sleep...")
+    def get_new_tasks(self, state="New"):
+        return self.ado_workitems_api.list_work_items(assigned_to=self.user_name, state=state)
 
     def process_task(self, work_item: AdoWorkItem):
         work_item_input = UpdateWorkItemInput(id=work_item.id, state="Active")
@@ -48,7 +38,3 @@ class TaskAutomation:
         self.ado_repos_api.create_pull_request(pull_request_input)
         loguru.logger.info(f"Created pull request for task: {work_item.title}")
         return workspace_dir
-
-
-if __name__ == "__main__":
-    TaskAutomation().listen_and_process_tasks()
