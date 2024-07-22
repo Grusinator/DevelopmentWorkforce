@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Agent Status</h2>
+<p>Status: {{ agent.get_status_display }}</p>
+{% if agent.status == 'working' %}
+<p>ADO Task ID: {{ agent.ado_task_id }}</p>
+<button onclick="window.location.href='{% url 'stop_agent' %}'">Stop Agent</button>
+{% else %}
+<button onclick="window.location.href='{% url 'start_agent' %}'">Start Agent</button>
+{% endif %}
+{% endblock %}
+

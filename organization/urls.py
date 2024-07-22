@@ -10,4 +10,8 @@ urlpatterns = [
     path('repository/<int:connection_id>/update/', views.update_repository_connection,
          name='update_repository_connection'),
 
+    path('agent/start/', views.start_agent, name='start_agent'),
+    path('agent/stop/', views.stop_agent, name='stop_agent'),
+    path('agent/status/', views.agent_status, name='agent_status'),
+
 ]

@@ -4,14 +4,14 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 
 from src.ado_integrations.repos.ado_repos_wrapper_api import ADOReposWrapperApi
-from .forms import AgentForm, AgentRepoConnectionFormSet
-from .models import Agent, Project, Repository, AgentRepoConnection
+from organization.forms import AgentForm, AgentRepoConnectionFormSet
+from organization.models import Agent, Project, Repository, AgentRepoConnection
 from loguru import logger
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from .forms import AgentRepoConnectionForm
-from .models import AgentRepoConnection
+from organization.forms import AgentRepoConnectionForm
+from organization.models import AgentRepoConnection
 
 
 @login_required

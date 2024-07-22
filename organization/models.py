@@ -27,6 +27,9 @@ class Agent(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     # ms_user_name = models.CharField(max_length=255)
     pat_token = models.CharField(max_length=128)
+    status = models.CharField(max_length=50, choices=[('idle', 'Idle'), ('working', 'Working')], default='idle')
+    ado_task_id = models.CharField(max_length=255, blank=True, null=True)  # ADO Task ID it is working on
+
 
     def __str__(self):
         return self.user.username
