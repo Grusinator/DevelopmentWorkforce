@@ -33,7 +33,7 @@ class CreateWorkItemTool(AdoWorkitemToolBase):
     # args_schema: Type[BaseModel] = CreateWorkItemInput
 
     @log_inputs
-    def _run(self, args, kwargs, run_manager: Optional[CallbackManagerForToolRun] = None) -> Dict[
+    def _run(self, args=None, kwargs=None, run_manager: Optional[CallbackManagerForToolRun] = None) -> Dict[
         str, Union[str, int]]:
         try:
             input_model = CreateWorkItemInput(**kwargs)
@@ -51,7 +51,7 @@ class GetWorkItemTool(AdoWorkitemToolBase):
     # This is a workaround to avoid the type checking of pydantic.
 
     @log_inputs
-    def _run(self, args, kwargs, run_manager: Optional[CallbackManagerForToolRun] = None) -> Dict[
+    def _run(self, args=None, kwargs=None, run_manager: Optional[CallbackManagerForToolRun] = None) -> Dict[
         str, str]:
         try:
             work_item = GetWorkItemInput(**kwargs)
@@ -71,11 +71,11 @@ class UpdateWorkItemTool(AdoWorkitemToolBase):
     # args_schema: Type[BaseModel] = UpdateWorkItemInput
 
     @log_inputs
-    def _run(self, args, kwargs, run_manager: Optional[CallbackManagerForToolRun] = None) -> Dict[
+    def _run(self, args=None, kwargs=None, run_manager: Optional[CallbackManagerForToolRun] = None) -> Dict[
         str, str]:
         try:
             input_model = UpdateWorkItemInput(**kwargs)
-            work_item_id = self._ado_workitems_api.update_work_item_description(input_model)
+            work_item_id = self._ado_workitems_api.update_work_item(input_model)
             return {"message": "Work item updated successfully", "id": work_item_id}
         except Exception as e:
             logger.error(f"Error updating work item: {e}")
@@ -92,7 +92,7 @@ class DeleteWorkItemTool(AdoWorkitemToolBase):
     # args_schema: Type[BaseModel] = DeleteWorkItemInput
 
     @log_inputs
-    def _run(self, args, kwargs, run_manager: Optional[CallbackManagerForToolRun] = None) -> Dict[
+    def _run(self, args=None, kwargs=None, run_manager: Optional[CallbackManagerForToolRun] = None) -> Dict[
         str, str]:
         try:
             input_model = DeleteWorkItemInput(**kwargs)

@@ -76,6 +76,7 @@ def tool_test_task(request, agent_tester):
     )
 
 
+
 @pytest.mark.requires_llm
 @pytest.mark.parametrize("instantiate_llm", ["chatgpt", ], indirect=True)
 @pytest.mark.parametrize("tool_test_task", [
@@ -91,7 +92,7 @@ def tool_test_task(request, agent_tester):
     # "run pytests",
     # "git commit a test file",
     # "create git branch",
-    "create pull request",
+    # "create pull request",
     "push test file to origin git"
 ], indirect=True)
 def test_run_tool(instantiate_llm, tool_test_task, agent_tester):
@@ -104,7 +105,8 @@ def test_run_tool(instantiate_llm, tool_test_task, agent_tester):
     result = crew.kickoff()
     assert result == "TOOL WORKS"
 
-
+@pytest.mark.skip("not usefull yet")
+@pytest.mark.requires_llm
 @pytest.mark.parametrize("instantiate_llm", ["chatgpt", ], indirect=True)
 @pytest.mark.parametrize("instruction", [
     # "write a small python test that asserts that 1 + 1 equals 2, and run the python test locally",

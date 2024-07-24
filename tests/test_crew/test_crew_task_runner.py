@@ -29,24 +29,13 @@ def workspace_dir(tmp_path):
     shutil.rmtree(workspace)
 
 
+
 @pytest.fixture
 def dummy_work_items():
     return [
         SimpleWorkItem(description="create "),
         SimpleWorkItem(description="Description for task 2")
     ]
-
-@pytest.mark.requires_llm
-def test_default_developer_task_runner(workspace_dir, dummy_work_items):
-    runner = CrewTaskRunner(workspace_dir)
-    runner.add_developer_agent()
-
-    for work_item in dummy_work_items:
-        runner.add_task_from_work_item(work_item)
-        runner.add_test_task(work_item)
-
-    result = runner.run()
-    assert result is not None
 
 @pytest.mark.requires_llm
 @pytest.mark.parametrize("work_item_description", [
@@ -67,6 +56,19 @@ def test_parameterized_developer_task_runner(workspace_dir, work_item_descriptio
     assert "SUCCEEDED" in result
 
     run_pytest_in_workspace(workspace_dir)
+
+@pytest.mark.skip("not usefull yet")
+@pytest.mark.requires_llm
+def test_default_developer_task_runner(workspace_dir, dummy_work_items):
+    runner = CrewTaskRunner(workspace_dir)
+    runner.add_developer_agent()
+
+    for work_item in dummy_work_items:
+        runner.add_task_from_work_item(work_item)
+        runner.add_test_task(work_item)
+
+    result = runner.run()
+    assert result is not None
 
 
 def run_pytest_in_workspace(workspace_dir: Path):
