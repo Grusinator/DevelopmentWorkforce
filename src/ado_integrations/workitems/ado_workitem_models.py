@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 
 
-class AdoWorkItemBase(BaseModel):
+class WorkItemBase(BaseModel):
     # Define all fields except 'id'
     title: str
     type: str
@@ -12,16 +12,19 @@ class AdoWorkItemBase(BaseModel):
     state: str
 
 
-class AdoWorkItem(AdoWorkItemBase):
+class WorkItem(WorkItemBase):
     # This model includes 'id' and is used in contexts where 'id' is known/required
     id: int
 
     @staticmethod
     def fields():
-        return [(name, field.type_) for name, field in AdoWorkItem.__annotations__.items()]
+        return [(name, field.type_) for name, field in WorkItem.__annotations__.items()]
+
+    def __str__(self):
+        return f"{self.id} {self.title}"
 
     @staticmethod
-    def from_api(api_response: dict) -> "AdoWorkItem":
+    def from_ado_api(api_response: dict) -> "WorkItem":
         fields = api_response.get("fields", {})
         assigned_to = fields.get("System.AssignedTo", {}).get("displayName") if fields.get(
             "System.AssignedTo") else None
@@ -29,7 +32,7 @@ class AdoWorkItem(AdoWorkItemBase):
         tags = fields.get("System.Tags", "")
         tags_list = tags.split("; ") if tags else []
 
-        work_item = AdoWorkItem(
+        work_item = WorkItem(
             id=api_response.get("id"),
             title=fields.get("System.Title"),
             type=fields.get("System.WorkItemType"),
@@ -40,12 +43,12 @@ class AdoWorkItem(AdoWorkItemBase):
         return work_item
 
 
-class CreateWorkItemInput(AdoWorkItemBase):
+class CreateWorkItemInput(WorkItemBase):
     # This model is used specifically for creation, no 'id' field needed
     pass
 
 
-class UpdateWorkItemInput(AdoWorkItemBase):
+class UpdateWorkItemInput(WorkItemBase):
     id: int = Field(description="ID of the work item to update")
     title: Optional[str] = None
     type: Optional[str] = None

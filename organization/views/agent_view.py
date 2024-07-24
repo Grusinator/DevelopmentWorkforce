@@ -5,7 +5,7 @@ from loguru import logger
 
 from development_workforce.celery import app, debug_task
 from src.ado_integrations.workitems.ado_workitems_wrapper_api import ADOWorkitemsWrapperApi
-from src.task_listener import TaskAutomation
+from src.task_automation import TaskAutomation
 from ..models import Agent, Repository, AgentRepoConnection
 from ..tasks import execute_task
 

@@ -6,7 +6,7 @@ from azure.devops.v7_1.work_item_tracking.models import JsonPatchOperation
 from dotenv import load_dotenv
 from msrest.authentication import BasicAuthentication
 
-from src.ado_integrations.workitems.ado_workitem_models import CreateWorkItemInput, AdoWorkItem, \
+from src.ado_integrations.workitems.ado_workitem_models import CreateWorkItemInput, WorkItem, \
     UpdateWorkItemInput
 from src.ado_integrations.workitems.base_ado_workitems_api import BaseAdoWorkitemsApi
 
@@ -32,9 +32,9 @@ class ADOWorkitemsWrapperApi(BaseAdoWorkitemsApi):
         created_work_item = self.client.create_work_item(document, self.project_name, work_item.type)
         return created_work_item.id
 
-    def get_work_item(self, work_item_id: int) -> AdoWorkItem:
+    def get_work_item(self, work_item_id: int) -> WorkItem:
         work_item = self.client.get_work_item(work_item_id)
-        return AdoWorkItem(
+        return WorkItem(
             id=work_item.id,
             title=work_item.fields['System.Title'],
             type=work_item.fields['System.WorkItemType'],
@@ -65,7 +65,7 @@ class ADOWorkitemsWrapperApi(BaseAdoWorkitemsApi):
         self.client.delete_work_item(work_item_id)
 
     def list_work_items(self, work_item_type: str = None, assigned_to: str = None, state: str = None) -> List[
-        AdoWorkItem]:
+        WorkItem]:
         query = "SELECT [System.Id], [System.Title], [System.State], [System.AssignedTo], [System.WorkItemType], [System.Description] FROM WorkItems"
         conditions = []
         if work_item_type:

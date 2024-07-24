@@ -5,7 +5,7 @@ from langchain_community.llms.ollama import Ollama
 from langchain_openai import ChatOpenAI
 
 
-class Models:
+class CrewAiModels:
     ollama_instruct = Ollama(
         model=os.getenv("OLLAMA_MODEL_NAME"),
         base_url=os.getenv("OLLAMA_API_BASE")
@@ -31,12 +31,13 @@ class Models:
         }
     )
 
-    def get_llm(self, llm_name):
+    @classmethod
+    def get_llm(cls, llm_name):
         llm_mapping = {
-            "ollama_instruct": self.ollama_instruct,
-            "ollama_python": self.ollama_python,
-            "chatgpt": self.chatgpt,
-            "hugging_face": self.hugging_face
+            "ollama_instruct": cls.ollama_instruct,
+            "ollama_python": cls.ollama_python,
+            "chatgpt": cls.chatgpt,
+            "hugging_face": cls.hugging_face
         }
         llm = llm_mapping.get(llm_name)
         if llm is None:

@@ -1,4 +1,5 @@
 import os
+
 from pathlib import Path
 from typing import List
 
@@ -12,21 +13,30 @@ from src.ado_integrations.workitems.ado_workitems_api_tools import instantiate_a
 from src.ado_integrations.workitems.mock_ado_workitems_api import MockAdoWorkitemsApi
 from src.git_tool.git_abstraction import GitAbstraction
 from src.git_tool.git_tool import instantiate_git_tools
-from src.pytest_tool import PytestTool
+from src.util_tools.pytest_tool import PytestTool
 
 
 class ToolsBuilder:
     def __init__(self, working_directory: Path):
         self.tools: List[BaseTool] = []
         self.working_directory = working_directory
+        self.private_key = os.getenv("GITHUB_APP_PRIVATE_KEY")
+
+    def get_default_toolset(self):
+        return (
+            self
+            .add_search_tools()
+            .add_file_management_tools()
+            .add_pytest_tool()
+            .build()
+        )
 
     def add_search_tools(self):
         self.tools.append(DuckDuckGoSearchRun())
         return self
 
     def add_github_tools(self):
-        private_key = os.getenv("GITHUB_APP_PRIVATE_KEY")
-        github = GitHubAPIWrapper(github_app_private_key=private_key)
+        github = GitHubAPIWrapper(github_app_private_key=self.private_key)
         toolkit = GitHubToolkit.from_github_api_wrapper(github)
         self.tools += toolkit.get_tools()
         return self

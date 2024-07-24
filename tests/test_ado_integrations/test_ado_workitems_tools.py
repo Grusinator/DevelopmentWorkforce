@@ -29,7 +29,8 @@ class TestAdoWorkitemsApiTools:
             type="Feature",
             description="Implement new feature",
             assigned_to="Alice",
-            tags=["feature"]
+            tags=["feature"],
+            state="New"
         )
         result = tool._run(work_item)
         assert isinstance(result, int)

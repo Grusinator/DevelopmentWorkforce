@@ -1,12 +1,11 @@
-
 import pytest
 from crewai import Task, Crew, Agent
 from dotenv import load_dotenv
 
 from src.ado_integrations.workitems.ado_workitem_models import CreateWorkItemInput
 from src.ado_integrations.workitems.mock_ado_workitems_api import MockAdoWorkitemsApi
+from src.crew.crew_ai_models import CrewAiModels
 from src.crew.tools import ToolsBuilder
-from src.crew.models import get_llm
 
 
 @pytest.fixture(autouse=True)
@@ -23,17 +22,20 @@ def create_toolset(create_working_dir):
             title="maka a calculator widget",
             description="This is a widget that can add, sub, div, and mul numbers",
             type="Feature",
+            state="New"
         )
     )
 
-    tools_list = ToolsBuilder(create_working_dir) \
-        .add_search_tools() \
-        .add_ado_tools(ado_workitems_api) \
-        .add_file_management_tools() \
-        .add_pytest_tool() \
-        .add_git_tools(git_url, main_branch_name="automated_testing") \
-        .add_github_tools() \
+    tools_list = (
+        ToolsBuilder(create_working_dir)
+        .add_search_tools()
+        .add_ado_tools(ado_workitems_api)
+        .add_file_management_tools()
+        .add_pytest_tool()
+        .add_git_tools(git_url, main_branch_name="automated_testing")
+        # .add_github_tools() \
         .build()
+    )
 
     return tools_list
 
@@ -41,7 +43,7 @@ def create_toolset(create_working_dir):
 @pytest.fixture
 def instantiate_llm(request):
     llm_name = request.param
-    return get_llm(llm_name)
+    return CrewAiModels.get_llm(llm_name)
 
 
 @pytest.fixture
@@ -74,6 +76,7 @@ def tool_test_task(request, agent_tester):
     )
 
 
+@pytest.mark.requires_llm
 @pytest.mark.parametrize("instantiate_llm", ["chatgpt", ], indirect=True)
 @pytest.mark.parametrize("tool_test_task", [
     # "get work item (1)",
@@ -124,4 +127,3 @@ def test_run_instruction(instruction, agent_tester, instantiate_llm):
     )
     result = crew.kickoff()
     assert result == "OBJECTIVE COMPLETED"
-

@@ -2,7 +2,7 @@ from enum import Enum
 from typing import List
 from dotenv import load_dotenv
 from src.ado_integrations.ado_connection import ADOConnection
-from src.ado_integrations.workitems.ado_workitem_models import AdoWorkItem, CreateWorkItemInput, UpdateWorkItemInput
+from src.ado_integrations.workitems.ado_workitem_models import WorkItem, CreateWorkItemInput, UpdateWorkItemInput
 from src.ado_integrations.workitems.base_ado_workitems_api import BaseAdoWorkitemsApi
 
 
@@ -29,10 +29,10 @@ class ADOWorkitemsApi(ADOConnection, BaseAdoWorkitemsApi):
         response = self.make_request('PATCH', url, headers={'Content-Type': 'application/json-patch+json'}, json=document)
         return response['id']
 
-    def get_work_item(self, work_item_id: int) -> AdoWorkItem:
+    def get_work_item(self, work_item_id: int) -> WorkItem:
         url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/{work_item_id}?api-version={self.api_version}"
         response = self.make_request('GET', url)
-        return AdoWorkItem.from_api(response)
+        return WorkItem.from_ado_api(response)
 
     def update_work_item(self, updates: UpdateWorkItemInput) -> None:
         url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/{work_item_id}?api-version={self.api_version}"
@@ -43,7 +43,7 @@ class ADOWorkitemsApi(ADOConnection, BaseAdoWorkitemsApi):
         url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/{work_item_id}?api-version={self.api_version}"
         self.make_request('DELETE', url)
 
-    def list_work_items(self, work_item_type: str = None, assigned_to: str = None) -> List[AdoWorkItem]:
+    def list_work_items(self, work_item_type: str = None, assigned_to: str = None) -> List[WorkItem]:
         query = "SELECT [System.Id], [System.Title], [System.State], [System.AssignedTo], [System.WorkItemType], [System.Description] FROM WorkItems"
         conditions = []
         if work_item_type:

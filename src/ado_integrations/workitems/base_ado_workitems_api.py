@@ -4,7 +4,7 @@ from typing import List
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from src.ado_integrations.workitems.ado_workitem_models import AdoWorkItem, CreateWorkItemInput, UpdateWorkItemInput
+    from src.ado_integrations.workitems.ado_workitem_models import WorkItem, CreateWorkItemInput, UpdateWorkItemInput
 
 
 class BaseAdoWorkitemsApi(ABC):
@@ -13,7 +13,7 @@ class BaseAdoWorkitemsApi(ABC):
         pass
 
     @abstractmethod
-    def get_work_item(self, work_item_id: int) -> "AdoWorkItem":
+    def get_work_item(self, work_item_id: int) -> "WorkItem":
         pass
 
     @abstractmethod
@@ -25,5 +25,5 @@ class BaseAdoWorkitemsApi(ABC):
         pass
 
     @abstractmethod
-    def list_work_items(self, work_item_type: str = None, assigned_to: str = None) -> List["AdoWorkItem"]:
+    def list_work_items(self, work_item_type: str = None, assigned_to: str = None) -> List["WorkItem"]:
         pass

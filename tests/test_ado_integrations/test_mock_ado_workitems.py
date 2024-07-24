@@ -1,5 +1,5 @@
 import pytest
-from src.ado_integrations.workitems.ado_workitem_models import AdoWorkItem, CreateWorkItemInput, UpdateWorkItemInput
+from src.ado_integrations.workitems.ado_workitem_models import WorkItem, CreateWorkItemInput, UpdateWorkItemInput
 from src.ado_integrations.workitems.mock_ado_workitems_api import MockAdoWorkitemsApi
 
 class TestMockAdoWorkitemApi:
@@ -10,18 +10,18 @@ class TestMockAdoWorkitemApi:
     
     @pytest.fixture
     def add_work_item1(self, api: MockAdoWorkitemsApi):
-        work_item = AdoWorkItem(id=1, type='Bug', assigned_to='John', title='Test')
+        work_item = WorkItem(id=1, type='Bug', assigned_to='John', title='Test', state="New")
         api.work_items.append(work_item)
         return work_item.id
     
     @pytest.fixture
     def add_work_item2(self, api):
-        work_item = AdoWorkItem(id=2, type='Feature', assigned_to='Jane', title='Test2')
+        work_item = WorkItem(id=2, type='Feature', assigned_to='Jane', title='Test2', state="New")
         api.work_items.append(work_item)
         return work_item.id
 
     def test_create_work_item(self, api):
-        work_item = CreateWorkItemInput(type='Bug', assigned_to='John', title='Test')
+        work_item = CreateWorkItemInput(type='Bug', assigned_to='John', title='Test', state="New")
         work_item_id = api.create_work_item(work_item)
         assert len(api.work_items) == 1
         assert api.work_items[0].assigned_to == work_item.assigned_to

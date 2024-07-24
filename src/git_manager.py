@@ -3,7 +3,7 @@ import os
 import git
 from pathlib import Path
 
-from src.ado_integrations.workitems.ado_workitem_models import AdoWorkItem
+from src.ado_integrations.workitems.ado_workitem_models import WorkItem
 
 
 class GitManager:
@@ -11,7 +11,7 @@ class GitManager:
         self.repo_url = repo_url
         self.workspace_root_dir = Path(os.getenv("WORKSPACE_DIR"))
 
-    def clone_and_setup(self, work_item: AdoWorkItem):
+    def clone_and_setup(self, work_item: WorkItem):
         branch_name = f"{work_item.id}-{work_item.title.replace(' ', '_')}"
         repo_path = self.workspace_root_dir / branch_name
 
