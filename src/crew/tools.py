@@ -1,18 +1,20 @@
 import os
-
 from pathlib import Path
 from typing import List
 
+from invoke import Collection
 from langchain.tools import BaseTool
 from langchain_community.agent_toolkits import FileManagementToolkit
 from langchain_community.agent_toolkits.github.toolkit import GitHubToolkit
 from langchain_community.tools.ddg_search import DuckDuckGoSearchRun
 from langchain_community.utilities.github import GitHubAPIWrapper
 
+import tasks
 from src.ado_integrations.workitems.ado_workitems_api_tools import instantiate_ado_tools
 from src.ado_integrations.workitems.mock_ado_workitems_api import MockAdoWorkitemsApi
 from src.git_tool.git_abstraction import GitAbstraction
 from src.git_tool.git_tool import instantiate_git_tools
+from src.util_tools.invoke_tool import TaskCollector
 from src.util_tools.pytest_tool import PytestTool
 
 
@@ -62,6 +64,12 @@ class ToolsBuilder:
         git_tools = instantiate_git_tools(git_abstraction)
         self.tools += git_tools
         return self
+
+    def add_invoke_tools(self):
+        collection = Collection.from_module(tasks)
+        collector = TaskCollector(collection)
+        tools = collector.collect_tasks()
+        self.tools += tools
 
     def build(self):
         return self.tools

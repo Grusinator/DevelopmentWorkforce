@@ -35,3 +35,5 @@ psycopg2-binary
 pgvector
 Pillow # Profile picture
 celery
+gunicorn
+flower

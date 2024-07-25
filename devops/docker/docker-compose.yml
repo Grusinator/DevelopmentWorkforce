@@ -1,16 +1,18 @@
 version: '3.9'
 
 services:
-  db:
+  postgres:
     image: postgres:13
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres13_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    env_file:
+      - ../../.env
 
   redis:
     image: redis:latest
@@ -50,7 +52,7 @@ services:
       - POSTGRES_PORT=5432
       - CELERY_BROKER_URL=redis://redis:6379/0
     depends_on:
-      - db
+      - postgres
       - redis
 
   celery_worker:
@@ -58,8 +60,6 @@ services:
       context: ../..
       dockerfile: devops/docker/development-workforce.Dockerfile
     command: celery -A development_workforce worker --loglevel=info
-    env_file:
-      - ../../.env
     volumes:
       - .:/app
     environment:
@@ -80,4 +80,4 @@ services:
       - celery_worker
 
 volumes:
-  postgres_data:
+  postgres13_data:
