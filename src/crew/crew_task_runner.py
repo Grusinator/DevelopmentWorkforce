@@ -4,6 +4,7 @@ from crewai import Task, Crew
 
 from src.ado_integrations.workitems.ado_workitem_models import WorkItem
 from src.crew.crew_ai_agents import CrewAiAgents
+from src.crew.crew_ai_models import CrewAiModels
 
 
 class CrewTaskRunner:
@@ -63,5 +64,7 @@ class CrewTaskRunner:
             # manager_llm=default_llm,
             # process=Process.hierarchical,
             # allow_delegation=True
+            # function_calling_llm=CrewAiModels.ollama_instruct
+
         )
         return self.crew.kickoff()

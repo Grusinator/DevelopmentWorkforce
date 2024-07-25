@@ -34,3 +34,4 @@ django_extensions
 psycopg2-binary
 pgvector
 Pillow # Profile picture
+celery
