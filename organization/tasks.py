@@ -4,9 +4,10 @@ from celery import shared_task
 from loguru import logger
 from organization.models import Repository, Agent
 from organization.schemas import AgentModel
-from organization.services.fetch_new_tasks import fetch_new_workitems
+from organization.services.fetch_new_tasks import WorkItemFetcher
 from src.ado_integrations.repos.ado_repos_models import RepositoryModel
 from src.ado_integrations.workitems.ado_workitem_models import WorkItem
+from src.ado_integrations.workitems.ado_workitems_wrapper_api import ADOWorkitemsWrapperApi
 from src.task_automation import TaskAutomation
 
 
@@ -26,4 +27,6 @@ def fetch_new_workitems_periodically():
     for agent in agents:
         repos = Repository.objects.filter(agentrepoconnection__agent=agent, agentrepoconnection__enabled=True)
         for repo in repos:
-            fetch_new_workitems(agent, repo)
+            api = ADOWorkitemsWrapperApi(agent.pat, agent.organization_name, repo.project.name)
+            wf = WorkItemFetcher(api)  # TODO design these classes without user info, and parse it along.
+            wf.fetch_new_workitems(agent, repo)

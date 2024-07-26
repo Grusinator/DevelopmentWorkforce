@@ -7,8 +7,9 @@ from django.contrib.auth.models import User
 
 class Project(models.Model):
     id = models.AutoField(primary_key=True)
+    source_id = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
-    azure_devops_id = models.CharField(max_length=255)
+    # url = models.URLField(null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -16,10 +17,10 @@ class Project(models.Model):
 
 class Repository(models.Model):
     id = models.AutoField(primary_key=True)
+    source_id = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
-    azure_devops_id = models.CharField(max_length=255)
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
     git_url = models.URLField()
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name

@@ -172,6 +172,7 @@ class ADOReposWrapperApi(BaseAdoReposApi):
             project_list.append(ProjectModel(
                 name=project.name,
                 id=project.id,
+                source_id=project.id,
                 description=project.description,
                 url=project.url
             ))
@@ -183,7 +184,15 @@ class ADOReposWrapperApi(BaseAdoReposApi):
         for repo in repositories:
             repo_list.append(RepositoryModel(
                 id=repo.id,
+                source_id=repo.id,  # TODO ids should be reserved for internal db id. consider delete
                 name=repo.name,
-                url=repo.remote_url
+                git_url=repo.remote_url,
+                project=ProjectModel(
+                    name=repo.project.name,
+                    id=repo.project.id,
+                    source_id=repo.project.id,
+                    description=repo.project.description,
+                    url=repo.project.url
+                )
             ))
         return repo_list

@@ -13,8 +13,8 @@ from src.git_manager import GitManager
 
 class TaskAutomation:
     def __init__(self, repo: RepositoryModel, agent: AgentModel):
-        self.ado_workitems_api = ADOWorkitemsWrapperApi(agent.pat, agent.organization_name, agent.project_name)
-        self.ado_repos_api = ADOReposWrapperApi(agent.pat, agent.organization_name, agent.project_name, repo.name)
+        self.ado_workitems_api = ADOWorkitemsWrapperApi(agent.pat, agent.organization_name, repo.project.name)
+        self.ado_repos_api = ADOReposWrapperApi(agent.pat, agent.organization_name, repo.project.name, repo.name)
         self.git_manager = GitManager(repo.git_url)
         self.user_name = agent.agent_user_name
 

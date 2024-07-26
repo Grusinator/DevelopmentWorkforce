@@ -27,7 +27,7 @@ class ToolsBuilder:
     def get_default_toolset(self):
         return (
             self
-            .add_search_tools()
+            # .add_search_tools()
             .add_file_management_tools()
             .add_pytest_tool()
             .build()

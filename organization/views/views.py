@@ -21,14 +21,14 @@ def sync_with_ado(request):
 
     for project in projects:
         project_obj, created = Project.objects.update_or_create(
-            azure_devops_id=project.id,
+            source_id=project.id,
             defaults={'name': project.name}
         )
 
         repositories = api.get_repositories(project.id)
         for repo in repositories:
             repo_obj, created = Repository.objects.update_or_create(
-                azure_devops_id=repo.id,
+                source_id=repo.id,
                 defaults={'name': repo.name, 'project': project_obj, "git_url": repo.git_url}
             )
             AgentRepoConnection.objects.get_or_create(

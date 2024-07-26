@@ -1,5 +1,6 @@
 import os
 import time
+import uuid
 from pathlib import Path
 import git
 from src.ado_integrations.workitems.ado_workitem_models import WorkItem
@@ -11,7 +12,9 @@ class GitManager:
         self.workspace_root_dir = Path(os.getenv("WORKSPACE_DIR"))
 
     def clone_and_setup(self, work_item: WorkItem):
-        branch_name = f"{work_item.id}-{work_item.title.replace(' ', '_')}"
+        guid = str(uuid.uuid4())[:8]
+        title = work_item.title.replace(' ', '_')[:20]
+        branch_name = f"{work_item.id}-{title}-{guid}"
         repo_path = self.workspace_root_dir / branch_name
 
         if self.git_repo_exists(repo_path):
