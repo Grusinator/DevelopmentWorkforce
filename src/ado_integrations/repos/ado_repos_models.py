@@ -37,4 +37,4 @@ class ProjectModel(BaseModel):
 class RepositoryModel(BaseModel):
     id: str
     name: str
-    url: str
+    git_url: str

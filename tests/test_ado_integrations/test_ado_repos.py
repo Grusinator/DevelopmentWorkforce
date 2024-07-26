@@ -163,4 +163,4 @@ class TestADOReposApiIntegration:
             for repo in repos:
                 assert isinstance(repo.id, str)
                 assert isinstance(repo.name, str)
-                assert isinstance(repo.url, str)
+                assert isinstance(repo.git_url, str)

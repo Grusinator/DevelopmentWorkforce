@@ -1,8 +1,7 @@
 import os
-
-import git
+import time
 from pathlib import Path
-
+import git
 from src.ado_integrations.workitems.ado_workitem_models import WorkItem
 
 
@@ -15,41 +14,49 @@ class GitManager:
         branch_name = f"{work_item.id}-{work_item.title.replace(' ', '_')}"
         repo_path = self.workspace_root_dir / branch_name
 
-        if repo_path.exists() and any(repo_path.iterdir()):
-            try:
-                repo = git.Repo(str(repo_path))
-                if branch_name in [b.name for b in repo.branches]:
-                    # If branch exists, checkout to it
-                    repo.git.checkout(branch_name)
-                else:
-                    if repo.active_branch.name == 'main':
-                        repo.remotes.origin.pull()
-                    else:
-                        # If not on 'main', checkout 'main' and pull the latest changes
-                        repo.git.checkout('main')
-                        repo.remotes.origin.pull()
-                    # Create and switch to a new branch for the work item
-                    new_branch = repo.create_head(branch_name)
-                    repo.head.reference = new_branch
-                    repo.head.reset(index=True, working_tree=True)
-            except (git.exc.InvalidGitRepositoryError, git.exc.NoSuchPathError, ValueError):
-                # If the directory is not a git repo or 'main' branch doesn't exist, clone and setup
-                repo_path.mkdir(parents=True, exist_ok=True)
-                repo = git.Repo.clone_from(self.repo_url, str(repo_path))
-                # Create and switch to a new branch for the work item
-                new_branch = repo.create_head(branch_name)
-                repo.head.reference = new_branch
-                repo.head.reset(index=True, working_tree=True)
+        if self.git_repo_exists(repo_path):
+            self._get_existing_repo(repo_path, branch_name)
         else:
-            # If the directory doesn't exist, clone and setup
-            repo_path.mkdir(parents=True, exist_ok=True)
-            repo = git.Repo.clone_from(self.repo_url, str(repo_path))
-            # Create and switch to a new branch for the work item
+            self._clone_and_create_branch(repo_path, branch_name)
+
+        return repo_path
+
+    def git_repo_exists(self, repo_path):
+        return repo_path.exists() and any(repo_path.iterdir())
+
+    def _get_existing_repo(self, repo_path, branch_name):
+        repo = git.Repo(str(repo_path))
+        for _ in range(5):
+            try:
+                self._checkout_or_create_branch(repo, branch_name)
+                break
+            except OSError as e:
+                if "could not be obtained" in str(e):
+                    time.sleep(1)
+                else:
+                    raise
+        else:
+            raise OSError("Failed to obtain lock after multiple attempts")
+        return repo
+
+    def _clone_and_create_branch(self, repo_path, branch_name):
+        repo_path.mkdir(parents=True, exist_ok=True)
+        repo = git.Repo.clone_from(self.repo_url, str(repo_path))
+        new_branch = repo.create_head(branch_name)
+        repo.head.reference = new_branch
+        repo.head.reset(index=True, working_tree=True)
+        return repo
+
+    def _checkout_or_create_branch(self, repo, branch_name):
+        if branch_name in [b.name for b in repo.branches]:
+            repo.git.checkout(branch_name)
+        else:
+            if repo.active_branch.name != 'main':
+                repo.git.checkout('main')
+                repo.remotes.origin.pull()
             new_branch = repo.create_head(branch_name)
             repo.head.reference = new_branch
             repo.head.reset(index=True, working_tree=True)
-
-        return repo_path
 
     def push_changes(self, repo_path, branch_name, commit_message):
         repo = git.Repo(str(repo_path))

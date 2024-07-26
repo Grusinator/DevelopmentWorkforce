@@ -1,7 +1,6 @@
 # views.py
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
+
 
 from src.ado_integrations.repos.ado_repos_wrapper_api import ADOReposWrapperApi
 from organization.forms import AgentForm, AgentRepoConnectionFormSet
@@ -30,7 +29,7 @@ def sync_with_ado(request):
         for repo in repositories:
             repo_obj, created = Repository.objects.update_or_create(
                 azure_devops_id=repo.id,
-                defaults={'name': repo.name, 'project': project_obj, "git_url": repo.url}
+                defaults={'name': repo.name, 'project': project_obj, "git_url": repo.git_url}
             )
             AgentRepoConnection.objects.get_or_create(
                 agent=agent,

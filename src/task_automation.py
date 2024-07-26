@@ -1,22 +1,22 @@
 # task_automation.py
-import os
-from time import sleep
 
-from src.ado_integrations.repos.ado_repos_models import CreatePullRequestInput
+import loguru
+
+from organization.schemas import AgentModel
+from src.ado_integrations.repos.ado_repos_models import CreatePullRequestInput, RepositoryModel
 from src.ado_integrations.repos.ado_repos_wrapper_api import ADOReposWrapperApi
 from src.ado_integrations.workitems.ado_workitem_models import WorkItem, UpdateWorkItemInput
 from src.ado_integrations.workitems.ado_workitems_wrapper_api import ADOWorkitemsWrapperApi
 from src.crew.crew_task_runner import CrewTaskRunner
 from src.git_manager import GitManager
-import loguru
 
 
 class TaskAutomation:
-    def __init__(self, repo_url, repo_name, ado_org_name, project_name, pat, user_name):
-        self.ado_workitems_api = ADOWorkitemsWrapperApi(pat, ado_org_name, project_name)
-        self.ado_repos_api = ADOReposWrapperApi(pat, ado_org_name, project_name, repo_name)
-        self.git_manager = GitManager(repo_url)
-        self.user_name = user_name
+    def __init__(self, repo: RepositoryModel, agent: AgentModel):
+        self.ado_workitems_api = ADOWorkitemsWrapperApi(agent.pat, agent.organization_name, agent.project_name)
+        self.ado_repos_api = ADOReposWrapperApi(agent.pat, agent.organization_name, agent.project_name, repo.name)
+        self.git_manager = GitManager(repo.git_url)
+        self.user_name = agent.agent_user_name
 
     def get_new_tasks(self, state="New"):
         return self.ado_workitems_api.list_work_items(assigned_to=self.user_name, state=state)
