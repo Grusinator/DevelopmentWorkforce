@@ -9,6 +9,8 @@ from src.ado_integrations.workitems.ado_workitem_models import WorkItem, UpdateW
 from src.ado_integrations.workitems.ado_workitems_wrapper_api import ADOWorkitemsWrapperApi
 from src.crew.crew_task_runner import CrewTaskRunner
 from src.git_manager import GitManager
+from src.util_tools.map_dir import DirectoryStructure
+from src.util_tools.vector_db import VectorDB
 
 
 class TaskAutomation:
@@ -27,7 +29,8 @@ class TaskAutomation:
         loguru.logger.info(f"Processing task: {work_item.title}")
         workspace_dir = self.git_manager.clone_and_setup(work_item)
         loguru.logger.info(f"Cloned repository to {workspace_dir}")
-        self.run_development_crew(work_item, workspace_dir)
+        task_context = self.prepare_task_context(work_item, workspace_dir)
+        self.run_development_crew(work_item, workspace_dir, task_context)
         loguru.logger.info(f"Completed task: {work_item.title}")
         branch_name = workspace_dir.name
         self.git_manager.push_changes(workspace_dir, branch_name, work_item.title)
@@ -38,8 +41,31 @@ class TaskAutomation:
         loguru.logger.info(f"Created pull request for task: {work_item.title}")
         return workspace_dir
 
-    def run_development_crew(self, work_item, workspace_dir):
+    def run_development_crew(self, work_item, workspace_dir, task_context: str = None):
         crew_runner = CrewTaskRunner(workspace_dir)
         crew_runner.add_developer_agent()
-        crew_runner.add_task_from_work_item(work_item)
+        crew_runner.add_task_from_work_item(work_item, extra_info=task_context)
         crew_runner.run()
+
+    def prepare_task_context(self, work_item, workspace_dir):
+        files_as_text = self.load_most_relevant_docs_from_repo(work_item, workspace_dir)
+        directory_structure = DirectoryStructure(workspace_dir).get_formatted_directory_structure()
+        dir_structure_text = f"""
+        structure of workspace folder:
+        {directory_structure}
+        
+        This is a list of existing files in the repo, in order to give some context for the development task:
+        
+        {files_as_text}
+        """
+        return dir_structure_text
+
+    def load_most_relevant_docs_from_repo(self, work_item: WorkItem, workspace_dir):
+        vdb = VectorDB()
+        vdb.load_repo(workspace_dir)
+        frac_of_repo = int(10 + len(vdb.filenames) / 20)
+        docs = vdb.fetch_most_relevant_docs(work_item.pretty_print(), n=max(10, frac_of_repo))
+        files_as_text = [f"### {filename} ###: \n  {content}" for filename, content in docs.items()]
+        return "\n-------------------------------------------\n\n".join(files_as_text)
+
+

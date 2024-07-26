@@ -2,6 +2,8 @@ from pathlib import Path
 
 from invoke import task, Collection
 
+from src.util_tools.map_dir import DirectoryStructure
+
 docker_path = Path("devops/docker")
 
 
@@ -21,3 +23,9 @@ def start_worker(ctx):
 @task
 def start_flower(ctx):
     ctx.run("celery -A development_workforce flower --port=5555")
+
+@task
+def map_dir(ctx, path="."):
+    struct = DirectoryStructure(path).get_formatted_directory_structure()
+    print(struct)
+    return struct

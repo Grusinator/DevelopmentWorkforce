@@ -37,3 +37,4 @@ Pillow # Profile picture
 celery
 gunicorn
 flower
+scikit-learn

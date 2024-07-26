@@ -23,6 +23,18 @@ class WorkItem(WorkItemBase):
     def __str__(self):
         return f"{self.id} {self.title}"
 
+    def pretty_print(self):
+        return f"""
+        title:
+        {self.title}
+        
+        desc:
+        {self.description}
+        
+        tags:
+        {self.tags}
+        """
+
     @staticmethod
     def from_ado_api(api_response: dict) -> "WorkItem":
         fields = api_response.get("fields", {})

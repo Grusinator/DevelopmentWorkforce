@@ -21,21 +21,25 @@ class CrewTaskRunner:
         self.default_agent = self.agency.create_developer()
         self.agents.append(self.default_agent)
 
-    def add_task_from_work_item(self, work_item: WorkItem):
+    def add_task_from_work_item(self, work_item: WorkItem, extra_info=None):
+        description = f"""
+        complete below work item by writing code to files based on the requirements 
+        and the acceptance criteria from user stories. 
+        Use the tools to write files, the infrastructure will handle the rest, eg. cloning repo, pushing etc.
+        
+        write unit tests that match the acceptance criteria, 
+        and run the tests to verify that its implemented correctly.
+        
+        the user story looks like this:
+        {work_item.title}
+        
+        {work_item.description}
+        
+        {extra_info}
+        
+        """
         task = Task(
-            description=f"""complete below work item by writing code to files based on the requirements and the acceptance 
-                    criteria from user stories. Use the tools to write files, 
-                    the infrastructure will handle the rest, eg. cloning repo, pushing etc.
-                    
-                    write unit tests that match the acceptance criteria, 
-                    and run the tests to verify that its implemented correctly.
-
-                    the user story looks like this:
-                    {work_item.title}
-
-                    {work_item.description}
-
-                    """,
+            description=description,
             agent=self.default_agent,
             expected_output='if succeeded return "SUCCEEDED" otherwise return "FAILED"'
         )

@@ -20,22 +20,8 @@ class DirectoryStructureTool(BaseTool):
     def _run(self, args=(), kwargs=None, run_manager: Optional[CallbackManagerForToolRun] = None) -> str:
         try:
             ds = DirectoryStructure(self._working_directory)
-            formatted_structure = ds.format_directory_structure()
+            formatted_structure = ds.get_formatted_directory_structure()
             return "\n".join(formatted_structure)
         except Exception as e:
             logger.error(f"Failed to map directory structure. Error: {e}")
             return str(e)
-
-# Example usage:
-if __name__ == "__main__":
-    from langchain.agents import initialize_agent
-    from langchain.llms import OpenAI
-
-    llm = OpenAI()
-    root_directory = Path('/path/to/your/repo')  # Update this path
-    repo_tool = DirectoryStructureTool(root_directory)
-    tools = [repo_tool]
-    agent = initialize_agent(tools, llm, agent_type="zero-shot-react-description")
-
-    response = agent.run(f"Map the structure of the repository at {root_directory}")
-    print(response)

@@ -4,6 +4,8 @@ import os
 from celery import Celery
 from celery.schedules import crontab
 
+from development_workforce import settings
+
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'development_workforce.settings')
 
 app = Celery('development_workforce')
@@ -11,6 +13,10 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 
 app.conf.broker_url = 'redis://localhost:6379/0'
 app.conf.result_backend = 'redis://localhost:6379/0'
+
+# if settings.DEBUG:
+#     app.conf.broker_url = 'memory://'
+#     app.conf.result_backend = 'cache+memory://'
 
 app.autodiscover_tasks()
 

@@ -34,6 +34,7 @@ def create_toolset(create_working_dir):
         .add_pytest_tool()
         .add_git_tools(git_url, main_branch_name="automated_testing")
         # .add_github_tools() \
+        .add_invoke_tools()
         .build()
     )
 
