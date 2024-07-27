@@ -54,7 +54,7 @@ def agent_tester(create_toolset, instantiate_llm):
         goal='Ensure the quality of the product',
         backstory="""You are a skilled QA Tester, responsible for ensuring the quality of the product.
       You perform various tests to identify any issues or bugs in the software.
-      You are responisble for reviewing all the unit tests and make sure that the code is tested 
+      You are responisble for reviewing all the unit tests and make sure that the code is tested
       according to the acceptance criteria.""",
         verbose=True,
         allow_delegation=True,

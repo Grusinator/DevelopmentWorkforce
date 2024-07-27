@@ -38,7 +38,7 @@ class CreateWorkItemTool(AdoWorkitemToolBase):
         try:
             input_model = CreateWorkItemInput(**kwargs)
             created_id = self._ado_workitems_api.create_work_item(input_model)
-            return {"id": created_id}
+            return {"source_id": created_id}
         except Exception as e:
             logger.error(f"Error creating work item: {e}")
             return {"error": str(e)}
@@ -76,7 +76,7 @@ class UpdateWorkItemTool(AdoWorkitemToolBase):
         try:
             input_model = UpdateWorkItemInput(**kwargs)
             work_item_id = self._ado_workitems_api.update_work_item(input_model)
-            return {"message": "Work item updated successfully", "id": work_item_id}
+            return {"message": "Work item updated successfully", "source_id": work_item_id}
         except Exception as e:
             logger.error(f"Error updating work item: {e}")
             return {"error": str(e)}

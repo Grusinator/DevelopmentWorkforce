@@ -33,22 +33,22 @@ class TestAdoWorkitemsApiTools:
             state="New"
         )
         result = tool._run(kwargs=work_item.model_dump())
-        assert isinstance(result["id"], int)
+        assert isinstance(result["source_id"], int)
 
     def test_get_work_item(self, mock_ado_workitems_api, add_ado_test_item):
         tool = GetWorkItemTool(mock_ado_workitems_api)
         result = tool._run(kwargs=GetWorkItemInput(id=add_ado_test_item).model_dump())
         assert isinstance(result, dict)
-        assert result["id"] == add_ado_test_item
+        assert result["source_id"] == add_ado_test_item
 
     def test_update_work_item(self, mock_ado_workitems_api, add_ado_test_item):
         tool = UpdateWorkItemTool(mock_ado_workitems_api)
-        updated_data = {"id": add_ado_test_item,
+        updated_data = {"source_id": add_ado_test_item,
                         "work_item": {"title": "Updated Title", "description": "Updated description"}}
         input_model = UpdateWorkItemInput(**updated_data)
         result = tool._run(kwargs=input_model.model_dump())
         assert "message" in result
-        assert result["id"] == add_ado_test_item
+        assert result["source_id"] == add_ado_test_item
 
     def test_delete_work_item(self, mock_ado_workitems_api, add_ado_test_item):
         tool = DeleteWorkItemTool(mock_ado_workitems_api)
@@ -59,4 +59,4 @@ class TestAdoWorkitemsApiTools:
         tool = ListWorkItemsTool(mock_ado_workitems_api)
         result = tool._run(kwargs=ListWorkItemsInput().model_dump())
         assert isinstance(result, list)
-        assert any(item["id"] == add_ado_test_item for item in result)
+        assert any(item["source_id"] == add_ado_test_item for item in result)

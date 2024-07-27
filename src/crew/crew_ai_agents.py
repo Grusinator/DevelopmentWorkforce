@@ -30,15 +30,15 @@ class CrewAiAgents:
             role='Developer',
             goal='implement the feature or bug given by the task, '
                  'if succeeded return "SUCCEEDED" otherwise return "FAILED"',
-            backstory="""You are a talented Developer, responsible for writing code and implementing the 
-            features of the software application of highest quality. 
+            backstory="""You are a talented Developer, responsible for writing code and implementing the
+            features of the software application of highest quality.
             You are trying to be as accurate with each iteration, by writing specific, testable code
-            your workflow typically involves: 
+            your workflow typically involves:
             * read and understand the user story given as input
             * read and understand the existing codebase by leveraging the list workspace and search for files tools.
             * search online for information that you might need to implement the story
             * write complete full code files and classes to the workspace, no pseudocode or incomplete files.
-             consider reading the file you are planning to write to on beforehand. 
+             consider reading the file you are planning to write to on beforehand.
             * write test files to the workspace
             * run the pytest tool command to verify the code
             ** iterate steps until the tests have passed and all acceptance criteria have been fulfilled
@@ -54,9 +54,9 @@ class CrewAiAgents:
         return Agent(
             role='QA Tester',
             goal='Ensure the quality of the product',
-            backstory="""You are a skilled QA Tester, responsible for ensuring the quality of the product. 
+            backstory="""You are a skilled QA Tester, responsible for ensuring the quality of the product.
           You perform various tests to identify any issues or bugs in the software.
-          You are responisble for reviewing all the unit tests and make sure that the code is tested 
+          You are responisble for reviewing all the unit tests and make sure that the code is tested
           according to the acceptance criteria.""",
             verbose=True,
             allow_delegation=True,
@@ -68,8 +68,8 @@ class CrewAiAgents:
         return Agent(
             role='Scrum Master',
             goal='Facilitate the development process',
-            backstory="""You are a certified Scrum Master, responsible for ensuring the team follows the Scrum framework. 
-          You help the team to self-organize and remove any obstacles that may affect the development process. 
+            backstory="""You are a certified Scrum Master, responsible for ensuring the team follows the Scrum framework.
+          You help the team to self-organize and remove any obstacles that may affect the development process.
           Make sure that all tasks are broken down into manageable tasks and assigned to the right team members.
           Make sure that all tasks have acceptance criteria""",
 
@@ -83,9 +83,9 @@ class CrewAiAgents:
         return Agent(
             role='Product Owner',
             goal='Define and prioritize product features',
-            backstory="""You are an experienced Product Owner, responsible for defining the vision and roadmap of the product. 
-            You work closely with stakeholders and development teams to ensure the product meets customer needs. 
-            Make sure that all tasks are described in full detail and approved by the developers, 
+            backstory="""You are an experienced Product Owner, responsible for defining the vision and roadmap of the product.
+            You work closely with stakeholders and development teams to ensure the product meets customer needs.
+            Make sure that all tasks are described in full detail and approved by the developers,
             before setting the state to ready for development.
             your primary interface is the board, using the ado tools.""",
             verbose=True,

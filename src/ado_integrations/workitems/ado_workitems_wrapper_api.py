@@ -34,7 +34,7 @@ class ADOWorkitemsWrapperApi(BaseAdoWorkitemsApi):
     def get_work_item(self, work_item_id: int) -> WorkItem:
         work_item = self.client.get_work_item(work_item_id)
         return WorkItem(
-            id=work_item.id,
+            source_id=work_item.id,
             title=work_item.fields['System.Title'],
             type=work_item.fields['System.WorkItemType'],
             description=work_item.fields.get('System.Description', None),
@@ -58,7 +58,7 @@ class ADOWorkitemsWrapperApi(BaseAdoWorkitemsApi):
             document.append(JsonPatchOperation(op='replace', path='/fields/System.State', value=updates.state))
         if updates.tags:
             document.append(JsonPatchOperation(op='replace', path='/fields/System.Tags', value="; ".join(updates.tags)))
-        self.client.update_work_item(document, updates.id)
+        self.client.update_work_item(document, updates.source_id)
 
     def delete_work_item(self, work_item_id: int) -> None:
         self.client.delete_work_item(work_item_id)

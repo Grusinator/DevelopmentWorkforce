@@ -2,10 +2,9 @@ import os
 
 from dotenv import load_dotenv
 from langchain_community.llms.huggingface_endpoint import HuggingFaceEndpoint
+import requests
 
 load_dotenv()
-
-import requests
 
 API_URL = os.getenv("HUGGINGFACE_API_BASE")
 API_KEY = os.getenv("HUGGINGFACE_API_KEY")

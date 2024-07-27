@@ -22,7 +22,7 @@ class BaseAdoReposApi(ABC):
         pass
 
     @abstractmethod
-    def complete_pull_request(self, pr_id: int) -> None:
+    def approve_pull_request(self, pr_id: int) -> None:
         pass
 
     @abstractmethod

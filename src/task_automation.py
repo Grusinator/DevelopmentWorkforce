@@ -24,7 +24,7 @@ class TaskAutomation:
         return self.ado_workitems_api.list_work_items(assigned_to=self.user_name, state=state)
 
     def process_task(self, work_item: WorkItem):
-        work_item_input = UpdateWorkItemInput(id=work_item.id, state="Active")
+        work_item_input = UpdateWorkItemInput(source_id=work_item.source_id, state="Active")
         self.ado_workitems_api.update_work_item(work_item_input)
         loguru.logger.info(f"Processing task: {work_item.title}")
         workspace_dir = self.git_manager.clone_and_setup(work_item)
@@ -53,9 +53,9 @@ class TaskAutomation:
         dir_structure_text = f"""
         structure of workspace folder:
         {directory_structure}
-        
+
         This is a list of existing files in the repo, in order to give some context for the development task:
-        
+
         {files_as_text}
         """
         return dir_structure_text

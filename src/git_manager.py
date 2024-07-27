@@ -14,7 +14,7 @@ class GitManager:
     def clone_and_setup(self, work_item: WorkItem):
         guid = str(uuid.uuid4())[:8]
         title = work_item.title.replace(' ', '_')[:20]
-        branch_name = f"{work_item.id}-{title}-{guid}"
+        branch_name = f"{work_item.source_id}-{title}-{guid}"
         repo_path = self.workspace_root_dir / branch_name
 
         if self.git_repo_exists(repo_path):

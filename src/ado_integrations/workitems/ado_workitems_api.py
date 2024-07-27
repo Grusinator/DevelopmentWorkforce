@@ -35,7 +35,7 @@ class ADOWorkitemsApi(ADOConnection, BaseAdoWorkitemsApi):
         return WorkItem.from_ado_api(response)
 
     def update_work_item(self, updates: UpdateWorkItemInput) -> None:
-        url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/{work_item_id}?api-version={self.api_version}"
+        url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/{updates.work_item_id}?api-version={self.api_version}"
         document = [{"op": "replace", "path": field, "value": value} for field, value in updates.items()]
         self.make_request('PATCH', url, headers={'Content-Type': 'application/json-patch+json'}, json=document)
 
@@ -65,7 +65,7 @@ class ADOWorkitemsApi(ADOConnection, BaseAdoWorkitemsApi):
         if not updated_work_item.description:
             raise ValueError("Description is required to update a work item's description.")
 
-        url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/{updated_work_item.id}?api-version={self.api_version}"
+        url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/{updated_work_item.source_id}?api-version={self.api_version}"
         document = [
             {
                 "op": "replace",

@@ -10,14 +10,18 @@ from src.ado_integrations.workitems.ado_workitem_models import WorkItem
 from src.ado_integrations.workitems.mock_ado_workitems_api import MockAdoWorkitemsApi
 from src.task_automation import TaskAutomation
 
-work_item = WorkItem(
-    id=randint(1, 99999),
-    title="Test Task",
-    description="This is a test task",
-    assigned_to="William Sandvej Hansen",
-    state="New",
-    type="User Story"
-)
+
+@pytest.fixture
+def mock_work_item():
+    work_item = WorkItem(
+        source_id=randint(1, 99999),
+        title="Test Task",
+        description="This is a test task",
+        assigned_to="William Sandvej Hansen",
+        state="New",
+        type="User Story"
+    )
+    return work_item
 
 
 # Mock for the AI runner that writes a dummy file
@@ -29,7 +33,7 @@ def mock_ai_runner(work_item: WorkItem, workspace_dir, task_context=None):
 
 
 @pytest.fixture
-def task_automation_setup():
+def task_automation_setup(mock_work_item):
     repo_url = os.getenv("ADO_REPO_URL")
     repo_name = os.getenv("ADO_REPO_NAME")
     pat = os.getenv("ADO_PERSONAL_ACCESS_TOKEN")
@@ -47,13 +51,13 @@ def task_automation_setup():
                   return_value="MockPR123"):
         task_automation = TaskAutomation(repository_model, agent_model)
         api = MockAdoWorkitemsApi()
-        api.work_items = [work_item]
+        api.work_items = [mock_work_item]
         task_automation.ado_workitems_api = api
         yield task_automation
 
 
-def test_task_automation_process(task_automation_setup):
-    workspace_dir = task_automation_setup.process_task(work_item)
+def test_task_automation_process(task_automation_setup, mock_work_item):
+    workspace_dir = task_automation_setup.process_task(mock_work_item)
     assert workspace_dir.exists()
     dummy_file_path = workspace_dir / "dummy_file.txt"
     assert dummy_file_path.exists()

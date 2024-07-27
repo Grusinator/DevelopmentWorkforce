@@ -28,7 +28,7 @@ class TestADOWorkitemsApiIntegration:
 
     def test_get_work_item(self, api: ADOWorkitemsApi, create_work_item):
         work_item_details = api.get_work_item(create_work_item)
-        assert work_item_details.id == create_work_item
+        assert work_item_details.source_id == create_work_item
 
     def test_get_work_item_snake(self, api: ADOWorkitemsApi):
         work_item_details = api.get_work_item(3)
@@ -52,7 +52,7 @@ class TestADOWorkitemsApiIntegration:
 
     def test_list_work_items(self, api: ADOWorkitemsApi, create_work_item):
         work_items = api.list_work_items(work_item_type="User Story")
-        assert any(work_item.id == create_work_item for work_item in work_items)
+        assert any(work_item.source_id == create_work_item for work_item in work_items)
 
     def test_update_workitem_state(self, api: ADOWorkitemsApi, create_work_item):
         new_state = "Closed"

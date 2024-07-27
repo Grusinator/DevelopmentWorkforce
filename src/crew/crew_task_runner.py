@@ -22,20 +22,20 @@ class CrewTaskRunner:
 
     def add_task_from_work_item(self, work_item: WorkItem, extra_info=None):
         description = f"""
-        complete below work item by writing code to files based on the requirements 
-        and the acceptance criteria from user stories. 
+        complete below work item by writing code to files based on the requirements
+        and the acceptance criteria from user stories.
         Use the tools to write files, the infrastructure will handle the rest, eg. cloning repo, pushing etc.
-        
-        write unit tests that match the acceptance criteria, 
+
+        write unit tests that match the acceptance criteria,
         and run the tests to verify that its implemented correctly.
-        
+
         the user story looks like this:
         {work_item.title}
-        
+
         {work_item.description}
-        
+
         {extra_info}
-        
+
         """
         task = Task(
             description=description,
@@ -51,7 +51,7 @@ class CrewTaskRunner:
 
                      add a test and write in the name of the function the user story id for backtracking..
 
-                     {work_item.id}
+                     {work_item.source_id}
                      {work_item.description}
                      """,
             expected_output='if succeeded return "SUCCEEDED" otherwise return "FAILED"',

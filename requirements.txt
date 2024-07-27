@@ -39,3 +39,4 @@ gunicorn
 flower
 scikit-learn
 ruff
+requests

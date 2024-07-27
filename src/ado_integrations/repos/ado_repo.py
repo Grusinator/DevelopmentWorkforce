@@ -37,7 +37,7 @@ class AdoRepo(ADOConnection):
         self.make_request('PATCH', url, json=document)
 
     def approve_pull_request(self, pull_request_id):
-        self.update_pull_request(pull_request_id, status="completed")
+        self.update_pull_request(pull_request_id, status="approved")
 
     def reject_pull_request(self, pull_request_id):
         self.update_pull_request(pull_request_id, status="rejected")

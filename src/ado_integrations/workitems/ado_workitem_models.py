@@ -14,23 +14,23 @@ class WorkItemBase(BaseModel):
 
 class WorkItem(WorkItemBase):
     # This model includes 'id' and is used in contexts where 'id' is known/required
-    id: int
+    source_id: int
 
     @staticmethod
     def fields():
         return [(name, field.type_) for name, field in WorkItem.__annotations__.items()]
 
     def __str__(self):
-        return f"{self.id} {self.title}"
+        return f"{self.source_id} {self.title}"
 
     def pretty_print(self):
         return f"""
         title:
         {self.title}
-        
+
         desc:
         {self.description}
-        
+
         tags:
         {self.tags}
         """
@@ -61,7 +61,7 @@ class CreateWorkItemInput(WorkItemBase):
 
 
 class UpdateWorkItemInput(WorkItemBase):
-    id: int = Field(description="ID of the work item to update")
+    source_id: int = Field(description="ID of the work item to update")
     title: Optional[str] = None
     type: Optional[str] = None
     state: Optional[str] = None

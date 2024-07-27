@@ -7,7 +7,7 @@ def test_headless_allauth_login(client):
     username = 'testuser'
     password = 'testpassword123'
     email = 'testuser@example.com'
-    user = User.objects.create_user(username=username, password=password, email=email)
+    User.objects.create_user(username=username, password=password, email=email)
 
     login_url = reverse('headless:browser:account:login')
 

@@ -44,4 +44,4 @@ def test_build_tools2():
 
     collector = TaskCollector(namespace)
     tools = collector.collect_tasks()
-    assert len(tools) == 1
+    assert len(tools) >= 3

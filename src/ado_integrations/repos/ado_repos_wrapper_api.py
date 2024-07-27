@@ -87,14 +87,8 @@ class ADOReposWrapperApi(BaseAdoReposApi):
             status=pr.status
         ) for pr in prs]
 
-    def complete_pull_request(self, pr_id: int) -> None:
+    def approve_pull_request(self, pr_id: int) -> None:
         return self.ado_repo_api.approve_pull_request(pr_id)
-        # repository_id = self.get_repository_id()
-        # pr = self.client.get_pull_request(repository_id, pr_id, project=self.project_name)
-        # completion_options = GitPullRequestCompletionOptions(delete_source_branch=False)
-        # pr.status = "completed"  # Assuming 'completed' is a valid status; adjust as necessary
-        # self.client.update_pull_request(pr, repository_id, pr_id, project=self.project_name,
-        #                                 completion_options=completion_options)
 
     def abandon_pull_request(self, pr_id: int) -> None:
         return self.ado_repo_api.abandon_pull_request(pr_id)
