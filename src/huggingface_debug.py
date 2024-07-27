@@ -1,36 +1,34 @@
 import os
-from src.ado_integrations.ado_tools import ado_tools
 
-from langchain_community.llms import Ollama
-from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
+from langchain_community.llms.huggingface_endpoint import HuggingFaceEndpoint
 
 load_dotenv()
 
-
-
 import requests
 
-API_URL = "https://f9uundmw4bnxj2mu.eu-west-1.aws.endpoints.huggingface.cloud"
+API_URL = os.getenv("HUGGINGFACE_API_BASE")
+API_KEY = os.getenv("HUGGINGFACE_API_KEY")
+
 headers = {
-	"Accept" : "application/json",
-	"Authorization": "Bearer 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",
-	"Content-Type": "application/json" 
+    "Accept": "application/json",
+    "Authorization": f"Bearer {API_KEY}",
+    "Content-Type": "application/json"
 }
 
+
 def query(payload):
-	response = requests.post(API_URL, headers=headers, json=payload)
-	return response.json()
+    response = requests.post(API_URL, headers=headers, json=payload)
+    return response.json()
+
 
 output = query({
-	"inputs": "Can you please let us know more details about your API?",
-	"parameters": {}
+    "inputs": "Can you please let us know more details about your API?",
+    "parameters": {}
 })
 print(output)
 
-from langchain_community.llms.huggingface_endpoint import HuggingFaceEndpoint
-
 hugging_face = HuggingFaceEndpoint(
-    endpoint_url=os.getenv("HUGGINGFACE_API_BASE"), 
-    huggingfacehub_api_token=os.getenv("HUGGINGFACE_API_KEY")
-    )
+    endpoint_url=API_URL,
+    huggingfacehub_api_token=API_KEY
+)

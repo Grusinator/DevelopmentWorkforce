@@ -1,11 +1,6 @@
-from pathlib import Path
 
 import pytest
 from src.git_tool.git_abstraction import GitAbstraction
-from tempfile import TemporaryDirectory
-import shutil
-import gc
-import time
 
 
 @pytest.fixture(scope="function")

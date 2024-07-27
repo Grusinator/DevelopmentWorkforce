@@ -4,7 +4,6 @@ from crewai import Task, Crew
 
 from src.ado_integrations.workitems.ado_workitem_models import WorkItem
 from src.crew.crew_ai_agents import CrewAiAgents
-from src.crew.crew_ai_models import CrewAiModels
 
 
 class CrewTaskRunner:

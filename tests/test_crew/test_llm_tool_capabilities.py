@@ -52,7 +52,7 @@ def agent_tester(create_toolset, instantiate_llm):
     return Agent(
         role='QA Tester',
         goal='Ensure the quality of the product',
-        backstory="""You are a skilled QA Tester, responsible for ensuring the quality of the product. 
+        backstory="""You are a skilled QA Tester, responsible for ensuring the quality of the product.
       You perform various tests to identify any issues or bugs in the software.
       You are responisble for reviewing all the unit tests and make sure that the code is tested 
       according to the acceptance criteria.""",
@@ -66,8 +66,8 @@ def agent_tester(create_toolset, instantiate_llm):
 @pytest.fixture
 def tool_test_task(request, agent_tester):
     tool_name = request.param
-    description = f"""Test the tool: '{tool_name}' to see if it behaves as expected. 
-    Setup a test case, and respond with 'TOOL WORKS' if you managed to run the tool successfully. "
+    description = f"""Test the tool: '{tool_name}' to see if it behaves as expected.
+    Setup a test case, and respond with 'TOOL WORKS' if you managed to run the tool successfully.
     If it does not work the first time, try another way for a couple of iterations to make sure
     that it's not just the inputs that are wrong."""
     return Task(

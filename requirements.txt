@@ -38,3 +38,4 @@ celery
 gunicorn
 flower
 scikit-learn
+ruff

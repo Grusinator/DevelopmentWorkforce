@@ -10,7 +10,7 @@ class Profile(Schema):
     full_name: Optional[str] = None
     birthdate: Optional[date] = None
     profile_picture: Optional[str] = None # URL
-    
+
     profile_description: Optional[str] = None
     email: str
     address: Optional[str] = None

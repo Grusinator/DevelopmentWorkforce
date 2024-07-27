@@ -1,6 +1,5 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from loguru import logger
 from django.contrib.auth.models import User
 from organization.models import Agent, Repository, Project
 from organization.schemas import AgentModel

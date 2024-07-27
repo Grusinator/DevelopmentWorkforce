@@ -22,7 +22,7 @@ class AdoWorkitemToolBase(BaseTool, ABC):
 
     def __init__(self, ado_workitems_api: BaseAdoWorkitemsApi):
         super().__init__()
-        # this is in order to dodge pydantics type checking to allow for dependency injection into thic class. is similar to 
+        # this is in order to dodge pydantics type checking to allow for dependency injection into thic class. is similar to
         # self._ado_workitems_api = ado_workitems_api
         object.__setattr__(self, '_ado_workitems_api', ado_workitems_api)
 

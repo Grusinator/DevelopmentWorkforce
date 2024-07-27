@@ -1,5 +1,4 @@
 import logging
-import os
 from pathlib import Path
 
 from git import Repo, exc
@@ -14,7 +13,7 @@ class GitAbstraction:
         self.repo_path = repo_path
         try:
             self.repo = Repo(repo_path)
-        except (exc.InvalidGitRepositoryError, exc.NoSuchPathError) as e:
+        except (exc.InvalidGitRepositoryError, exc.NoSuchPathError):
             logger.debug("No git repository found at the specified path.")
             self.repo = None
 

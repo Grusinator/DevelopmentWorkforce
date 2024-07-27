@@ -2,7 +2,6 @@
 from django import forms
 
 # forms.py
-from django import forms
 from django.forms import modelformset_factory
 
 from .models import Agent, AgentRepoConnection, Repository

@@ -1,10 +1,9 @@
 from abc import ABC
-from typing import Dict, List, Optional, Type, Union
+from typing import Dict, List, Optional
 from pydantic import BaseModel, Field
 from langchain.tools import BaseTool
 from src.git_tool.git_abstraction import GitAbstraction
 import logging
-from pydantic import BaseModel, Field
 
 from langchain.callbacks.manager import (
     CallbackManagerForToolRun,

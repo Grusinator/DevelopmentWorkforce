@@ -10,7 +10,6 @@ from loguru import logger
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from organization.forms import AgentRepoConnectionForm
-from organization.models import AgentRepoConnection
 
 
 @login_required
@@ -56,7 +55,7 @@ def display_repositories(request):
     if request.method == 'POST' and agent:
         formset = AgentRepoConnectionFormSet(request.POST, queryset=connections)
         if formset.is_valid():
-            logger.debug(f"formset is valid")
+            logger.debug("formset is valid")
             formset.save()
             return redirect('display_repositories')
         else:

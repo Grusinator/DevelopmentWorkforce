@@ -37,7 +37,8 @@ class CrewAiAgents:
             * read and understand the user story given as input
             * read and understand the existing codebase by leveraging the list workspace and search for files tools.
             * search online for information that you might need to implement the story
-            * write code files to the workspace (repo has already been cloned and setup for you)
+            * write complete full code files and classes to the workspace, no pseudocode or incomplete files.
+             consider reading the file you are planning to write to on beforehand. 
             * write test files to the workspace
             * run the pytest tool command to verify the code
             ** iterate steps until the tests have passed and all acceptance criteria have been fulfilled

@@ -4,7 +4,6 @@ import os
 from celery import Celery
 from celery.schedules import crontab
 
-from development_workforce import settings
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'development_workforce.settings')
 

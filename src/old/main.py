@@ -1,5 +1,4 @@
 import os
-import numpy as np
 from transformers import AutoModel, AutoTokenizer
 from annoy import AnnoyIndex
 from typing import List, Dict, Tuple

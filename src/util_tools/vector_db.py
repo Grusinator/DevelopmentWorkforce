@@ -31,12 +31,12 @@ class VectorDB:
                     files.append(relative_path)
         return files
 
-    def load_files(self, files: List[Path]):
+    def load_files(self, files: List[Path], repo_path: Path):
         self.documents = []
         self.filenames = []
         for file_path in files:
             try:
-                with open(file_path, 'r', encoding='utf-8') as f:
+                with open(repo_path / file_path, 'r', encoding='utf-8') as f:
                     content = f.read()
                     self.documents.append(content)
                     self.filenames.append(str(file_path))
@@ -46,7 +46,7 @@ class VectorDB:
 
     def load_repo(self, repo_path: Path):
         files = self.find_files(repo_path)
-        self.load_files(files)
+        self.load_files(files, repo_path)
 
     def fetch_most_relevant_docs(self, query: str, n: int = 5) -> Dict[str, str]:
         query_vector = self.vectorizer.transform([query])

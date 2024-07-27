@@ -34,7 +34,7 @@ class TaskAutomation:
         loguru.logger.info(f"Completed task: {work_item.title}")
         branch_name = workspace_dir.name
         self.git_manager.push_changes(workspace_dir, branch_name, work_item.title)
-        loguru.logger.info(f"Pushed changes to repository")
+        loguru.logger.info("Pushed changes to repository")
         pull_request_input = CreatePullRequestInput(title=work_item.title, source_branch=branch_name,
                                                     description=work_item.description)
         self.ado_repos_api.create_pull_request(pull_request_input)
@@ -67,5 +67,3 @@ class TaskAutomation:
         docs = vdb.fetch_most_relevant_docs(work_item.pretty_print(), n=max(10, frac_of_repo))
         files_as_text = [f"### {filename} ###: \n  {content}" for filename, content in docs.items()]
         return "\n-------------------------------------------\n\n".join(files_as_text)
-
-

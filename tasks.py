@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from invoke import task, Collection
+from invoke import task
 
 from src.util_tools.map_dir import DirectoryStructure
 
@@ -24,8 +24,21 @@ def start_worker(ctx):
 def start_flower(ctx):
     ctx.run("celery -A development_workforce flower --port=5555")
 
+
 @task
 def map_dir(ctx, path="."):
     struct = DirectoryStructure(path).get_formatted_directory_structure()
     print(struct)
     return struct
+
+
+@task
+def format_and_lint(ctx):
+    """Run Python formatting and linting with Ruff"""
+    ctx.run("ruff check . --fix")
+
+
+@task
+def test(ctx):
+    """Run pytest excluding tests marked with requires_llm"""
+    ctx.run('pytest -m "not requires_llm"')

@@ -42,11 +42,6 @@ def task_automation_setup():
 
     agent_model = AgentModel(id=1, organization_name=ado_org_name, pat=pat, agent_user_name=user_name, status="idle")
 
-    pat: str
-    status: str
-    organization_name: str
-    agent_user_name: str
-
     with patch('src.task_automation.TaskAutomation.run_development_crew', side_effect=mock_ai_runner), \
             patch('src.task_automation.ADOReposWrapperApi.create_pull_request',
                   return_value="MockPR123"):

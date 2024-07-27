@@ -1,6 +1,4 @@
 from django.db import models
-from django.contrib.auth.models import User
-from pgvector.django import VectorField
 
 from organization.models import Repository
 

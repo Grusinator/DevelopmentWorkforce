@@ -1,10 +1,8 @@
-import os
-import time
 from typing import List
 
 from azure.devops.connection import Connection
 from azure.devops.exceptions import AzureDevOpsServiceError
-from azure.devops.v7_1.git import GitPullRequestCompletionOptions, GitPullRequest, GitRefUpdate, \
+from azure.devops.v7_1.git import GitPullRequest, GitRefUpdate, \
     GitPullRequestSearchCriteria, GitClient
 from msrest.authentication import BasicAuthentication
 

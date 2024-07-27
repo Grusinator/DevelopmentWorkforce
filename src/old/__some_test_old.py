@@ -1,4 +1,3 @@
-import pytest
 from src.old.main import prompt_llm_with_context
 
 def test_prompt_llm_with_context():
