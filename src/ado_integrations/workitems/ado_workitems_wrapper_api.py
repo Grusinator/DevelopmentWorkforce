@@ -41,7 +41,8 @@ class ADOWorkitemsWrapperApi(BaseAdoWorkitemsApi):
             assigned_to=work_item.fields.get('System.AssignedTo', {}).get('displayName') if work_item.fields.get(
                 'System.AssignedTo') else None,
             tags=work_item.fields.get('System.Tags', '').split('; ') if work_item.fields.get('System.Tags') else [],
-            state=work_item.fields.get('System.State', None)
+            state=work_item.fields.get('System.State', None),
+            acceptance_criteria=work_item.fields.get("Microsoft.VSTS.Common.AcceptanceCriteria", None)
         )
 
     def update_work_item(self, updates: UpdateWorkItemInput) -> None:
@@ -58,6 +59,10 @@ class ADOWorkitemsWrapperApi(BaseAdoWorkitemsApi):
             document.append(JsonPatchOperation(op='replace', path='/fields/System.State', value=updates.state))
         if updates.tags:
             document.append(JsonPatchOperation(op='replace', path='/fields/System.Tags', value="; ".join(updates.tags)))
+        if updates.acceptance_criteria:
+            document.append(
+                JsonPatchOperation(op='replace', path='/fields/Microsoft.VSTS.Common.AcceptanceCriteria', value=updates.acceptance_criteria))
+
         self.client.update_work_item(document, updates.source_id)
 
     def delete_work_item(self, work_item_id: int) -> None:

@@ -33,6 +33,7 @@ class TaskAutomation:
         self.run_development_crew(work_item, workspace_dir, task_context)
         loguru.logger.info(f"Completed task: {work_item.title}")
         branch_name = workspace_dir.name
+        self.run_post_ai_checks()
         self.git_manager.push_changes(workspace_dir, branch_name, work_item.title)
         loguru.logger.info("Pushed changes to repository")
         pull_request_input = CreatePullRequestInput(title=work_item.title, source_branch=branch_name,
@@ -67,3 +68,7 @@ class TaskAutomation:
         docs = vdb.fetch_most_relevant_docs(work_item.pretty_print(), n=max(10, frac_of_repo))
         files_as_text = [f"### {filename} ###: \n  {content}" for filename, content in docs.items()]
         return "\n-------------------------------------------\n\n".join(files_as_text)
+
+    def run_post_ai_checks(self):
+        pass
+

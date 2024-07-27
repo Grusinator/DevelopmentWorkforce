@@ -10,6 +10,7 @@ class WorkItemBase(BaseModel):
     assigned_to: Optional[str] = None
     tags: List[str] = []
     state: str
+    acceptance_criteria: Optional[str] = None
 
 
 class WorkItem(WorkItemBase):
@@ -65,6 +66,7 @@ class UpdateWorkItemInput(WorkItemBase):
     title: Optional[str] = None
     type: Optional[str] = None
     state: Optional[str] = None
+    acceptance_criteria: Optional[str] = None
 
 
 class GetWorkItemInput(BaseModel):

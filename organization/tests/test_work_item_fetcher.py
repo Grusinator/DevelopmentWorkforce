@@ -42,7 +42,7 @@ def repo(db, project):
 @pytest.fixture
 def mock_work_item():
     return WorkItem(
-        id=1,
+        source_id=1,
         title="Test Work Item",
         state="New",
         description="This is a test work item",

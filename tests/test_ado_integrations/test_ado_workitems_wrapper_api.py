@@ -32,7 +32,6 @@ class TestADOWorkitemsWrapperApiIntegration:
             if "does not exist" not in str(e):
                 raise e
 
-
     def test_create_work_item(self, api: ADOWorkitemsWrapperApi):
         work_item_input = CreateWorkItemInput(title="Create Test", description="Test Description", type="Task",
                                               assigned_to=ASSIGNED_TO, state="New")
@@ -51,7 +50,8 @@ class TestADOWorkitemsWrapperApiIntegration:
     def test_update_work_item(self, api: ADOWorkitemsWrapperApi, create_work_item):
         new_title = "Updated Title"
         new_description = "Updated Description"
-        updates = UpdateWorkItemInput(source_id=create_work_item, title=new_title, description=new_description)
+        updates = UpdateWorkItemInput(source_id=create_work_item, title=new_title, description=new_description,
+                                      acceptance_criteria="new acc")
         api.update_work_item(updates)
         updated_work_item = api.get_work_item(create_work_item)
         assert updated_work_item.title == new_title

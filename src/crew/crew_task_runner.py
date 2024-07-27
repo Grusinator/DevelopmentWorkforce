@@ -1,9 +1,10 @@
 from pathlib import Path
 
-from crewai import Task, Crew
+from crewai import Task, Crew, Process
 
 from src.ado_integrations.workitems.ado_workitem_models import WorkItem
 from src.crew.crew_ai_agents import CrewAiAgents
+from src.crew.crew_ai_models import CrewAiModels
 
 
 class CrewTaskRunner:
@@ -64,8 +65,8 @@ class CrewTaskRunner:
             agents=self.agents,
             tasks=self.tasks,
             verbose=2,  # You can set it to 1 or 2 to different logging levels
-            # manager_llm=default_llm,
-            # process=Process.hierarchical,
+            manager_llm=CrewAiModels.default_llm,
+            process=Process.hierarchical,
             # allow_delegation=True
             # function_calling_llm=CrewAiModels.ollama_instruct
 
