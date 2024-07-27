@@ -94,7 +94,8 @@ def tool_test_task(request, agent_tester):
     # "git commit a test file",
     # "create git branch",
     # "create pull request",
-    "push test file to origin git"
+    # "push test file to origin git"
+    "format and lint using ruff"
 ], indirect=True)
 def test_run_tool(instantiate_llm, tool_test_task, agent_tester):
     crew = Crew(

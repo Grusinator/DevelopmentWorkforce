@@ -1,3 +1,4 @@
+import subprocess
 from pathlib import Path
 
 from invoke import task
@@ -34,8 +35,11 @@ def map_dir(ctx, path="."):
 
 @task
 def format_and_lint(ctx):
-    """Run Python formatting and linting with Ruff"""
-    ctx.run("ruff check . --fix")
+    """Run Python formatting and linting with Ruff and return a report"""
+    result = subprocess.run(["ruff", "check", ".", "--fix"], capture_output=True, text=True)
+    report = result.stdout
+    print(report)
+    return report
 
 
 @task

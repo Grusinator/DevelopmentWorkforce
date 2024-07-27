@@ -70,6 +70,7 @@ class ToolsBuilder:
         collector = TaskCollector(collection)
         tools = collector.collect_tasks()
         self.tools += tools
+        return self
 
     def build(self):
         return self.tools
