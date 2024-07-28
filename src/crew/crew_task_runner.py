@@ -1,3 +1,4 @@
+import textwrap
 from pathlib import Path
 
 from crewai import Task, Crew, Process
@@ -39,7 +40,7 @@ class CrewTaskRunner:
 
         """
         task = Task(
-            description=description,
+            description=textwrap.dedent(description).lstrip(),
             agent=self.default_agent,
             expected_output='if succeeded return "SUCCEEDED" otherwise return "FAILED"'
         )

@@ -46,7 +46,7 @@ class DirectoryStructure:
         lines = self._format_directory_structure(self.directory_structure)
         return "\n".join(lines)
 
-    def _format_directory_structure(self, directory, prefix=''):
+    def _format_directory_structure(self, directory, prefix='', is_root=True):
         """A recursive generator, given a directory dictionary
         will yield a visual tree structure line by line
         with each line prefixed by the same characters
@@ -54,14 +54,15 @@ class DirectoryStructure:
 
         lines = []
         if directory['type'] == 'directory':
-            lines.append(f"{prefix}{directory['name']}/")
+            if not is_root:
+                lines.append(f"{prefix}{directory['name']}/")
             children = directory.get('children', [])
             pointers = [tee] * (len(children) - 1) + [last]
             for pointer, child in zip(pointers, children):
                 if child['type'] == 'directory':
                     lines.append(f"{prefix}{pointer}{child['name']}/")
                     extension = branch if pointer == tee else space
-                    lines.extend(self._format_directory_structure(child, prefix=prefix + extension))
+                    lines.extend(self._format_directory_structure(child, prefix=prefix + extension, is_root=False))
                 else:
                     lines.append(f"{prefix}{pointer}{child['name']}")
         else:

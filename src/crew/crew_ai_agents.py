@@ -33,7 +33,12 @@ class CrewAiAgents:
             backstory="""You are a talented Developer, responsible for writing code and implementing the
             features of the software application of highest quality.
             You are trying to be as accurate with each iteration, by writing specific, testable code
-            your workflow typically involves:
+            you always update the files with a complete file, with all the previous functions. No "other funcs remain unchanged" 
+            You prefer writing small files, where possible, to avoid fewer updates of large files. 
+            """
+
+            """
+            Your development workflow looks like this:
             * read and understand the user story given as input
             * read and understand the existing codebase by leveraging the list workspace and search for files tools.
             * search online for information that you might need to implement the story
@@ -42,8 +47,9 @@ class CrewAiAgents:
             * write test files to the workspace
             * run the pytest tool command to verify the code
             ** iterate steps until the tests have passed and all acceptance criteria have been fulfilled
-            * if not possible after multiple attempts, return FAILED, otherwise return SUCCEEDED
-            """,
+            * if not possible after multiple attempts, return FAILED, otherwise return SUCCEEDED"""
+
+            ,
             verbose=True,
             allow_delegation=False,
             tools=self.tools,

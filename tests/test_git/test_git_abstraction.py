@@ -4,9 +4,9 @@ from src.git_tool.git_abstraction import GitAbstraction
 
 
 @pytest.fixture(scope="function")
-def git_abstraction(create_working_dir):
+def git_abstraction(create_test_workspace_repo):
     repo_url = "https://github.com/Grusinator/ai-test-project.git"
-    git = GitAbstraction(repo_url, create_working_dir, main_branch_name="automated_testing")
+    git = GitAbstraction(repo_url, create_test_workspace_repo, main_branch_name="automated_testing")
     yield git
 
 

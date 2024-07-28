@@ -14,7 +14,7 @@ def load_env_vars():
 
 
 @pytest.fixture
-def create_toolset(create_working_dir):
+def create_toolset(workspace_dir_with_codebase):
     git_url = "https://github.com/Grusinator/ai-test-project.git"
     ado_workitems_api = MockAdoWorkitemsApi()  # Assuming this is initialized elsewhere as per original script
     ado_workitems_api.create_work_item(
@@ -27,12 +27,12 @@ def create_toolset(create_working_dir):
     )
 
     tools_list = (
-        ToolsBuilder(create_working_dir)
+        ToolsBuilder(workspace_dir_with_codebase)
         .add_search_tools()
         .add_ado_tools(ado_workitems_api)
         .add_file_management_tools()
         .add_pytest_tool()
-        .add_git_tools(git_url, main_branch_name="automated_testing")
+        # .add_git_tools(git_url, main_branch_name="automated_testing")
         # .add_github_tools() \
         .add_invoke_tools()
         .build()
@@ -81,20 +81,21 @@ def tool_test_task(request, agent_tester):
 @pytest.mark.requires_llm
 @pytest.mark.parametrize("instantiate_llm", ["chatgpt", ], indirect=True)
 @pytest.mark.parametrize("tool_test_task", [
-    # "get work item (1)",
-    # "List ado",
-    # "Create work item",
-    # "Update work item",
-    # "delete work item",
-    # "create file",
-    # "delete file",
-    # "get file",
-    # "get file list",
-    # "run pytests",
-    # "git commit a test file",
-    # "create git branch",
-    # "create pull request",
-    # "push test file to origin git"
+    "get work item (1)",
+    "List ado",
+    "Create work item",
+    "Update work item",
+    "delete work item",
+    "create file",
+    "delete file",
+    "get file",
+    "get file list",
+    "run pytests",
+    "git commit a test file",
+    "create git branch",
+    "create pull request",
+    "push test file to origin git"
+    "read_multiple_files"
     "format and lint using ruff"
 ], indirect=True)
 def test_run_tool(instantiate_llm, tool_test_task, agent_tester):

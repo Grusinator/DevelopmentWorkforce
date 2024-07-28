@@ -1,4 +1,5 @@
 # task_automation.py
+import textwrap
 
 import loguru
 
@@ -26,27 +27,31 @@ class TaskAutomation:
     def process_task(self, work_item: WorkItem):
         work_item_input = UpdateWorkItemInput(source_id=work_item.source_id, state="Active")
         self.ado_workitems_api.update_work_item(work_item_input)
-        loguru.logger.info(f"Processing task: {work_item.title}")
-        workspace_dir = self.git_manager.clone_and_setup(work_item)
-        loguru.logger.info(f"Cloned repository to {workspace_dir}")
-        task_context = self.prepare_task_context(work_item, workspace_dir)
-        self.run_development_crew(work_item, workspace_dir, task_context)
-        loguru.logger.info(f"Completed task: {work_item.title}")
-        branch_name = workspace_dir.name
-        self.run_post_ai_checks()
-        self.git_manager.push_changes(workspace_dir, branch_name, work_item.title)
-        loguru.logger.info("Pushed changes to repository")
+        branch_name, workspace_dir = self.local_development_on_task(work_item)
         pull_request_input = CreatePullRequestInput(title=work_item.title, source_branch=branch_name,
                                                     description=work_item.description)
         self.ado_repos_api.create_pull_request(pull_request_input)
         loguru.logger.info(f"Created pull request for task: {work_item.title}")
         return workspace_dir
 
-    def run_development_crew(self, work_item, workspace_dir, task_context: str = None):
+    def local_development_on_task(self, work_item):
+        loguru.logger.info(f"Processing task: {work_item.title}")
+        workspace_dir = self.git_manager.clone_and_setup(work_item)
+        loguru.logger.info(f"Cloned repository to {workspace_dir}")
+        self.run_development_crew(work_item, workspace_dir)
+        loguru.logger.info(f"Completed task: {work_item.title}")
+        branch_name = workspace_dir.name
+        self.run_post_ai_checks()
+        self.git_manager.push_changes(workspace_dir, branch_name, work_item.title)
+        loguru.logger.info("Pushed changes to repository")
+        return branch_name, workspace_dir
+
+    def run_development_crew(self, work_item, workspace_dir):
+        task_context = self.prepare_task_context(work_item, workspace_dir)
         crew_runner = CrewTaskRunner(workspace_dir)
         crew_runner.add_developer_agent()
         crew_runner.add_task_from_work_item(work_item, extra_info=task_context)
-        crew_runner.run()
+        return crew_runner.run()
 
     def prepare_task_context(self, work_item, workspace_dir):
         files_as_text = self.load_most_relevant_docs_from_repo(work_item, workspace_dir)
@@ -55,16 +60,17 @@ class TaskAutomation:
         structure of workspace folder:
         {directory_structure}
 
-        This is a list of existing files in the repo, in order to give some context for the development task:
-
-        {files_as_text}
         """
-        return dir_structure_text
+        # This is a subset of existing files in the repo, in order to give some context for the development task:
+        #
+        # {files_as_text}
+
+        return textwrap.dedent(dir_structure_text).lstrip()
 
     def load_most_relevant_docs_from_repo(self, work_item: WorkItem, workspace_dir):
         vdb = VectorDB()
         vdb.load_repo(workspace_dir)
-        frac_of_repo = int(10 + len(vdb.filenames) / 20)
+        frac_of_repo = int(5 + len(vdb.filenames) / 20)
         docs = vdb.fetch_most_relevant_docs(work_item.pretty_print(), n=max(10, frac_of_repo))
         files_as_text = [f"### {filename} ###: \n  {content}" for filename, content in docs.items()]
         return "\n-------------------------------------------\n\n".join(files_as_text)

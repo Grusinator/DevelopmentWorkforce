@@ -4,6 +4,7 @@ from pathlib import Path
 from invoke import task
 
 from src.util_tools.map_dir import DirectoryStructure
+from src.util_tools.read_files import ReadFiles
 
 docker_path = Path("devops/docker")
 
@@ -43,6 +44,14 @@ def format_and_lint(ctx):
 
 
 @task
-def test(ctx):
+def pytest_no_llm(ctx):
     """Run pytest excluding tests marked with requires_llm"""
     ctx.run('pytest -m "not requires_llm"')
+
+@task
+def read_files(ctx, *relative_dirs):
+    """read multiple files at once given as space divided args like: src/file1.py src/file2.py"""
+    reader = ReadFiles(Path.cwd())
+    formatted_text = reader.read_and_format_files(list(relative_dirs))
+    print(formatted_text)
+    return formatted_text
