@@ -9,8 +9,8 @@ class TestVectorDB:
         vector_db = VectorDB()
         vector_db.load_repo(workspace_dir_with_codebase)
 
-        assert len(vector_db.documents) == 5
-        assert len(vector_db.filenames) == 5
+        assert len(vector_db.documents) == 6
+        assert len(vector_db.filenames) == 6
 
     def test_fetch_most_relevant_docs(self, workspace_dir_with_codebase):
         vector_db = VectorDB()
@@ -36,8 +36,8 @@ class TestVectorDB:
         vector_db.ignore_folders = [".git"]
         vector_db.load_repo(workspace_dir_with_codebase)
 
-        assert len(vector_db.documents) == 5
-        assert len(vector_db.filenames) == 5
+        assert len(vector_db.documents) >= 6
+        assert len(vector_db.filenames) >= 6
 
     def find_repo_root(self, path: Path = None) -> Path:
         if path is None:

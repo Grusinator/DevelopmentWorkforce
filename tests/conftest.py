@@ -6,9 +6,12 @@ import sys
 import uuid
 from datetime import datetime
 from pathlib import Path
+from random import randint
 
 import pytest
 
+from organization.schemas import AgentModel
+from src.ado_integrations.repos.ado_repos_models import RepositoryModel, ProjectModel
 from src.ado_integrations.workitems.ado_workitem_models import WorkItem
 
 
@@ -107,3 +110,34 @@ def run_pytest_in_workspace(workspace_dir: Path):
         report_data = json.load(report_file)
         assert report_data['summary']['total'] > 0
         assert pytest_result.returncode == 0, report_data
+
+
+@pytest.fixture
+def mock_work_item():
+    work_item = WorkItem(
+        source_id=randint(1, 99999),
+        title="Test Task",
+        description="This is a test task",
+        assigned_to="William Sandvej Hansen",
+        state="New",
+        type="User Story"
+    )
+    return work_item
+
+
+@pytest.fixture
+def mock_agent():
+    ado_org_name = os.getenv("ADO_ORGANIZATION_NAME")
+    pat = os.getenv("ADO_PERSONAL_ACCESS_TOKEN")
+    user_name = os.getenv("AI_USER_NAME")
+
+    return AgentModel(id=1, organization_name=ado_org_name, pat=pat, agent_user_name=user_name, status="idle")
+
+
+@pytest.fixture
+def mock_repository() -> RepositoryModel:
+    repo_url = os.getenv("ADO_REPO_URL")
+    repo_name = os.getenv("ADO_REPO_NAME")
+
+    project_model = ProjectModel(id=2, name="test", source_id="test")
+    return RepositoryModel(id=2, source_id="test", name=repo_name, git_url=repo_url, project=project_model)

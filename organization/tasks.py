@@ -18,7 +18,7 @@ def execute_task(agent: Dict, repo: Dict, work_item: Dict):
     task = WorkItem(**work_item)
     logger.debug(f"running task: {task}")
     task_automation = TaskAutomation(repo, agent)
-    task_automation.process_task(task)
+    task_automation.develop_on_task(task, repo)
 
 
 @shared_task

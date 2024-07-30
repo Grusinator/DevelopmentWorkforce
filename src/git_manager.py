@@ -7,22 +7,12 @@ from src.ado_integrations.workitems.ado_workitem_models import WorkItem
 
 
 class GitManager:
-    def __init__(self, repo_url):
-        self.repo_url = repo_url
-        self.workspace_root_dir = Path(os.getenv("WORKSPACE_DIR"))
 
-    def clone_and_setup(self, work_item: WorkItem):
-        guid = str(uuid.uuid4())[:8]
-        title = work_item.title.replace(' ', '_')[:20]
-        branch_name = f"{work_item.source_id}-{title}-{guid}"
-        repo_path = self.workspace_root_dir / branch_name
-
-        if self.git_repo_exists(repo_path):
-            self._get_existing_repo(repo_path, branch_name)
+    def clone_and_checkout_branch(self, remote_url, repo_dir, branch_name):
+        if self.git_repo_exists(repo_dir):
+            self._get_existing_repo(repo_dir, branch_name)
         else:
-            self._clone_and_create_branch(repo_path, branch_name)
-
-        return repo_path
+            self._clone_and_create_branch(remote_url, repo_dir, branch_name)
 
     def git_repo_exists(self, repo_path):
         return repo_path.exists() and any(repo_path.iterdir())
@@ -42,9 +32,9 @@ class GitManager:
             raise OSError("Failed to obtain lock after multiple attempts")
         return repo
 
-    def _clone_and_create_branch(self, repo_path, branch_name):
+    def _clone_and_create_branch(self, remote_repo_url, repo_path, branch_name):
         repo_path.mkdir(parents=True, exist_ok=True)
-        repo = git.Repo.clone_from(self.repo_url, str(repo_path))
+        repo = git.Repo.clone_from(remote_repo_url, str(repo_path))
         new_branch = repo.create_head(branch_name)
         repo.head.reference = new_branch
         repo.head.reset(index=True, working_tree=True)

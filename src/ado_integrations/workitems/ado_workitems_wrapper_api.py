@@ -87,9 +87,3 @@ class ADOWorkitemsWrapperApi(BaseAdoWorkitemsApi):
         return work_items
 
 
-# Example usage
-if __name__ == "__main__":
-    api = ADOWorkitemsWrapperApi()
-    work_item_input = CreateWorkItemInput(title="Sample task", description="This is a sample task", type="Task")
-    work_item_id = api.create_work_item(work_item_input)
-    print(f"Work item created with ID: {work_item_id}")

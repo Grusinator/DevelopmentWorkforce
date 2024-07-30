@@ -6,8 +6,8 @@ from src.ado_integrations.workitems.base_ado_workitems_api import BaseAdoWorkite
 
 
 class MockAdoWorkitemsApi(BaseAdoWorkitemsApi):
-    def __init__(self):
-        self.work_items = []
+    def __init__(self, work_items=None):
+        self.work_items = work_items or []
 
     def update_work_item(self, updated_work_item: "UpdateWorkItemInput") -> int:
         for i, work_item in enumerate(self.work_items):

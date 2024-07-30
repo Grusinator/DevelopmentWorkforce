@@ -32,7 +32,22 @@ class ADOWorkitemsApi(ADOConnection, BaseAdoWorkitemsApi):
     def get_work_item(self, work_item_id: int) -> WorkItem:
         url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/{work_item_id}?api-version={self.api_version}"
         response = self.make_request('GET', url)
-        return WorkItem.from_ado_api(response)
+        fields = response.get("fields", {})
+        assigned_to = fields.get("System.AssignedTo", {}).get("displayName") if fields.get(
+            "System.AssignedTo") else None
+
+        tags = fields.get("System.Tags", "")
+        tags_list = tags.split("; ") if tags else []
+
+        work_item = WorkItem(
+            source_id=response.get("id"),
+            title=fields.get("System.Title"),
+            type=fields.get("System.WorkItemType"),
+            description=fields.get("System.Description"),
+            assigned_to=assigned_to,
+            tags=tags_list
+        )
+        return work_item
 
     def update_work_item(self, updates: UpdateWorkItemInput) -> None:
         url = f"{self.organization_url}/{self.project_name}/_apis/wit/workitems/{updates.work_item_id}?api-version={self.api_version}"

@@ -36,25 +36,6 @@ class WorkItem(WorkItemBase):
         {self.tags}
         """
 
-    @staticmethod
-    def from_ado_api(api_response: dict) -> "WorkItem":
-        fields = api_response.get("fields", {})
-        assigned_to = fields.get("System.AssignedTo", {}).get("displayName") if fields.get(
-            "System.AssignedTo") else None
-
-        tags = fields.get("System.Tags", "")
-        tags_list = tags.split("; ") if tags else []
-
-        work_item = WorkItem(
-            id=api_response.get("id"),
-            title=fields.get("System.Title"),
-            type=fields.get("System.WorkItemType"),
-            description=fields.get("System.Description"),
-            assigned_to=assigned_to,
-            tags=tags_list
-        )
-        return work_item
-
 
 class CreateWorkItemInput(WorkItemBase):
     # This model is used specifically for creation, no 'id' field needed

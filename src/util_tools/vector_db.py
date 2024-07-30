@@ -55,6 +55,11 @@ class VectorDB:
         relevant_docs = {self.filenames[idx]: self.documents[idx] for idx in relevant_indices}
         return relevant_docs
 
+    def format_files_as_text(self, docs):
+        files_as_text = [f"### {filename} ###: \n  {content}" for filename, content in docs.items()]
+        files_joined = "\n-------------------------------------------\n\n".join(files_as_text)
+        return files_joined
+
 
 
 
