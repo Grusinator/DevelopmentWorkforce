@@ -3,7 +3,7 @@ import time
 import uuid
 from pathlib import Path
 import git
-from src.ado_integrations.workitems.ado_workitem_models import WorkItem
+from src.devops_integrations.workitems.ado_workitem_models import WorkItem
 
 
 class GitManager:

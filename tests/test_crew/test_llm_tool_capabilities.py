@@ -2,8 +2,8 @@ import pytest
 from crewai import Task, Crew, Agent
 from dotenv import load_dotenv
 
-from src.ado_integrations.workitems.ado_workitem_models import CreateWorkItemInput
-from src.ado_integrations.workitems.mock_ado_workitems_api import MockAdoWorkitemsApi
+from src.devops_integrations.workitems.ado_workitem_models import CreateWorkItemInput
+from src.devops_integrations.workitems.mock_workitems_api import MockWorkitemsApi
 from src.crew.crew_ai_models import CrewAiModels
 from src.crew.tools import ToolsBuilder
 
@@ -16,7 +16,7 @@ def load_env_vars():
 @pytest.fixture
 def create_toolset(workspace_dir_with_codebase):
     git_url = "https://github.com/Grusinator/ai-test-project.git"
-    ado_workitems_api = MockAdoWorkitemsApi()  # Assuming this is initialized elsewhere as per original script
+    ado_workitems_api = MockWorkitemsApi()  # Assuming this is initialized elsewhere as per original script
     ado_workitems_api.create_work_item(
         CreateWorkItemInput(
             title="maka a calculator widget",

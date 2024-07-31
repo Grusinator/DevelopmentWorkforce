@@ -3,7 +3,7 @@ from pathlib import Path
 
 from crewai import Task, Crew, Process
 
-from src.ado_integrations.workitems.ado_workitem_models import WorkItem
+from src.devops_integrations.workitems.ado_workitem_models import WorkItem
 from src.crew.crew_ai_agents import CrewAiAgents
 from src.crew.crew_ai_models import CrewAiModels
 

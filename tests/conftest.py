@@ -11,8 +11,8 @@ from random import randint
 import pytest
 
 from organization.schemas import AgentModel
-from src.ado_integrations.repos.ado_repos_models import RepositoryModel, ProjectModel
-from src.ado_integrations.workitems.ado_workitem_models import WorkItem
+from src.devops_integrations.repos.ado_repos_models import Repository, Project
+from src.devops_integrations.workitems.ado_workitem_models import WorkItem
 
 
 @pytest.fixture(scope="function")
@@ -135,9 +135,9 @@ def mock_agent():
 
 
 @pytest.fixture
-def mock_repository() -> RepositoryModel:
+def mock_repository() -> Repository:
     repo_url = os.getenv("ADO_REPO_URL")
     repo_name = os.getenv("ADO_REPO_NAME")
 
-    project_model = ProjectModel(id=2, name="test", source_id="test")
-    return RepositoryModel(id=2, source_id="test", name=repo_name, git_url=repo_url, project=project_model)
+    project_model = Project(id=2, name="test", source_id="test")
+    return Repository(id=2, source_id="test", name=repo_name, git_url=repo_url, project=project_model)

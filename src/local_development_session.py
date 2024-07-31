@@ -6,8 +6,8 @@ from pathlib import Path
 import loguru
 from pydantic import BaseModel
 
-from src.ado_integrations.repos.ado_repos_models import RepositoryModel
-from src.ado_integrations.workitems.ado_workitem_models import WorkItem
+from src.devops_integrations.repos.ado_repos_models import Repository
+from src.devops_integrations.workitems.ado_workitem_models import WorkItem
 from src.crew.crew_task_runner import CrewTaskRunner
 from src.git_manager import GitManager
 from src.util_tools.map_dir import DirectoryStructure
@@ -20,7 +20,7 @@ class LocalDevelopmentResult(BaseModel):
 
 class LocalDevelopmentSession:
 
-    def local_development_on_workitem(self, work_item: WorkItem, repo_dir: Path):
+    def local_development_on_workitem(self, work_item: WorkItem, repo_dir: Path, comments=None):
         loguru.logger.info(f"Processing task: {work_item.title}")
         result = self._run_development_crew(work_item, repo_dir)
         loguru.logger.info(f"Completed task: {work_item.title}")

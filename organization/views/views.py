@@ -2,7 +2,7 @@
 from django.contrib import messages
 
 
-from src.ado_integrations.repos.ado_repos_wrapper_api import ADOReposWrapperApi
+from src.devops_integrations.repos.ado_repos_api import ADOReposApi
 from organization.forms import AgentForm, AgentRepoConnectionFormSet
 from organization.models import Agent, Project, Repository, AgentRepoConnection
 from loguru import logger
@@ -15,7 +15,7 @@ from organization.forms import AgentRepoConnectionForm
 @login_required
 def sync_with_ado(request):
     agent, created = Agent.objects.get_or_create(user=request.user)
-    api = ADOReposWrapperApi(agent.pat, agent.organization_name, None, None)
+    api = ADOReposApi(agent.pat, agent.organization_name, None, None)
     projects = api.get_projects()
 
     for project in projects:

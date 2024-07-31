@@ -3,10 +3,10 @@ from loguru import logger
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
-from src.ado_integrations.workitems.ado_workitems_wrapper_api import ADOWorkitemsWrapperApi
+from src.devops_integrations.workitems.ado_workitems_api import ADOWorkitemsApi
 from ..models import Agent, Repository
 from ..services.services import stop_work_session, start_work_session
-from ..services.fetch_new_tasks import WorkItemFetcher
+from ..services.fetch_new_tasks import TaskFetcherAndScheduler
 
 
 @login_required
@@ -22,8 +22,8 @@ def agent_status(request):
 
         if 'start' in request.POST:
             start_work_session(agent)
-            api = ADOWorkitemsWrapperApi(agent.pat, agent.organization_name, repo.project.name)
-            wf = WorkItemFetcher(api)  # TODO design these classes without user info, and parse it along.
+            api = ADOWorkitemsApi(agent.pat, agent.organization_name, repo.project.name)
+            wf = TaskFetcherAndScheduler(api)  # TODO design these classes without user info, and parse it along.
             # TODO use django_injector
             wf.fetch_new_workitems(agent, repo)
         elif 'stop' in request.POST:

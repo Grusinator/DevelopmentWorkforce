@@ -10,8 +10,8 @@ from langchain_community.tools.ddg_search import DuckDuckGoSearchRun
 from langchain_community.utilities.github import GitHubAPIWrapper
 
 import tasks
-from src.ado_integrations.workitems.ado_workitems_api_tools import instantiate_ado_tools
-from src.ado_integrations.workitems.mock_ado_workitems_api import MockAdoWorkitemsApi
+from src.devops_integrations.workitems.ado_workitems_api_tools import instantiate_ado_tools
+from src.devops_integrations.workitems.mock_workitems_api import MockWorkitemsApi
 from src.git_tool.git_abstraction import GitAbstraction
 from src.git_tool.git_tool import instantiate_git_tools
 from src.util_tools.invoke_tool import TaskCollector
@@ -80,7 +80,7 @@ class ToolsBuilder:
 if __name__ == "__main__":
     work_dir = Path("workspace/")
     _git_url = "https://github.com/Grusinator/ai-test-project.git"
-    _ado_workitems_api = MockAdoWorkitemsApi()  # Assuming this is initialized elsewhere as per original script
+    _ado_workitems_api = MockWorkitemsApi()  # Assuming this is initialized elsewhere as per original script
 
     tools_list = ToolsBuilder(work_dir) \
         .add_search_tools() \
