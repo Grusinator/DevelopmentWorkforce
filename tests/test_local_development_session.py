@@ -4,7 +4,7 @@ import pytest
 
 from src.local_development_session import LocalDevelopmentSession
 from src.util_tools.map_dir import DirectoryStructure
-from tests.conftest import run_pytest_in_workspace, SimpleWorkItem
+from tests.conftest import run_pytest_in_workspace, SimpleWorkItemModel
 
 
 class TestLocalDevelopmentSession:
@@ -16,7 +16,7 @@ class TestLocalDevelopmentSession:
     ])
     def test_run_task_locally(self, workspace_dir_dummy_repo, work_item_description, mock_repository):
         session = LocalDevelopmentSession()
-        work_item = SimpleWorkItem(description=work_item_description)
+        work_item = SimpleWorkItemModel(description=work_item_description)
         result = session.local_development_on_workitem(work_item, workspace_dir_dummy_repo)
         assert result.succeeded
         run_pytest_in_workspace(workspace_dir_dummy_repo)

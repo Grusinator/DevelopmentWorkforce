@@ -2,8 +2,8 @@ from abc import ABC
 from typing import Dict, List, Optional, Union
 from pydantic import BaseModel, Field
 from langchain.tools import BaseTool
-from src.devops_integrations.workitems.ado_workitem_models import CreateWorkItemInput, \
-    UpdateWorkItemInput, GetWorkItemInput
+from src.devops_integrations.workitems.ado_workitem_models import CreateWorkItemInputModel, \
+    UpdateWorkItemInputModel, GetWorkItemInputModel
 from src.devops_integrations.workitems.base_workitems_api import BaseWorkitemsApi
 import logging
 
@@ -36,7 +36,7 @@ class CreateWorkItemTool(AdoWorkitemToolBase):
     def _run(self, args=None, kwargs=None, run_manager: Optional[CallbackManagerForToolRun] = None) -> Dict[
         str, Union[str, int]]:
         try:
-            input_model = CreateWorkItemInput(**kwargs)
+            input_model = CreateWorkItemInputModel(**kwargs)
             created_id = self._ado_workitems_api.create_work_item(input_model)
             return {"source_id": created_id}
         except Exception as e:
@@ -54,7 +54,7 @@ class GetWorkItemTool(AdoWorkitemToolBase):
     def _run(self, args=None, kwargs=None, run_manager: Optional[CallbackManagerForToolRun] = None) -> Dict[
         str, str]:
         try:
-            work_item = GetWorkItemInput(**kwargs)
+            work_item = GetWorkItemInputModel(**kwargs)
             ado_work_item = self._ado_workitems_api.get_work_item(work_item.id)
             return ado_work_item.model_dump()
         except Exception as e:
@@ -74,7 +74,7 @@ class UpdateWorkItemTool(AdoWorkitemToolBase):
     def _run(self, args=None, kwargs=None, run_manager: Optional[CallbackManagerForToolRun] = None) -> Dict[
         str, str]:
         try:
-            input_model = UpdateWorkItemInput(**kwargs)
+            input_model = UpdateWorkItemInputModel(**kwargs)
             self._ado_workitems_api.update_work_item(input_model)
             return {"message": "Work item updated successfully"}
         except Exception as e:

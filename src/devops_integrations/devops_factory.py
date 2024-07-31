@@ -1,4 +1,4 @@
-from src.devops_integrations.models import ProjectAuthentication, DevOpsSource
+from src.devops_integrations.models import ProjectAuthenticationModel, DevOpsSource
 from src.devops_integrations.pull_requests.ado_pull_requests_api import ADOPullRequestsApi
 from src.devops_integrations.pull_requests.base_pull_requests_api import BasePullRequestsApi
 from src.devops_integrations.pull_requests.mock_pull_requests_api import MockPullRequestsApi
@@ -12,7 +12,7 @@ from src.devops_integrations.workitems.mock_workitems_api import MockWorkitemsAp
 
 class DevOpsFactory:
 
-    def __init__(self, auth: ProjectAuthentication, devops_source: DevOpsSource):
+    def __init__(self, auth: ProjectAuthenticationModel, devops_source: DevOpsSource):
         self.auth = auth
         self.devops_source = devops_source
         self.mock_pull_requests_api = MockPullRequestsApi()

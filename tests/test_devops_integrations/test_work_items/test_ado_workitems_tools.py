@@ -1,12 +1,12 @@
 import pytest
 from src.devops_integrations.workitems.mock_workitems_api import MockWorkitemsApi
-from src.devops_integrations.workitems.ado_workitems_api_tools import (CreateWorkItemInput,
-                                                                                      CreateWorkItemTool, GetWorkItemTool, UpdateWorkItemTool,
-                                                                                      DeleteWorkItemTool, ListWorkItemsTool,
-                                                                                      UpdateWorkItemInput, DeleteWorkItemInput,
-                                                                                      ListWorkItemsInput
-                                                                                      )
-from src.devops_integrations.workitems.ado_workitem_models import GetWorkItemInput
+from src.devops_integrations.workitems.ado_workitems_api_tools import (CreateWorkItemInputModel,
+                                                                       CreateWorkItemTool, GetWorkItemTool, UpdateWorkItemTool,
+                                                                       DeleteWorkItemTool, ListWorkItemsTool,
+                                                                       UpdateWorkItemInputModel, DeleteWorkItemInput,
+                                                                       ListWorkItemsInput
+                                                                       )
+from src.devops_integrations.workitems.ado_workitem_models import GetWorkItemInputModel
 
 
 class TestAdoWorkitemsApiTools:
@@ -17,14 +17,14 @@ class TestAdoWorkitemsApiTools:
 
     @pytest.fixture
     def add_ado_test_item(self, mock_ado_workitems_api) -> int:
-        work_item = CreateWorkItemInput(title="Initial Item", type='Bug', description="Initial Bug",
-                                        assigned_to='John Doe', tags=[], state="New")
+        work_item = CreateWorkItemInputModel(title="Initial Item", type='Bug', description="Initial Bug",
+                                             assigned_to='John Doe', tags=[], state="New")
         work_item_id = mock_ado_workitems_api.create_work_item(work_item)
         return work_item_id
 
     def test_create_work_item(self, mock_ado_workitems_api):
         tool = CreateWorkItemTool(mock_ado_workitems_api)
-        work_item = CreateWorkItemInput(
+        work_item = CreateWorkItemInputModel(
             title="New Feature",
             type="Feature",
             description="Implement new feature",
@@ -37,7 +37,7 @@ class TestAdoWorkitemsApiTools:
 
     def test_get_work_item(self, mock_ado_workitems_api, add_ado_test_item):
         tool = GetWorkItemTool(mock_ado_workitems_api)
-        result = tool._run(kwargs=GetWorkItemInput(id=add_ado_test_item).model_dump())
+        result = tool._run(kwargs=GetWorkItemInputModel(id=add_ado_test_item).model_dump())
         assert isinstance(result, dict)
         assert result["source_id"] == add_ado_test_item
 
@@ -45,7 +45,7 @@ class TestAdoWorkitemsApiTools:
         tool = UpdateWorkItemTool(mock_ado_workitems_api)
         updated_data = {"source_id": add_ado_test_item,
                         "work_item": {"title": "Updated Title", "description": "Updated description"}}
-        input_model = UpdateWorkItemInput(**updated_data)
+        input_model = UpdateWorkItemInputModel(**updated_data)
         result = tool._run(kwargs=input_model.model_dump())
         assert "message" in result
         assert len(mock_ado_workitems_api.work_items) == 1

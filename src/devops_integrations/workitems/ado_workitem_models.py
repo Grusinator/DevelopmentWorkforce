@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 
 
-class WorkItemBase(BaseModel):
+class WorkItemBaseModel(BaseModel):
     # Define all fields except 'id'
     title: str
     type: str
@@ -15,13 +15,13 @@ class WorkItemBase(BaseModel):
     acceptance_criteria: Optional[str] = None
 
 
-class WorkItem(WorkItemBase):
+class WorkItemModel(WorkItemBaseModel):
     # This model includes 'id' and is used in contexts where 'id' is known/required
     source_id: int
 
     @staticmethod
     def fields():
-        return [(name, field.type_) for name, field in WorkItem.__annotations__.items()]
+        return [(name, field.type_) for name, field in WorkItemModel.__annotations__.items()]
 
     def __str__(self):
         return f"{self.source_id} {self.title}"
@@ -39,12 +39,12 @@ class WorkItem(WorkItemBase):
         """
 
 
-class CreateWorkItemInput(WorkItemBase):
+class CreateWorkItemInputModel(WorkItemBaseModel):
     # This model is used specifically for creation, no 'id' field needed
     pass
 
 
-class UpdateWorkItemInput(WorkItemBase):
+class UpdateWorkItemInputModel(WorkItemBaseModel):
     source_id: int = Field(description="ID of the work item to update")
     title: Optional[str] = None
     type: Optional[str] = None
@@ -52,7 +52,7 @@ class UpdateWorkItemInput(WorkItemBase):
     acceptance_criteria: Optional[str] = None
 
 
-class GetWorkItemInput(BaseModel):
+class GetWorkItemInputModel(BaseModel):
     id: int = Field(description="ID of the work item to get")
 
 

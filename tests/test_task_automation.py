@@ -6,12 +6,13 @@ import pytest
 from organization.models import Repository
 from src.devops_integrations.models import DevOpsSource
 from src.devops_integrations.repos.mock_repos_api import MockReposApi
-from src.devops_integrations.workitems.ado_workitem_models import WorkItem, CreateWorkItemInput
+from src.devops_integrations.workitems.ado_workitem_models import WorkItemModel, CreateWorkItemInputModel
 from src.devops_integrations.workitems.mock_workitems_api import MockWorkitemsApi
 from src.local_development_session import LocalDevelopmentResult
 from src.task_automation import TaskAutomation
 from src.util_tools.map_dir import DirectoryStructure
-from tests.conftest import run_pytest_in_workspace, mock_work_item, mock_agent, mock_repository
+from tests.conftest import run_pytest_in_workspace, mock_work_item, mock_repository
+from organization.tests.conftest import mock_agent
 
 
 class MockDevSession:
@@ -19,7 +20,7 @@ class MockDevSession:
     def __init__(self, repo_dir):
         self.repo_dir = Path(repo_dir)
 
-    def local_development_on_workitem(self, work_item: WorkItem, repo: Repository):
+    def local_development_on_workitem(self, work_item: WorkItemModel, repo: Repository):
         dummy_file_path = self.repo_dir / "dummy_file.txt"
         with dummy_file_path.open("w") as dummy_file:
             fil_content = f"This is a dummy file created by the mocked AI runner:  \n{work_item.description} \n\n"

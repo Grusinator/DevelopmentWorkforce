@@ -2,7 +2,7 @@
 import pytest
 
 from src.crew.crew_task_runner import CrewTaskRunner
-from tests.conftest import SimpleWorkItem, run_pytest_in_workspace
+from tests.conftest import SimpleWorkItemModel, run_pytest_in_workspace
 
 
 @pytest.mark.skip("not usefull yet")
@@ -29,7 +29,7 @@ def test_default_developer_task_runner(workspace_dir, dummy_work_items):
 def test_parameterized_developer_task_runner(workspace_dir, work_item_description):
     runner = CrewTaskRunner(workspace_dir)
     runner.add_developer_agent()
-    work_item = SimpleWorkItem(description=work_item_description)
+    work_item = SimpleWorkItemModel(description=work_item_description)
     runner.add_task_from_work_item(work_item)
 
     result = runner.run()

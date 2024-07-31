@@ -3,11 +3,11 @@ import base64
 import requests
 from azure.devops.connection import Connection
 from msrest.authentication import BasicAuthentication
-from src.devops_integrations.models import ProjectAuthentication
+from src.devops_integrations.models import ProjectAuthenticationModel
 
 
 class ADOConnection:
-    def __init__(self, auth: ProjectAuthentication):
+    def __init__(self, auth: ProjectAuthenticationModel):
         self.auth = auth
         self.organization_url = f"https://dev.azure.com/{auth.ado_org_name}"
         credentials = BasicAuthentication('', auth.pat)

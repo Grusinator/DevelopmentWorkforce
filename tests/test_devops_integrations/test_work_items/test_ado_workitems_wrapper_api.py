@@ -3,8 +3,8 @@ import os
 import pytest
 from azure.devops.exceptions import AzureDevOpsServiceError
 
-from src.devops_integrations.workitems.ado_workitem_models import CreateWorkItemInput, \
-    UpdateWorkItemInput
+from src.devops_integrations.workitems.ado_workitem_models import CreateWorkItemInputModel, \
+    UpdateWorkItemInputModel
 from src.devops_integrations.workitems.ado_workitems_api import ADOWorkitemsApi
 
 ASSIGNED_TO = "William Sandvej Hansen"
@@ -14,8 +14,8 @@ ASSIGNED_TO = "William Sandvej Hansen"
 class TestADOWorkitemsApi:
 
     def test_create_work_item(self, ado_workitems_api: ADOWorkitemsApi):
-        work_item_input = CreateWorkItemInput(title="Create Test", description="Test Description", type="Task",
-                                              assigned_to=ASSIGNED_TO, state="New")
+        work_item_input = CreateWorkItemInputModel(title="Create Test", description="Test Description", type="Task",
+                                                   assigned_to=ASSIGNED_TO, state="New")
         work_item_id = ado_workitems_api.create_work_item(work_item_input)
         assert isinstance(work_item_id, int)
         ado_workitems_api.delete_work_item(work_item_id)
@@ -31,8 +31,8 @@ class TestADOWorkitemsApi:
     def test_update_work_item(self, ado_workitems_api: ADOWorkitemsApi, create_work_item):
         new_title = "Updated Title"
         new_description = "Updated Description"
-        updates = UpdateWorkItemInput(source_id=create_work_item, title=new_title, description=new_description,
-                                      acceptance_criteria="new acc")
+        updates = UpdateWorkItemInputModel(source_id=create_work_item, title=new_title, description=new_description,
+                                           acceptance_criteria="new acc")
         ado_workitems_api.update_work_item(updates)
         updated_work_item = ado_workitems_api.get_work_item(create_work_item)
         assert updated_work_item.title == new_title

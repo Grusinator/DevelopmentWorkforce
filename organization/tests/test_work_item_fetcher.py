@@ -1,21 +1,24 @@
 from unittest.mock import patch
 
-import pytest
-
-from organization.models import Repository as DbRepository
-from organization.schemas import AgentModel
-from src.devops_integrations.repos.ado_repos_models import Repository
+from organization.services.fetch_new_tasks import TaskFetcherAndScheduler
+from src.devops_integrations.models import DevOpsSource
 
 
-@pytest.mark.django_db
-def test_fetch_new_workitems(client, work_item_fetcher, agent, repo, mock_work_item):
-    with patch('organization.services.fetch_new_tasks.app.send_task') as mock_send_task:
-        work_item_fetcher.fetch_new_workitems(agent, repo)
+class TestFetch:
+    def test_fetch_new_workitems(self, work_item_fetcher, mock_agent, get_repository, mock_work_item):
+        with patch('organization.services.fetch_new_tasks.app.send_task') as mock_send_task:
+            work_item_fetcher.fetch_new_workitems(mock_agent, get_repository)
+            mock_send_task.assert_called_once_with(
+                'organization.tasks.execute_task',
+                args=[mock_agent.model_dump(), get_repository.model_dump(), mock_work_item.model_dump()]
+            )
 
-        agent_md = AgentModel.model_validate(agent)
-        repo_md = Repository.model_validate(repo)
+    def test_fetch_pull_requests_waiting_for_author(self, mock_agent, get_repository):
+        work_item_fetcher = TaskFetcherAndScheduler(mock_agent, get_repository, devops_source=DevOpsSource.ADO)
+        pull_requests = work_item_fetcher.fetch_pull_requests_waiting_for_author(mock_agent, get_repository)
 
-        mock_send_task.assert_called_once_with(
-            'organization.tasks.execute_task',
-            args=[agent_md.model_dump(), repo_md.model_dump(), mock_work_item.model_dump()]
-        )
+        assert isinstance(pull_requests, list)
+        for pr in pull_requests:
+            assert pr.status == "Waiting for Author"
+            assert pr.repository_id == get_repository.source_id
+            assert pr.created_by == mock_agent.agent_user_name

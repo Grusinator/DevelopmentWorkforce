@@ -1,5 +1,5 @@
 from typing import List
-from src.devops_integrations.repos.ado_repos_models import Project, Repository
+from src.devops_integrations.repos.ado_repos_models import ProjectModel, RepositoryModel
 from src.devops_integrations.repos.base_repos_api import BaseReposApi
 
 
@@ -7,21 +7,21 @@ class MockReposApi(BaseReposApi):
     def get_repository_id(self, repo_name: str) -> str:
         return "mock-repo-id"
 
-    def get_repository(self, repo_name: str) -> Repository:
-        return Repository(
+    def get_repository(self, repo_name: str) -> RepositoryModel:
+        return RepositoryModel(
             id="mock-repo-id",
             name=repo_name,
             url="http://mock.url/repo"
         )
 
-    def get_projects(self) -> List[Project]:
+    def get_projects(self) -> List[ProjectModel]:
         return [
-            Project(id="mock-project-id", name="Mock Project")
+            ProjectModel(id="mock-project-id", name="Mock Project")
         ]
 
-    def get_repositories(self, project_id: str) -> List[Repository]:
+    def get_repositories(self, project_id: str) -> List[RepositoryModel]:
         return [
-            Repository(id="mock-repo-id", name="Mock Repo", url="http://mock.url/repo")
+            RepositoryModel(id="mock-repo-id", name="Mock Repo", url="http://mock.url/repo")
         ]
 
     def branch_exists(self, repository_id: str, branch_name: str) -> bool:

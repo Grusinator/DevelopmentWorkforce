@@ -7,25 +7,25 @@ from azure.devops.exceptions import AzureDevOpsServiceError
 from src.devops_integrations.ado_connection import ADOConnection
 from src.devops_integrations.pull_requests.base_pull_requests_api import BasePullRequestsApi
 from src.devops_integrations.repos.ado_repos_api import ADOReposApi
-from src.devops_integrations.pull_requests.pull_request_models import CreatePullRequestInput, PullRequest, \
-    PullRequestComment
+from src.devops_integrations.pull_requests.pull_request_models import CreatePullRequestInputModel, PullRequestModel, \
+    PullRequestCommentModel
 
-from src.devops_integrations.models import ProjectAuthentication
+from src.devops_integrations.models import ProjectAuthenticationModel
 
-from src.devops_integrations.pull_requests.pull_request_models import PullRequestCommentThread
+from src.devops_integrations.pull_requests.pull_request_models import PullRequestCommentThreadModel
 
 
 class ADOPullRequestsApi(ADOConnection, BasePullRequestsApi):
     api_version = "7.1-preview.1"
 
-    def __init__(self, auth: ProjectAuthentication):
+    def __init__(self, auth: ProjectAuthenticationModel):
         super().__init__(auth)
         self.repo_api = ADOReposApi(auth)
 
     def get_base_url(self, repo_name: str) -> str:
         return f"https://dev.azure.com/{self.auth.ado_org_name}/{self.auth.project_name}/_apis/git/repositories/{repo_name}"
 
-    def create_pull_request(self, repository_id: str, pr_input: CreatePullRequestInput) -> int:
+    def create_pull_request(self, repository_id: str, pr_input: CreatePullRequestInputModel) -> int:
         pr = GitPullRequest(
             source_ref_name=f"refs/heads/{pr_input.source_branch}",
             target_ref_name=f"refs/heads/{pr_input.target_branch}",
@@ -49,25 +49,27 @@ class ADOPullRequestsApi(ADOConnection, BasePullRequestsApi):
             else:
                 raise
 
-    def get_pull_request(self, repository_id, pr_id: int) -> PullRequest:
+    def get_pull_request(self, repository_id, pr_id: int) -> PullRequestModel:
         pr = self.client.get_pull_request(repository_id, pr_id, project=self.auth.project_name)
         return self.to_pull_request(pr)
 
-    def list_pull_requests(self, repository_id: str, status: str = None, created_by=None) -> List[PullRequest]:
+    def list_pull_requests(self, repository_id: str, status: str = None, created_by=None) -> List[PullRequestModel]:
         search_criteria = GitPullRequestSearchCriteria(status=status, creator_id=created_by)
         prs = self.client.get_pull_requests(repository_id, search_criteria, project=self.auth.project_name)
         return [self.to_pull_request(pr) for pr in prs]
 
-    def to_pull_request(self, pr) -> PullRequest:
-        return PullRequest(
+    def to_pull_request(self, pr) -> PullRequestModel:
+        return PullRequestModel(
             id=pr.pull_request_id,
             title=pr.title,
             description=pr.description,
             source_branch=pr.source_ref_name,
             target_branch=pr.target_ref_name,
             status=pr.status,
-            repository=self.repo_api._to_repository(pr.repository)
+            repository=self.repo_api._to_repository(pr.repository),
+            #reviewers=[self._to_reviever(reviewer) for reviewer in reviewers]
         )
+
 
     def update_pull_request(self, repo_name: str, pull_request_id: int, **kwargs):
         url = f"{self.get_base_url(repo_name)}/pullrequests/{pull_request_id}?api-version={self.api_version}"
@@ -86,7 +88,7 @@ class ADOPullRequestsApi(ADOConnection, BasePullRequestsApi):
         created_thread = self.client.create_thread(comment_thread, repository_id, pr_id, project=self.auth.project_name)
         return created_thread.id
 
-    def get_pull_request_comments(self, repo_name: str, pull_request_id: int) -> List[PullRequestCommentThread]:
+    def get_pull_request_comments(self, repo_name: str, pull_request_id: int) -> List[PullRequestCommentThreadModel]:
         comment_threads = self.client.get_threads(
             repository_id=repo_name,
             pull_request_id=pull_request_id,
@@ -95,7 +97,7 @@ class ADOPullRequestsApi(ADOConnection, BasePullRequestsApi):
         return [self._to_comment_thread(thread) for thread in comment_threads]
 
     def _to_comment_thread(self, thread):
-        return PullRequestCommentThread(
+        return PullRequestCommentThreadModel(
             id=thread.id,
             comments=[self._to_pr_comment(comment) for comment in thread.comments],
             status=thread.status,
@@ -117,7 +119,7 @@ class ADOPullRequestsApi(ADOConnection, BasePullRequestsApi):
         build = builds[0]
         return build.status
 
-    def create_comment(self, repo_name, pull_request_id: int, text: str) -> PullRequestComment:
+    def create_comment(self, repo_name, pull_request_id: int, text: str) -> PullRequestCommentModel:
         new_comment = Comment(content=text)
         comment_thread = GitPullRequestCommentThread(comments=[new_comment])
         created_thread = self.client.create_thread(
@@ -129,8 +131,8 @@ class ADOPullRequestsApi(ADOConnection, BasePullRequestsApi):
         created_comment = created_thread.comments[0]
         return self._to_pr_comment(created_comment)
 
-    def _to_pr_comment(self, comment: Comment) -> PullRequestComment:
-        return PullRequestComment(
+    def _to_pr_comment(self, comment: Comment) -> PullRequestCommentModel:
+        return PullRequestCommentModel(
             id=comment.id,
             text=comment.content,
             created_by=comment.author.display_name if comment.author else None,

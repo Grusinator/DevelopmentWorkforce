@@ -3,24 +3,24 @@ from urllib.error import HTTPError
 import pytest
 from azure.devops.exceptions import AzureDevOpsServiceError
 
-from src.devops_integrations.models import ProjectAuthentication
+from src.devops_integrations.models import ProjectAuthenticationModel
 from src.devops_integrations.pull_requests.ado_pull_requests_api import ADOPullRequestsApi
-from src.devops_integrations.pull_requests.pull_request_models import CreatePullRequestInput
+from src.devops_integrations.pull_requests.pull_request_models import CreatePullRequestInputModel
 from src.devops_integrations.repos.ado_repos_api import ADOReposApi
 from tests.test_devops_integrations.conftest import auth
 from tests.test_devops_integrations.test_repos.conftest import ado_repos_api, get_repository
 
 
 @pytest.fixture
-def ado_pull_requests_api(auth: ProjectAuthentication) -> ADOPullRequestsApi:
+def ado_pull_requests_api(auth: ProjectAuthenticationModel) -> ADOPullRequestsApi:
     return ADOPullRequestsApi(auth)
 
 
 @pytest.fixture
 def mock_create_pull_request():
-    return CreatePullRequestInput(title="Test Pull Request", description="This is a test pull request",
-                                  source_branch="feature-branch",
-                                  target_branch="main")
+    return CreatePullRequestInputModel(title="Test Pull Request", description="This is a test pull request",
+                                       source_branch="feature-branch",
+                                       target_branch="main")
 
 
 @pytest.fixture
@@ -63,7 +63,7 @@ def setup_feature_branch(ado_pull_requests_api: ADOPullRequestsApi, ado_repos_ap
 
 @pytest.fixture
 def open_pull_request(ado_pull_requests_api: ADOPullRequestsApi, setup_feature_branch, get_repository):
-    pr_input = CreatePullRequestInput(
+    pr_input = CreatePullRequestInputModel(
         source_branch="feature-branch",
         target_branch="main",
         title="Create Test PR",

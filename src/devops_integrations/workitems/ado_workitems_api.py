@@ -4,8 +4,8 @@ from azure.devops.v7_1.work_item_tracking.models import JsonPatchOperation, Work
 from dotenv import load_dotenv
 
 from src.devops_integrations.ado_connection import ADOConnection
-from src.devops_integrations.models import ProjectAuthentication
-from src.devops_integrations.workitems.ado_workitem_models import CreateWorkItemInput, WorkItem, UpdateWorkItemInput, \
+from src.devops_integrations.models import ProjectAuthenticationModel
+from src.devops_integrations.workitems.ado_workitem_models import CreateWorkItemInputModel, WorkItemModel, UpdateWorkItemInputModel, \
     WorkItemCommentModel
 from src.devops_integrations.workitems.base_workitems_api import BaseWorkitemsApi
 
@@ -15,10 +15,10 @@ load_dotenv()
 class ADOWorkitemsApi(ADOConnection, BaseWorkitemsApi):
     api_version = "7.1-preview.3"
 
-    def __init__(self, auth: ProjectAuthentication):
+    def __init__(self, auth: ProjectAuthenticationModel):
         super().__init__(auth)
 
-    def create_work_item(self, work_item: CreateWorkItemInput) -> int:
+    def create_work_item(self, work_item: CreateWorkItemInputModel) -> int:
         document = [
             JsonPatchOperation(op='add', path='/fields/System.Title', value=work_item.title),
             JsonPatchOperation(op='add', path='/fields/System.Description', value=work_item.description),
@@ -28,12 +28,12 @@ class ADOWorkitemsApi(ADOConnection, BaseWorkitemsApi):
         created_work_item = self.wo_client.create_work_item(document, self.auth.project_name, work_item.type)
         return created_work_item.id
 
-    def get_work_item(self, work_item_id: int) -> WorkItem:
+    def get_work_item(self, work_item_id: int) -> WorkItemModel:
         work_item = self.wo_client.get_work_item(work_item_id)
         return self.to_work_item(work_item)
 
     def to_work_item(self, work_item):
-        return WorkItem(
+        return WorkItemModel(
             source_id=work_item.id,
             title=work_item.fields['System.Title'],
             type=work_item.fields['System.WorkItemType'],
@@ -45,7 +45,7 @@ class ADOWorkitemsApi(ADOConnection, BaseWorkitemsApi):
             acceptance_criteria=work_item.fields.get("Microsoft.VSTS.Common.AcceptanceCriteria", None)
         )
 
-    def update_work_item(self, updates: UpdateWorkItemInput) -> None:
+    def update_work_item(self, updates: UpdateWorkItemInputModel) -> None:
         document = []
         if updates.title:
             document.append(JsonPatchOperation(op='replace', path='/fields/System.Title', value=updates.title))
@@ -70,7 +70,7 @@ class ADOWorkitemsApi(ADOConnection, BaseWorkitemsApi):
         self.wo_client.delete_work_item(work_item_id)
 
     def list_work_items(self, work_item_type: str = None, assigned_to: str = None,
-                        state: str = None) -> List[WorkItem]:
+                        state: str = None) -> List[WorkItemModel]:
         query = "SELECT [System.Id], [System.Title], [System.State], [System.AssignedTo], [System.WorkItemType], [System.Description] FROM WorkItems"
         conditions = []
         if work_item_type:

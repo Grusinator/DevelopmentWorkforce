@@ -4,7 +4,7 @@ import pytest
 from requests import HTTPError
 
 from src.devops_integrations.repos.ado_repos_api import ADOReposApi
-from src.devops_integrations.pull_requests.pull_request_models import CreatePullRequestInput
+from src.devops_integrations.pull_requests.pull_request_models import CreatePullRequestInputModel
 
 
 @pytest.mark.integration

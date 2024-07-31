@@ -2,7 +2,7 @@ import pytest
 from crewai import Task, Crew, Agent
 from dotenv import load_dotenv
 
-from src.devops_integrations.workitems.ado_workitem_models import CreateWorkItemInput
+from src.devops_integrations.workitems.ado_workitem_models import CreateWorkItemInputModel
 from src.devops_integrations.workitems.mock_workitems_api import MockWorkitemsApi
 from src.crew.crew_ai_models import CrewAiModels
 from src.crew.tools import ToolsBuilder
@@ -18,7 +18,7 @@ def create_toolset(workspace_dir_with_codebase):
     git_url = "https://github.com/Grusinator/ai-test-project.git"
     ado_workitems_api = MockWorkitemsApi()  # Assuming this is initialized elsewhere as per original script
     ado_workitems_api.create_work_item(
-        CreateWorkItemInput(
+        CreateWorkItemInputModel(
             title="maka a calculator widget",
             description="This is a widget that can add, sub, div, and mul numbers",
             type="Feature",

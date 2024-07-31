@@ -3,13 +3,13 @@ from typing import List
 from azure.devops.v7_1.git import GitRefUpdate
 
 from src.devops_integrations.ado_connection import ADOConnection
-from src.devops_integrations.repos.ado_repos_models import Project, Repository
-from src.devops_integrations.models import ProjectAuthentication
+from src.devops_integrations.repos.ado_repos_models import ProjectModel, RepositoryModel
+from src.devops_integrations.models import ProjectAuthenticationModel
 from src.devops_integrations.repos.base_repos_api import BaseReposApi
 
 
 class ADOReposApi(ADOConnection, BaseReposApi):
-    def __init__(self, auth: ProjectAuthentication):
+    def __init__(self, auth: ProjectAuthenticationModel):
         super().__init__(auth)
 
     def get_repository_id(self, repo_name: str) -> str:
@@ -17,16 +17,16 @@ class ADOReposApi(ADOConnection, BaseReposApi):
         repo = [repo for repo in repositories if repo.name == repo_name][0]
         return repo.id if repositories else None
 
-    def get_repository(self, repo_name) -> Repository:
+    def get_repository(self, repo_name) -> RepositoryModel:
         repositories = self.client.get_repositories(self.auth.project_name)
         repo = [repo for repo in repositories if repo.name == repo_name][0]
         return self._to_repository(repo)
 
-    def get_projects(self) -> List[Project]:
+    def get_projects(self) -> List[ProjectModel]:
         projects = self.core_client.get_projects()
         project_list = []
         for project in projects:
-            project_list.append(Project(
+            project_list.append(ProjectModel(
                 name=project.name,
                 id=project.id,
                 source_id=project.id,
@@ -35,7 +35,7 @@ class ADOReposApi(ADOConnection, BaseReposApi):
             ))
         return project_list
 
-    def get_repositories(self, project_id: str) -> List[Repository]:
+    def get_repositories(self, project_id: str) -> List[RepositoryModel]:
         repositories = self.client.get_repositories(project_id)
         repo_list = []
         for repo in repositories:
@@ -59,8 +59,8 @@ class ADOReposApi(ADOConnection, BaseReposApi):
         self.client.update_refs(ref_updates=[new_ref], repository_id=repository_id, project=self.auth.project_name)
 
     @classmethod
-    def _to_repository(cls, repo) -> Repository:
-        return Repository(
+    def _to_repository(cls, repo) -> RepositoryModel:
+        return RepositoryModel(
             id=repo.id,
             source_id=repo.id,
             name=repo.name,
@@ -69,8 +69,8 @@ class ADOReposApi(ADOConnection, BaseReposApi):
         )
 
     @staticmethod
-    def _to_project(project) -> Project:
-        return Project(
+    def _to_project(project) -> ProjectModel:
+        return ProjectModel(
             name=project.name,
             id=project.id,
             source_id=project.id,

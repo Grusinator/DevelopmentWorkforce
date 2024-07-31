@@ -1,20 +1,20 @@
 from abc import ABC, abstractmethod
 from typing import List
-from src.devops_integrations.workitems.ado_workitem_models import CreateWorkItemInput, WorkItem, UpdateWorkItemInput, \
+from src.devops_integrations.workitems.ado_workitem_models import CreateWorkItemInputModel, WorkItemModel, UpdateWorkItemInputModel, \
     WorkItemCommentModel
 
 
 class BaseWorkitemsApi(ABC):
     @abstractmethod
-    def create_work_item(self, work_item: CreateWorkItemInput) -> int:
+    def create_work_item(self, work_item: CreateWorkItemInputModel) -> int:
         pass
 
     @abstractmethod
-    def get_work_item(self, work_item_id: int) -> WorkItem:
+    def get_work_item(self, work_item_id: int) -> WorkItemModel:
         pass
 
     @abstractmethod
-    def update_work_item(self, updates: UpdateWorkItemInput) -> None:
+    def update_work_item(self, updates: UpdateWorkItemInputModel) -> None:
         pass
 
     @abstractmethod
@@ -22,7 +22,7 @@ class BaseWorkitemsApi(ABC):
         pass
 
     @abstractmethod
-    def list_work_items(self, work_item_type: str = None, assigned_to: str = None, state: str = None) -> List[WorkItem]:
+    def list_work_items(self, work_item_type: str = None, assigned_to: str = None, state: str = None) -> List[WorkItemModel]:
         pass
 
     @abstractmethod

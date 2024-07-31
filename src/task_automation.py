@@ -8,20 +8,20 @@ import loguru
 from organization.schemas import AgentModel
 from src.devops_integrations.devops_factory import DevOpsFactory
 
-from src.devops_integrations.models import ProjectAuthentication, DevOpsSource
-from src.devops_integrations.repos.ado_repos_models import Repository
-from src.devops_integrations.pull_requests.pull_request_models import CreatePullRequestInput, PullRequest
+from src.devops_integrations.models import ProjectAuthenticationModel, DevOpsSource
+from src.devops_integrations.repos.ado_repos_models import RepositoryModel
+from src.devops_integrations.pull_requests.pull_request_models import CreatePullRequestInputModel, PullRequestModel
 from src.devops_integrations.repos.ado_repos_api import ADOReposApi
-from src.devops_integrations.workitems.ado_workitem_models import WorkItem, UpdateWorkItemInput
+from src.devops_integrations.workitems.ado_workitem_models import WorkItemModel, UpdateWorkItemInputModel
 from src.devops_integrations.workitems.ado_workitems_api import ADOWorkitemsApi
 from src.git_manager import GitManager
 from src.local_development_session import LocalDevelopmentSession
 
 
 class TaskAutomation:
-    def __init__(self, repo: Repository, agent: AgentModel, devops_source=DevOpsSource.ADO):
-        project_auth = ProjectAuthentication(pat=agent.pat, ado_org_name=agent.organization_name,
-                                             project_name=repo.project.name)
+    def __init__(self, repo: RepositoryModel, agent: AgentModel, devops_source=DevOpsSource.ADO):
+        project_auth = ProjectAuthenticationModel(pat=agent.pat, ado_org_name=agent.organization_name,
+                                                  project_name=repo.project.name)
         self.devops_factory = DevOpsFactory(project_auth, devops_source)
         self.workitems_api = self.devops_factory.get_workitems_api()
         self.repos_api = self.devops_factory.get_repos_api()
@@ -33,8 +33,8 @@ class TaskAutomation:
         self.user_name = agent.agent_user_name
         self.root_workspace_dir = Path(os.getenv("WORKSPACE_DIR"))
 
-    def develop_on_task(self, work_item: WorkItem, repo: Repository):
-        work_item_input = UpdateWorkItemInput(source_id=work_item.source_id, state="Active")
+    def develop_on_task(self, work_item: WorkItemModel, repo: RepositoryModel):
+        work_item_input = UpdateWorkItemInputModel(source_id=work_item.source_id, state="Active")
         self.workitems_api.update_work_item(work_item_input)
 
         repo_dir, branch_name = self._setup_development_env(work_item, repo)
@@ -45,7 +45,7 @@ class TaskAutomation:
         else:
             self.reply_back_failed_response(work_item)
 
-    def update_pr_from_feedback(self, pull_request: PullRequest, work_item: WorkItem):
+    def update_pr_from_feedback(self, pull_request: PullRequestModel, work_item: WorkItemModel):
         comments = self.pull_requests_api.get_pull_request_comments(pull_request.repository.name, pull_request.id)
         repo_dir, branch_name = self._setup_development_env(work_item, pull_request.repository)
         result = self.dev_session.local_development_on_workitem(work_item, repo_dir, comments)
@@ -64,12 +64,12 @@ class TaskAutomation:
         self.create_pull_request(branch_name, work_item, repo)
 
     def create_pull_request(self, branch_name, work_item, repo):
-        pull_request_input = CreatePullRequestInput(title=work_item.title, source_branch=branch_name,
-                                                    description=work_item.description)
+        pull_request_input = CreatePullRequestInputModel(title=work_item.title, source_branch=branch_name,
+                                                         description=work_item.description)
         self.pull_requests_api.create_pull_request(repo.source_id, pull_request_input)
         loguru.logger.info(f"Created pull request for task: {work_item.title}")
 
-    def _setup_development_env(self, work_item: WorkItem, repo: Repository):
+    def _setup_development_env(self, work_item: WorkItemModel, repo: RepositoryModel):
         branch_name = self._create_branch_name(work_item)
         repo_dir = self.root_workspace_dir / branch_name
         self.git_manager.clone_and_checkout_branch(repo.git_url, repo_dir, branch_name)

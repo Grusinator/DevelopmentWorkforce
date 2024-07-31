@@ -3,7 +3,7 @@ from pathlib import Path
 
 from crewai import Task, Crew, Process
 
-from src.devops_integrations.workitems.ado_workitem_models import WorkItem
+from src.devops_integrations.workitems.ado_workitem_models import WorkItemModel
 from src.crew.crew_ai_agents import CrewAiAgents
 from src.crew.crew_ai_models import CrewAiModels
 
@@ -22,7 +22,7 @@ class CrewTaskRunner:
         self.default_agent = self.agency.create_developer()
         self.agents.append(self.default_agent)
 
-    def add_task_from_work_item(self, work_item: WorkItem, extra_info=None):
+    def add_task_from_work_item(self, work_item: WorkItemModel, extra_info=None):
         description = f"""
         complete below work item by writing code to files based on the requirements
         and the acceptance criteria from user stories.
@@ -46,7 +46,7 @@ class CrewTaskRunner:
         )
         self.tasks.append(task)
 
-    def add_test_task(self, work_item: WorkItem):
+    def add_test_task(self, work_item: WorkItemModel):
         test = Task(
             description=f"""test the app, by addding unit tests to the repository
                      based on the requirements and the acceptance criteria from user stories,

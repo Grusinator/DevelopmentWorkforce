@@ -1,20 +1,20 @@
 from abc import ABC, abstractmethod
 from typing import List
-from src.devops_integrations.pull_requests.pull_request_models import CreatePullRequestInput, PullRequest, \
-    PullRequestComment, PullRequestCommentThread
+from src.devops_integrations.pull_requests.pull_request_models import CreatePullRequestInputModel, PullRequestModel, \
+    PullRequestCommentModel, PullRequestCommentThreadModel
 
 
 class BasePullRequestsApi(ABC):
     @abstractmethod
-    def create_pull_request(self, repository_id: str, pr_input: CreatePullRequestInput) -> int:
+    def create_pull_request(self, repository_id: str, pr_input: CreatePullRequestInputModel) -> int:
         pass
 
     @abstractmethod
-    def get_pull_request(self, repository_id: str, pr_id: int) -> PullRequest:
+    def get_pull_request(self, repository_id: str, pr_id: int) -> PullRequestModel:
         pass
 
     @abstractmethod
-    def list_pull_requests(self, repository_id: str, status: str = None, created_by=None) -> List[PullRequest]:
+    def list_pull_requests(self, repository_id: str, status: str = None, created_by=None) -> List[PullRequestModel]:
         pass
 
     @abstractmethod
@@ -30,7 +30,7 @@ class BasePullRequestsApi(ABC):
         pass
 
     @abstractmethod
-    def get_pull_request_comments(self, repo_name: str, pull_request_id: int) -> List[PullRequestCommentThread]:
+    def get_pull_request_comments(self, repo_name: str, pull_request_id: int) -> List[PullRequestCommentThreadModel]:
         pass
 
     @abstractmethod
@@ -42,5 +42,5 @@ class BasePullRequestsApi(ABC):
         pass
 
     @abstractmethod
-    def create_comment(self, repo_name: str, pull_request_id: int, text: str) -> PullRequestComment:
+    def create_comment(self, repo_name: str, pull_request_id: int, text: str) -> PullRequestCommentModel:
         pass

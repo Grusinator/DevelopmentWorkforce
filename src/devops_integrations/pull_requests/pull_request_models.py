@@ -3,35 +3,35 @@ from typing import Optional, List
 
 from pydantic import BaseModel
 
-from src.devops_integrations.repos.ado_repos_models import Repository
+from src.devops_integrations.repos.ado_repos_models import RepositoryModel
 
 
-class CreatePullRequestInput(BaseModel):
+class CreatePullRequestInputModel(BaseModel):
     source_branch: str
     target_branch: Optional[str] = "main"
     title: str
     description: Optional[str] = None
 
 
-class PullRequest(BaseModel):
+class PullRequestModel(BaseModel):
     id: int
     title: str
     description: Optional[str] = None
     source_branch: str
     target_branch: str
     status: str
-    repository: Repository
+    repository: RepositoryModel
 
 
-class PullRequestComment(BaseModel):
+class PullRequestCommentModel(BaseModel):
     id: int
     text: str
     created_by: str
     created_date: datetime
 
 
-class PullRequestCommentThread(BaseModel):
+class PullRequestCommentThreadModel(BaseModel):
     id: int
-    comments: List[PullRequestComment]
+    comments: List[PullRequestCommentModel]
     status: Optional[str] = None
     published_date: Optional[datetime] = None

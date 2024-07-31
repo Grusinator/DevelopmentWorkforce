@@ -10,9 +10,8 @@ from random import randint
 
 import pytest
 
-from organization.schemas import AgentModel
-from src.devops_integrations.repos.ado_repos_models import Repository, Project
-from src.devops_integrations.workitems.ado_workitem_models import WorkItem
+from src.devops_integrations.repos.ado_repos_models import RepositoryModel, ProjectModel
+from src.devops_integrations.workitems.ado_workitem_models import WorkItemModel
 
 
 @pytest.fixture(scope="function")
@@ -27,7 +26,7 @@ def create_test_workspace_repo():
 _id_gen = (i for i in range(100))
 
 
-class SimpleWorkItem(WorkItem):
+class SimpleWorkItemModel(WorkItemModel):
 
     def __init__(self, **kwargs):
         _id = next(_id_gen)
@@ -92,8 +91,8 @@ def workspace_dir_dummy_repo(workspace_dir):
 @pytest.fixture
 def dummy_work_items():
     return [
-        SimpleWorkItem(description="create "),
-        SimpleWorkItem(description="Description for task 2")
+        SimpleWorkItemModel(description="create "),
+        SimpleWorkItemModel(description="Description for task 2")
     ]
 
 
@@ -114,7 +113,7 @@ def run_pytest_in_workspace(workspace_dir: Path):
 
 @pytest.fixture
 def mock_work_item():
-    work_item = WorkItem(
+    work_item = WorkItemModel(
         source_id=randint(1, 99999),
         title="Test Task",
         description="This is a test task",
@@ -126,18 +125,9 @@ def mock_work_item():
 
 
 @pytest.fixture
-def mock_agent():
-    ado_org_name = os.getenv("ADO_ORGANIZATION_NAME")
-    pat = os.getenv("ADO_PERSONAL_ACCESS_TOKEN")
-    user_name = os.getenv("AI_USER_NAME")
-
-    return AgentModel(id=1, organization_name=ado_org_name, pat=pat, agent_user_name=user_name, status="idle")
-
-
-@pytest.fixture
-def mock_repository() -> Repository:
+def mock_repository() -> RepositoryModel:
     repo_url = os.getenv("ADO_REPO_URL")
     repo_name = os.getenv("ADO_REPO_NAME")
 
-    project_model = Project(id=2, name="test", source_id="test")
-    return Repository(id=2, source_id="test", name=repo_name, git_url=repo_url, project=project_model)
+    project_model = ProjectModel(id=2, name="test", source_id="test")
+    return RepositoryModel(id=2, source_id="test", name=repo_name, git_url=repo_url, project=project_model)

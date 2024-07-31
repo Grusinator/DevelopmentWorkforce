@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List
-from src.devops_integrations.repos.ado_repos_models import Project, Repository
+from src.devops_integrations.repos.ado_repos_models import ProjectModel, RepositoryModel
 
 
 class BaseReposApi(ABC):
@@ -9,15 +9,15 @@ class BaseReposApi(ABC):
         pass
 
     @abstractmethod
-    def get_repository(self, repo_name: str) -> Repository:
+    def get_repository(self, repo_name: str) -> RepositoryModel:
         pass
 
     @abstractmethod
-    def get_projects(self) -> List[Project]:
+    def get_projects(self) -> List[ProjectModel]:
         pass
 
     @abstractmethod
-    def get_repositories(self, project_id: str) -> List[Repository]:
+    def get_repositories(self, project_id: str) -> List[RepositoryModel]:
         pass
 
     @abstractmethod
