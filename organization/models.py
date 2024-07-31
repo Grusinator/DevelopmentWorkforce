@@ -6,6 +6,7 @@ class Project(models.Model):
     id = models.AutoField(primary_key=True)
     source_id = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
+
     # url = models.URLField(null=True, blank=True)
 
     def __str__(self):
@@ -56,15 +57,22 @@ class AgentWorkSession(models.Model):
         return f"Session {self.id} for {self.agent}"
 
 
-class AgentTask(models.Model):
-    session = models.ForeignKey(AgentWorkSession, on_delete=models.CASCADE, related_name='tasks')
-    ado_task_id = models.CharField(max_length=255)
-    start_time = models.DateTimeField(auto_now_add=True)
-    end_time = models.DateTimeField(null=True, blank=True)
+class WorkItem(models.Model):
+    id = models.AutoField(primary_key=True)
+    work_item_source_id = models.CharField(max_length=255)
+    pull_request_source_id = models.CharField(max_length=255, null=True, blank=True)
     status = models.CharField(max_length=50, choices=[('pending', 'Pending'), ('in_progress', 'In Progress'),
                                                       ('completed', 'Completed'), ('failed', 'Failed')],
                               default='pending')
+
+
+class AgentTask(models.Model):
+    id = models.AutoField(primary_key=True)
+    session = models.ForeignKey(AgentWorkSession, on_delete=models.CASCADE, related_name='tasks')
+    work_item = models.ForeignKey(WorkItem, on_delete=models.CASCADE, related_name="tasks")
+    start_time = models.DateTimeField(auto_now_add=True)
+    end_time = models.DateTimeField(null=True, blank=True)
     token_usage = models.IntegerField(default=0)
 
     def __str__(self):
-        return f"Task {self.ado_task_id} for Session {self.session.id}"
+        return f"Task {self.work_item_id} for Session {self.session.id}"

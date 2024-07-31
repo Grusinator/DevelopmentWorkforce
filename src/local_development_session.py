@@ -1,21 +1,19 @@
-import os
 import textwrap
-import uuid
 from pathlib import Path
+from typing import Optional
 
 import loguru
 from pydantic import BaseModel
 
-from src.devops_integrations.repos.ado_repos_models import RepositoryModel
-from src.devops_integrations.workitems.ado_workitem_models import WorkItemModel
 from src.crew.crew_task_runner import CrewTaskRunner
-from src.git_manager import GitManager
+from src.devops_integrations.workitems.ado_workitem_models import WorkItemModel
 from src.util_tools.map_dir import DirectoryStructure
 from src.util_tools.vector_db import VectorDB
 
 
 class LocalDevelopmentResult(BaseModel):
     succeeded: bool
+    token_usage: Optional[int] = None
 
 
 class LocalDevelopmentSession:

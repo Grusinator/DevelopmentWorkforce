@@ -44,3 +44,7 @@ class BasePullRequestsApi(ABC):
     @abstractmethod
     def create_comment(self, repo_name: str, pull_request_id: int, text: str) -> PullRequestCommentModel:
         pass
+
+
+    def reset_pull_request_votes(self, id):
+        pass

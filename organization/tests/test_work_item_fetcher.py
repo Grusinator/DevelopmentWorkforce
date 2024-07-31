@@ -9,7 +9,7 @@ class TestFetch:
         with patch('organization.services.fetch_new_tasks.app.send_task') as mock_send_task:
             work_item_fetcher.fetch_new_workitems(mock_agent, get_repository)
             mock_send_task.assert_called_once_with(
-                'organization.tasks.execute_task',
+                'organization.tasks.execute_task_workitem',
                 args=[mock_agent.model_dump(), get_repository.model_dump(), mock_work_item.model_dump()]
             )
 

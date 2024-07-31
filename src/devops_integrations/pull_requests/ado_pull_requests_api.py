@@ -8,7 +8,7 @@ from src.devops_integrations.ado_connection import ADOConnection
 from src.devops_integrations.pull_requests.base_pull_requests_api import BasePullRequestsApi
 from src.devops_integrations.repos.ado_repos_api import ADOReposApi
 from src.devops_integrations.pull_requests.pull_request_models import CreatePullRequestInputModel, PullRequestModel, \
-    PullRequestCommentModel
+    PullRequestCommentModel, ReviewerModel
 
 from src.devops_integrations.models import ProjectAuthenticationModel
 
@@ -67,9 +67,8 @@ class ADOPullRequestsApi(ADOConnection, BasePullRequestsApi):
             target_branch=pr.target_ref_name,
             status=pr.status,
             repository=self.repo_api._to_repository(pr.repository),
-            #reviewers=[self._to_reviever(reviewer) for reviewer in reviewers]
+            reviewers=[self._to_reviewer(reviewer) for reviewer in pr.reviewers]
         )
-
 
     def update_pull_request(self, repo_name: str, pull_request_id: int, **kwargs):
         url = f"{self.get_base_url(repo_name)}/pullrequests/{pull_request_id}?api-version={self.api_version}"
@@ -137,4 +136,11 @@ class ADOPullRequestsApi(ADOConnection, BasePullRequestsApi):
             text=comment.content,
             created_by=comment.author.display_name if comment.author else None,
             created_date=comment.published_date
+        )
+
+    def _to_reviewer(self, reviewer) -> ReviewerModel:
+        return ReviewerModel(
+            source_id=reviewer.id,
+            display_name=reviewer.display_name,
+            vote=reviewer.vote,
         )

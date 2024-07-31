@@ -15,7 +15,7 @@ def stop_work_session(agent):
     active_tasks = app.control.inspect().active() or dict()
     for worker, tasks in active_tasks.items():
         for task in tasks:
-            if task['name'] == 'execute_task' and task['kwargs']['agent_id'] == agent.source_id:
+            if task['name'] == 'execute_task_workitem' and task['kwargs']['agent_id'] == agent.source_id:
                 app.control.revoke(task['id'], terminate=True)
 
 

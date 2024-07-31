@@ -13,6 +13,12 @@ class CreatePullRequestInputModel(BaseModel):
     description: Optional[str] = None
 
 
+class ReviewerModel(BaseModel):
+    source_id: str
+    display_name: str
+    vote: int
+
+
 class PullRequestModel(BaseModel):
     id: int
     title: str
@@ -21,6 +27,7 @@ class PullRequestModel(BaseModel):
     target_branch: str
     status: str
     repository: RepositoryModel
+    reviewers: Optional[List[ReviewerModel]] = []
 
 
 class PullRequestCommentModel(BaseModel):

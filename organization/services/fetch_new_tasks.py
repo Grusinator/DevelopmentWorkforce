@@ -21,14 +21,15 @@ class TaskFetcherAndScheduler:
         new_tasks = self.workitems_api.list_work_items(assigned_to=agent.agent_user_name, state="New")
         for task in new_tasks:
             logger.debug(f"task started: {task}")
-            app.send_task('organization.tasks.execute_task',
+            app.send_task('organization.tasks.execute_task_workitem',
                           args=[agent.model_dump(), repo.model_dump(), task.model_dump()])
 
     def fetch_pull_requests_waiting_for_author(self, agent: AgentModel, repo: RepositoryModel):
-        prs = self.pull_requests_api.list_pull_requests(repository_id=repo.source_id)
-        print(prs)
         pull_requests = self.pull_requests_api.list_pull_requests(repository_id=repo.source_id,
                                                                   created_by=agent.agent_user_name
-                                                                  # status="Waiting for Author"
                                                                   )
-        return pull_requests
+        waiting_for_author_prs = [pr for pr in pull_requests if any(reviewer.vote == -5 for reviewer in pr.reviewers)]
+
+        for pr in waiting_for_author_prs:
+            app.send_task("organization.tasks.execute_task_pr_feedback",
+                          args=[agent.model_dump(), repo.model_dump(), pr.model_dump()])
