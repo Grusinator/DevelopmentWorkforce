@@ -25,7 +25,7 @@ class TaskAutomation:
         self.devops_factory = DevOpsFactory(project_auth, devops_source)
         self.workitems_api = self.devops_factory.get_workitems_api()
         self.repos_api = self.devops_factory.get_repos_api()
-        self.pull_requests_api = self.devops_factory.get_pullrequests_api()
+        self.pull_requests_api = self.devops_factory.get_pull_requests_api()
         self.dev_session = LocalDevelopmentSession()
         self.git_manager = GitManager()
         self.user_name = agent.agent_user_name

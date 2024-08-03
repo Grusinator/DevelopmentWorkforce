@@ -27,7 +27,7 @@ def debug_task(self):
 
 app.conf.beat_schedule = {
     'fetch-new-workitems-every-5-minutes': {
-        'task': 'fetch_new_workitems_periodically',
-        'schedule': crontab(minute='*/1'),
+        'task': 'fetch_new_tasks_periodically',
+        'schedule': 7.0,
     },
 }

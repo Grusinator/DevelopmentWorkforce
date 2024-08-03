@@ -1,23 +1,68 @@
-<!-- templates/agent_status.html -->
 {% extends "base.html" %}
 
+{% load static %}
+
+<head>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+</head>
+
 {% block content %}
-<h2>Agent Status</h2>
-<p>Status: {{ agent.status }}</p>
+<div class="container mt-4">
+    <h2>Agent Status</h2>
+    <p>Status: {{ agent.status }}</p>
 
-<form method="post">
-    {% csrf_token %}
-    <label for="repository">Select Repository:</label>
-    <select id="repository" name="repository">
-        {% for repo in repositories %}
-            <option value="{{ repo.id }}">{{ repo.name }}</option>
+    <form method="post" class="mb-4">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="repository" class="form-label">Select Repository:</label>
+            <select id="repository" name="repository" class="form-select">
+                {% for repo in repositories %}
+                    <option value="{{ repo.id }}">{{ repo.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" name="start" class="btn btn-primary">Start</button>
+        <button type="submit" name="stop" class="btn btn-danger">Stop</button>
+    </form>
+
+    <h2>Work Sessions</h2>
+    <div class="accordion" id="workSessionsAccordion">
+        {% for session in work_sessions|dictsortreversed:"start_time" %}
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="heading-{{ session.id }}">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ session.id }}" aria-expanded="false" aria-controls="collapse-{{ session.id }}">
+                        Session ID: {{ session.id }} ({{ session.start_time }} - {{ session.end_time }})
+                    </button>
+                </h2>
+                <div id="collapse-{{ session.id }}" class="accordion-collapse collapse" aria-labelledby="heading-{{ session.id }}" data-bs-parent="#workSessionsAccordion">
+                    <div class="accordion-body">
+                        <h3>Tasks</h3>
+                        <div class="accordion" id="tasksAccordion-{{ session.id }}">
+                            {% for task in session.tasks.all|dictsortreversed:"start_time" %}
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="task-heading-{{ task.id }}">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#task-collapse-{{ task.id }}" aria-expanded="false" aria-controls="task-collapse-{{ task.id }}">
+                                            Task ID: {{ task.id }} ({{ task.start_time }} - {{ task.end_time }})
+                                        </button>
+                                    </h2>
+                                    <div id="task-collapse-{{ task.id }}" class="accordion-collapse collapse" aria-labelledby="task-heading-{{ task.id }}" data-bs-parent="#tasksAccordion-{{ session.id }}">
+                                        <div class="accordion-body">
+                                            <p>Token Usage: {{ task.token_usage }}</p>
+                                            <h4>Work Item</h4>
+                                            <p>Work Item ID: {{ task.work_item.id }}</p>
+                                            <p>Work Item Source ID: {{ task.work_item.work_item_source_id }}</p>
+                                            <p>Pull Request Source ID: {{ task.work_item.pull_request_source_id }}</p>
+                                            <p>Work Item Status: {{ task.work_item.status }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
         {% endfor %}
-    </select>
-    <br><br>
-    <button type="submit" name="start">Start</button>
-    <button type="submit" name="stop">Stop</button>
-</form>
+    </div>
+</div>
 {% endblock %}
-
-
-

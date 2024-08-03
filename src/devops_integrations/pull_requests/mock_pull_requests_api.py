@@ -1,7 +1,9 @@
 from typing import List, Dict
 from src.devops_integrations.pull_requests.base_pull_requests_api import BasePullRequestsApi
-from src.devops_integrations.pull_requests.pull_request_models import CreatePullRequestInputModel, PullRequestModel, PullRequestCommentModel, PullRequestCommentThreadModel
+from src.devops_integrations.pull_requests.pull_request_models import CreatePullRequestInputModel, PullRequestModel, \
+    PullRequestCommentModel, PullRequestCommentThreadModel
 from src.devops_integrations.repos.ado_repos_models import RepositoryModel
+
 
 class MockPullRequestsApi(BasePullRequestsApi):
     def __init__(self):
@@ -13,7 +15,8 @@ class MockPullRequestsApi(BasePullRequestsApi):
     def create_pull_request(self, repository_id: str, pr_input: CreatePullRequestInputModel) -> int:
         pr_id = self.next_pr_id
         self.next_pr_id += 1
-        repository = RepositoryModel(id=repository_id, source_id=repository_id, name="Mock Repo", url="http://mock.url/repo")
+        repository = RepositoryModel(id=repository_id, source_id=repository_id, name="Mock Repo",
+                                     url="http://mock.url/repo")
         pull_request = PullRequestModel(
             id=pr_id,
             repository=repository,
@@ -27,7 +30,7 @@ class MockPullRequestsApi(BasePullRequestsApi):
         return self.pull_requests.get(pr_id)
 
     def list_pull_requests(self, repository_id: str, status: str = None, created_by=None) -> List[PullRequestModel]:
-        return [pr for pr in self.pull_requests.values() if pr.repository_id == repository_id]
+        return [pr for pr in self.pull_requests.values() if pr.repository.id == repository_id]
 
     def approve_pull_request(self, repo_name: str, pr_id: int) -> None:
         if pr_id in self.pull_requests:

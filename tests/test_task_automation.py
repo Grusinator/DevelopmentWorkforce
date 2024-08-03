@@ -30,7 +30,9 @@ class MockDevSession:
 
 @pytest.fixture
 def mocked_task_automation(mock_work_item, mock_agent, mock_repository, workspace_dir):
-    task_automation = TaskAutomation(mock_repository, mock_agent, devops_source=DevOpsSource.MOCK)
+    task_updater = MagicMock()
+    task_automation = TaskAutomation(mock_repository, mock_agent, devops_source=DevOpsSource.MOCK,
+                                     task_updater=task_updater)
     task_automation.devops_factory.mock_workitems_api.work_items.append(mock_work_item)
     task_automation.git_manager = MagicMock()
     task_automation.dev_session = MockDevSession(repo_dir=workspace_dir)

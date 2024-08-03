@@ -21,6 +21,9 @@ def docker_run(ctx, env=""):
 def start_worker(ctx):
     ctx.run("celery -A development_workforce worker --loglevel=info -E --pool=solo")
 
+@task
+def start_beat(ctx):
+    ctx.run("celery -A development_workforce beat --loglevel=info")
 
 @task
 def start_flower(ctx):

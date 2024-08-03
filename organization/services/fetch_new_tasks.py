@@ -15,7 +15,7 @@ class TaskFetcherAndScheduler:
         devops_factory = DevOpsFactory(project_auth, devops_source=devops_source)
         self.workitems_api = devops_factory.get_workitems_api()
         self.repos_api = devops_factory.get_repos_api()
-        self.pull_requests_api = devops_factory.get_pullrequests_api()
+        self.pull_requests_api = devops_factory.get_pull_requests_api()
 
     def fetch_new_workitems(self, agent: AgentModel, repo: RepositoryModel):
         new_tasks = self.workitems_api.list_work_items(assigned_to=agent.agent_user_name, state="New")
@@ -23,6 +23,9 @@ class TaskFetcherAndScheduler:
             logger.debug(f"task started: {task}")
             app.send_task('organization.tasks.execute_task_workitem',
                           args=[agent.model_dump(), repo.model_dump(), task.model_dump()])
+        if new_tasks:
+            tasks_joined = '\n * '.join([tsk.title for tsk in new_tasks])
+            logger.info(f"found new work item tasks: {tasks_joined}")
 
     def fetch_pull_requests_waiting_for_author(self, agent: AgentModel, repo: RepositoryModel):
         pull_requests = self.pull_requests_api.list_pull_requests(repository_id=repo.source_id,
@@ -33,3 +36,8 @@ class TaskFetcherAndScheduler:
         for pr in waiting_for_author_prs:
             app.send_task("organization.tasks.execute_task_pr_feedback",
                           args=[agent.model_dump(), repo.model_dump(), pr.model_dump()])
+        if waiting_for_author_prs:
+            joined_prs = '\n * '.join([_pr.title for _pr in waiting_for_author_prs])
+            logger.info(f"found new pr review tasks: {joined_prs}")
+
+        return waiting_for_author_prs

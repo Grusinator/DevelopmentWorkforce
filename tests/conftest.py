@@ -10,8 +10,14 @@ from random import randint
 
 import pytest
 
+from organization.tests.conftest import AGENT_USER_NAME
 from src.devops_integrations.repos.ado_repos_models import RepositoryModel, ProjectModel
 from src.devops_integrations.workitems.ado_workitem_models import WorkItemModel
+
+
+def pytest_configure():
+    from celery.fixups.django import DjangoWorkerFixup
+    DjangoWorkerFixup.install = lambda x: None
 
 
 @pytest.fixture(scope="function")
@@ -117,7 +123,7 @@ def mock_work_item():
         source_id=randint(1, 99999),
         title="Test Task",
         description="This is a test task",
-        assigned_to="William Sandvej Hansen",
+        assigned_to=AGENT_USER_NAME,
         state="New",
         type="User Story"
     )

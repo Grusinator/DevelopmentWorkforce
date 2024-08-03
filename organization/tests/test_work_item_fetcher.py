@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 from organization.services.fetch_new_tasks import TaskFetcherAndScheduler
 from src.devops_integrations.models import DevOpsSource
+from src.devops_integrations.pull_requests.pull_request_models import PullRequestModel, ReviewerModel
 
 
 class TestFetch:
@@ -14,7 +15,22 @@ class TestFetch:
             )
 
     def test_fetch_pull_requests_waiting_for_author(self, mock_agent, get_repository):
-        work_item_fetcher = TaskFetcherAndScheduler(mock_agent, get_repository, devops_source=DevOpsSource.ADO)
+        pull_request = PullRequestModel(
+            id=1,
+            title="test",
+            source_branch="feature",
+            target_branch="main",
+            status="active",
+            repository=get_repository,
+            reviewers=[ReviewerModel(
+                source_id="test",
+                display_name="",
+                vote=-5
+            )]
+        )
+
+        work_item_fetcher = TaskFetcherAndScheduler(mock_agent, get_repository, devops_source=DevOpsSource.MOCK)
+        work_item_fetcher.pull_requests_api.pull_requests[1] = pull_request
         pull_requests = work_item_fetcher.fetch_pull_requests_waiting_for_author(mock_agent, get_repository)
 
         assert isinstance(pull_requests, list)

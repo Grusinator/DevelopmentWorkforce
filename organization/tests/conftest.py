@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 import pytest
 from django.contrib.auth.models import User
 
-from organization.models import Agent, Repository as RepositoryDb, Project
+from organization.models import Agent, Repository as RepositoryDb, Project, AgentWorkSession, WorkItem
 from organization.schemas import AgentModel
 
 from organization.services.fetch_new_tasks import TaskFetcherAndScheduler
@@ -16,6 +16,8 @@ from tests.test_devops_integrations.conftest import auth
 from tests.test_devops_integrations.test_repos.conftest import *
 
 __all__ = ["auth", "get_repository"]
+
+AGENT_USER_NAME = os.getenv("AI_USER_NAME")
 
 
 @pytest.fixture
@@ -31,14 +33,12 @@ def project_in_db(db):
 
 @pytest.fixture
 def agent_in_db(db, user):
-    return Agent.objects.create(
-        user=user,
-        pat="test_pat",
-        status="idle",
-        organization_name="Test Org",
-        agent_user_name="test_user"
-    )
-
+    agent = Agent.objects.create(user=user, pat="test_pat", status="working", organization_name="Test Org",
+                                 agent_user_name=AGENT_USER_NAME)
+    work_session = AgentWorkSession.objects.create(agent=agent)
+    agent.active_work_session = work_session
+    agent.save()
+    return agent
 
 
 @pytest.fixture
@@ -60,6 +60,11 @@ def mock_work_item():
         assigned_to="test_user",
         type="US"
     )
+
+
+@pytest.fixture
+def work_item_in_db(mock_work_item):
+    return WorkItem(work_item_source_id=mock_work_item.source_id)
 
 
 @pytest.fixture

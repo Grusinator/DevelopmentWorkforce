@@ -43,7 +43,7 @@ class DevOpsFactory:
         else:
             raise ValueError(f"Unknown platform: {self.devops_source}")
 
-    def get_pullrequests_api(self) -> BasePullRequestsApi:
+    def get_pull_requests_api(self) -> BasePullRequestsApi:
         if self.devops_source == DevOpsSource.ADO:
             return ADOPullRequestsApi(self.auth)
         elif self.devops_source == DevOpsSource.GITHUB:

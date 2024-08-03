@@ -3,11 +3,10 @@ import os
 import pytest
 from azure.devops.exceptions import AzureDevOpsServiceError
 
+from organization.tests.conftest import AGENT_USER_NAME
 from src.devops_integrations.workitems.ado_workitem_models import CreateWorkItemInputModel, \
     UpdateWorkItemInputModel
 from src.devops_integrations.workitems.ado_workitems_api import ADOWorkitemsApi
-
-ASSIGNED_TO = "William Sandvej Hansen"
 
 
 @pytest.mark.integration
@@ -15,7 +14,7 @@ class TestADOWorkitemsApi:
 
     def test_create_work_item(self, ado_workitems_api: ADOWorkitemsApi):
         work_item_input = CreateWorkItemInputModel(title="Create Test", description="Test Description", type="Task",
-                                                   assigned_to=ASSIGNED_TO, state="New")
+                                                   assigned_to=AGENT_USER_NAME, state="New")
         work_item_id = ado_workitems_api.create_work_item(work_item_input)
         assert isinstance(work_item_id, int)
         ado_workitems_api.delete_work_item(work_item_id)
@@ -49,7 +48,7 @@ class TestADOWorkitemsApi:
         assert any(work_item.source_id == create_work_item for work_item in work_items)
 
     def test_list_work_items_assigned_to(self, ado_workitems_api: ADOWorkitemsApi, create_work_item):
-        work_items = ado_workitems_api.list_work_items(assigned_to=ASSIGNED_TO)
+        work_items = ado_workitems_api.list_work_items(assigned_to=AGENT_USER_NAME)
         assert any(work_item.source_id == create_work_item for work_item in work_items)
 
     def test_add_and_list_comments(self, ado_workitems_api, create_work_item):
