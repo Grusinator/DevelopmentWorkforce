@@ -80,6 +80,10 @@ class ADOPullRequestsApi(ADOConnection, BasePullRequestsApi):
     def abandon_pull_request(self, repo_name: str, pr_id: int) -> None:
         self.update_pull_request(repo_name, pr_id, status="abandoned")
 
+    def reset_pull_request_votes(self, repo_name, pr_id):
+        return
+        # self.update_pull_request(repo_name, pr_id, resetVotes=True)
+
     def add_pull_request_comment(self, repo_name: str, pr_id: int, content: str) -> int:
         repository_id = self.repo_api.get_repository_id(repo_name)
         comment = Comment(content=content)
@@ -118,7 +122,26 @@ class ADOPullRequestsApi(ADOConnection, BasePullRequestsApi):
         build = builds[0]
         return build.status
 
-    def create_comment(self, repo_name, pull_request_id: int, text: str) -> PullRequestCommentModel:
+    def create_comment(self, repo_name, pull_request_id: int, text: str, thread_id=None) -> PullRequestCommentModel:
+        # Fetch existing comments
+        existing_threads = self.client.get_threads(
+            repository_id=repo_name,
+            pull_request_id=pull_request_id,
+            project=self.auth.project_name
+        )
+        # Check if a thread with the given thread_id exists
+        if thread_id is not None:
+            for thread in existing_threads:
+                if thread.id == thread_id:
+                    # Add the comment to the existing thread
+                    new_comment = Comment(content=text)
+                    thread.comments.append(new_comment)
+                    updated_thread = self.client.update_thread(
+                        thread_id=thread.id, repository_id=repo_name, pull_request_id=pull_request_id,
+                                                               project=self.auth.project_name)
+                    return self._to_pr_comment(new_comment)
+
+        # If no such comment exists, create a new comment
         new_comment = Comment(content=text)
         comment_thread = GitPullRequestCommentThread(comments=[new_comment])
         created_thread = self.client.create_thread(

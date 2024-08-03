@@ -1,8 +1,11 @@
+import io
 from unittest.mock import MagicMock
 
 import pytest
 
-from src.local_development_session import LocalDevelopmentSession
+from src.devops_integrations.pull_requests.pull_request_models import PullRequestCommentThreadModel, \
+    PullRequestCommentModel
+from src.local_development_session import LocalDevelopmentSession, TaskExtraInfo
 from src.util_tools.map_dir import DirectoryStructure
 from tests.conftest import run_pytest_in_workspace, SimpleWorkItemModel
 
@@ -22,3 +25,22 @@ class TestLocalDevelopmentSession:
         run_pytest_in_workspace(workspace_dir_dummy_repo)
         struct = DirectoryStructure(workspace_dir_dummy_repo).get_formatted_directory_structure()
         print(struct)
+
+    def test_build_task_context(self, workspace_dir_dummy_repo, mock_work_item, file_regression):
+        extra_info = TaskExtraInfo(
+            pr_comments=[
+                PullRequestCommentThreadModel(
+                    id=1,
+                    comments=[
+                        PullRequestCommentModel(
+                            id=1,
+                            created_by="test_user",
+                            created_date="2021-10-10",
+                            text="This is a comment"
+                        )
+                    ]
+                )
+            ]
+        )
+        session = LocalDevelopmentSession()
+        context = session.prepare_task_context(mock_work_item, workspace_dir_dummy_repo, extra_info)

@@ -21,7 +21,7 @@ class TaskFetcherAndScheduler:
         new_tasks = self.workitems_api.list_work_items(assigned_to=agent.agent_user_name, state="New")
         for task in new_tasks:
             logger.debug(f"task started: {task}")
-            app.send_task('organization.tasks.execute_task_workitem',
+            app.send_task('execute_task_workitem',
                           args=[agent.model_dump(), repo.model_dump(), task.model_dump()])
         if new_tasks:
             tasks_joined = '\n * '.join([tsk.title for tsk in new_tasks])
@@ -34,7 +34,7 @@ class TaskFetcherAndScheduler:
         waiting_for_author_prs = [pr for pr in pull_requests if any(reviewer.vote == -5 for reviewer in pr.reviewers)]
 
         for pr in waiting_for_author_prs:
-            app.send_task("organization.tasks.execute_task_pr_feedback",
+            app.send_task("execute_task_pr_feedback",
                           args=[agent.model_dump(), repo.model_dump(), pr.model_dump()])
         if waiting_for_author_prs:
             joined_prs = '\n * '.join([_pr.title for _pr in waiting_for_author_prs])

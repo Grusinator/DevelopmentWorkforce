@@ -1,10 +1,14 @@
 from pathlib import Path
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from organization.models import Repository
+from organization.schemas import AgentModel
+from organization.services.task_updater_hook import TaskUpdater
+from organization.tests.conftest import agent_in_db, user_in_db
 from src.devops_integrations.models import DevOpsSource
+from src.devops_integrations.pull_requests.pull_request_models import PullRequestModel
 from src.devops_integrations.repos.mock_repos_api import MockReposApi
 from src.devops_integrations.workitems.ado_workitem_models import WorkItemModel, CreateWorkItemInputModel
 from src.devops_integrations.workitems.mock_workitems_api import MockWorkitemsApi
@@ -12,7 +16,9 @@ from src.local_development_session import LocalDevelopmentResult
 from src.task_automation import TaskAutomation
 from src.util_tools.map_dir import DirectoryStructure
 from tests.conftest import run_pytest_in_workspace, mock_work_item, mock_repository
-from organization.tests.conftest import mock_agent
+from organization.tests.conftest import *
+
+from tests.test_devops_integrations.test_work_items.conftest import create_work_item
 
 
 class MockDevSession:
@@ -20,7 +26,7 @@ class MockDevSession:
     def __init__(self, repo_dir):
         self.repo_dir = Path(repo_dir)
 
-    def local_development_on_workitem(self, work_item: WorkItemModel, repo: Repository):
+    def local_development_on_workitem(self, work_item: WorkItemModel, repo: Repository, task_extra_info=None):
         dummy_file_path = self.repo_dir / "dummy_file.txt"
         with dummy_file_path.open("w") as dummy_file:
             fil_content = f"This is a dummy file created by the mocked AI runner:  \n{work_item.description} \n\n"
@@ -50,3 +56,14 @@ class TestTaskAutomation:
         run_pytest_in_workspace(workspace_dir_dummy_repo)
         struct = DirectoryStructure(workspace_dir_dummy_repo).get_formatted_directory_structure()
         print(struct)
+
+    @pytest.mark.integration
+    def test_update_pr_from_feedback(self, agent_in_db, get_repository, create_pull_request, create_work_item,
+                                     ado_pull_requests_api, workspace_dir):
+        ado_pull_requests_api.add_pull_request_comment(create_pull_request.repository.name, create_pull_request.id,
+                                                       "This is a feedback comment.")
+        agent_model = AgentModel.model_validate(agent_in_db)
+        task_automation = TaskAutomation(repo=get_repository, agent=agent_model, task_updater=TaskUpdater(agent_in_db),
+                                         devops_source=DevOpsSource.ADO)
+        task_automation.dev_session = MockDevSession(repo_dir=workspace_dir)
+        task_automation.update_pr_from_feedback(create_pull_request, create_work_item)

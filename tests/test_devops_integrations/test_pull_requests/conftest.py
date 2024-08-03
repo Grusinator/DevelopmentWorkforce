@@ -26,7 +26,7 @@ def mock_create_pull_request():
 @pytest.fixture
 def create_pull_request(ado_pull_requests_api, mock_create_pull_request, get_repository):
     pr_id = ado_pull_requests_api.create_pull_request(get_repository.name, mock_create_pull_request)
-    yield pr_id
+    yield ado_pull_requests_api.get_pull_request(get_repository.source_id, pr_id)
     if ado_pull_requests_api.get_pull_request(get_repository.source_id, pr_id).status != "abandoned":
         try:
             ado_pull_requests_api.abandon_pull_request(get_repository.name, pr_id)

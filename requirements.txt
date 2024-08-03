@@ -16,6 +16,9 @@ pytest
 pytest-coverage
 pytest-dotenv
 pytest-json-report
+# pytest-celery
+pytest-django
+pytest-regressions
 
 
 Django>=5.0
@@ -27,7 +30,7 @@ python-dotenv
 invoke
 django-ninja
 django-allauth
-pytest-django
+
 django-crispy-forms
 crispy-bootstrap4
 django_extensions

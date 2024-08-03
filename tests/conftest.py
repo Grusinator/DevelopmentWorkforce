@@ -11,8 +11,21 @@ from random import randint
 import pytest
 
 from organization.tests.conftest import AGENT_USER_NAME
+from organization.tests.conftest import *
+
 from src.devops_integrations.repos.ado_repos_models import RepositoryModel, ProjectModel
 from src.devops_integrations.workitems.ado_workitem_models import WorkItemModel
+
+from tests.test_devops_integrations.test_pull_requests.conftest import create_pull_request, ado_pull_requests_api
+from tests.test_devops_integrations.test_repos.conftest import ado_repos_api
+
+pytest_plugins = [
+    "organization.tests.conftest",
+    "tests.test_devops_integrations.conftest",
+    "tests.test_devops_integrations.test_repos.conftest",
+    "tests.test_devops_integrations.test_work_items.conftest",
+    "tests.test_devops_integrations.test_pull_requests.conftest"
+]
 
 
 def pytest_configure():

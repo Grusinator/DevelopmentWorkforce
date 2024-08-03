@@ -13,7 +13,7 @@ from src.devops_integrations.pull_requests.pull_request_models import CreatePull
 from src.devops_integrations.repos.ado_repos_models import RepositoryModel
 from src.devops_integrations.workitems.ado_workitem_models import WorkItemModel, UpdateWorkItemInputModel
 from src.git_manager import GitManager
-from src.local_development_session import LocalDevelopmentSession
+from src.local_development_session import LocalDevelopmentSession, TaskExtraInfo
 
 
 class TaskAutomation:
@@ -50,16 +50,24 @@ class TaskAutomation:
     def update_pr_from_feedback(self, pull_request: PullRequestModel, work_item: WorkItemModel):
         agent_task = self.task_updater.start_agent_task(work_item_id=work_item.source_id,
                                                         pull_request_id=pull_request.id, status='in_progress')
-        comments = self.pull_requests_api.get_pull_request_comments(pull_request.repository.name, pull_request.id)
+        comment_threads = self.pull_requests_api.get_pull_request_comments(pull_request.repository.name,
+                                                                           pull_request.id)
         repo_dir, branch_name = self._setup_development_env(work_item, pull_request.repository)
-        result = self.dev_session.local_development_on_workitem(work_item, repo_dir, comments)
+        extra_info = TaskExtraInfo(pr_comments=comment_threads)
+        result = self.dev_session.local_development_on_workitem(work_item, repo_dir, extra_info)
         if result.succeeded:
             self.git_manager.push_changes(repo_dir, branch_name, work_item.title)
-            self.pull_requests_api.reset_pull_request_votes(pull_request.id)
+            self.pull_requests_api.reset_pull_request_votes(branch_name, pull_request.id)
+            self.reply_to_comments(comment_threads, pull_request)
             self.task_updater.end_agent_task(agent_task, status='completed', token_usage=result.token_usage)
         else:
             self._reply_back_failed_response(work_item)
             self.task_updater.end_agent_task(agent_task, status='failed', token_usage=result.token_usage)
+
+    def reply_to_comments(self, comment_threads, pull_request):
+        for thread in comment_threads:
+            self.pull_requests_api.create_comment(pull_request.repository.source_id, pull_request.id, "Task completed.",
+                                                  thread_id=thread.id)
 
     def _reply_back_failed_response(self, work_item):
         self.workitems_api.create_comment(work_item.source_id, "Task could not be completed.")

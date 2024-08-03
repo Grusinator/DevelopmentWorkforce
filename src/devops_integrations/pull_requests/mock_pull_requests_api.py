@@ -58,7 +58,7 @@ class MockPullRequestsApi(BasePullRequestsApi):
     def get_build_status(self, pr_id: int) -> str:
         return "success"
 
-    def create_comment(self, repo_name: str, pull_request_id: int, text: str) -> PullRequestCommentModel:
+    def create_comment(self, repo_name: str, pull_request_id: int, text: str, thread_id=None) -> PullRequestCommentModel:
         comment_id = self.next_comment_id
         self.next_comment_id += 1
         comment = PullRequestCommentModel(id=comment_id, content=text)

@@ -16,9 +16,11 @@ def create_work_item(ado_workitems_api: ADOWorkitemsApi):
     work_item_input = CreateWorkItemInputModel(title="Test Work Item", description="This is a test work item",
                                                type="Task", assigned_to=AGENT_USER_NAME, state="New")
     work_item_id = ado_workitems_api.create_work_item(work_item_input)
-    yield work_item_id
+    yield ado_workitems_api.get_work_item(work_item_id)
     try:
         ado_workitems_api.delete_work_item(work_item_id)
     except AzureDevOpsServiceError as e:
         if "does not exist" not in str(e):
             raise e
+
+

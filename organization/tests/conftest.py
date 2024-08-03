@@ -19,9 +19,15 @@ __all__ = ["auth", "get_repository"]
 
 AGENT_USER_NAME = os.getenv("AI_USER_NAME")
 
+pytest_plugins = [
+    "tests.test_devops_integrations.conftest",
+    "tests.test_devops_integrations.test_repos.conftest",
+    "tests.test_devops_integrations.test_work_items.conftest",
+]
+
 
 @pytest.fixture
-def user(db):
+def user_in_db(db):
     return User.objects.create(username="test_user", email="test@example.com", password="password")
 
 
@@ -32,8 +38,9 @@ def project_in_db(db):
 
 
 @pytest.fixture
-def agent_in_db(db, user):
-    agent = Agent.objects.create(user=user, pat="test_pat", status="working", organization_name="Test Org",
+def agent_in_db(db, user_in_db):
+    agent = Agent.objects.create(user=user_in_db, pat=os.getenv("ADO_PERSONAL_ACCESS_TOKEN"), status="working",
+                                 organization_name=os.getenv("ADO_ORGANIZATION_NAME"),
                                  agent_user_name=AGENT_USER_NAME)
     work_session = AgentWorkSession.objects.create(agent=agent)
     agent.active_work_session = work_session
