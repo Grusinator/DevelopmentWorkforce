@@ -2,7 +2,9 @@ import textwrap
 from pathlib import Path
 
 from crewai import Task, Crew, Process
+from loguru import logger
 
+from src.crew.models import TaskResult, LocalDevelopmentResult
 from src.devops_integrations.pull_requests.pull_request_models import PullRequestCommentModel, \
     PullRequestCommentThreadModel
 from src.devops_integrations.workitems.ado_workitem_models import WorkItemModel
@@ -19,6 +21,7 @@ class CrewTaskRunner:
         self.agents = []
         self.tasks = []
         self.crew = None
+        self.result: LocalDevelopmentResult = LocalDevelopmentResult(succeeded=False)
 
     def add_developer_agent(self):
         self.default_agent = self.agency.create_developer()
@@ -45,6 +48,8 @@ class CrewTaskRunner:
             expected_output='if succeeded return "SUCCEEDED" otherwise return "FAILED"'
         )
         self.tasks.append(task)
+        task_result = TaskResult(task_id=str(task.id), work_item_id=work_item.source_id)
+        self.result.task_results.append(task_result)
 
     def add_task_handle_comment_thread(self, comment_thread: PullRequestCommentThreadModel, work_item: WorkItemModel):
         comment_thread_formatted = comment_thread.pretty_format()
@@ -68,6 +73,8 @@ class CrewTaskRunner:
             expected_output='a response to the comment thread'
         )
         self.tasks.append(task)
+        task_result = TaskResult(task_id=str(task.id), comment_thread_id=comment_thread.id, work_item_id=work_item.source_id)
+        self.result.task_results.append(task_result)
 
     def add_test_task(self, work_item: WorkItemModel):
         test = Task(
@@ -84,7 +91,7 @@ class CrewTaskRunner:
         )
         self.tasks.append(test)
 
-    def run(self):
+    def run(self) -> LocalDevelopmentResult:
         self.crew = Crew(
             agents=self.agents,
             tasks=self.tasks,
@@ -95,4 +102,21 @@ class CrewTaskRunner:
             # function_calling_llm=CrewAiModels.ollama_instruct
 
         )
-        return self.crew.kickoff()
+        result = self.crew.kickoff()
+        self.result.succeeded = result == "SUCCEEDED"
+        return self.update_task_results()
+
+    def update_task_results(self) -> LocalDevelopmentResult:
+        for task in self.crew.tasks:
+            try:
+                matching_task = [task_result for task_result in self.result.task_results if task_result == task.id][0]
+            except IndexError:
+                matching_task = None
+                logger.error(f"Task {task.id} not found in task results")
+            if matching_task:
+                matching_task.output.result = task.output.result
+            else:
+                task_result = TaskResult(task_id=str(task.id), output=task.output.result)
+                self.result.task_results.append(task_result)
+
+        return self.result

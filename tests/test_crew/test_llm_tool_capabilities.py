@@ -108,7 +108,7 @@ def test_run_tool(instantiate_llm, tool_test_task, agent_tester):
     result = crew.kickoff()
     assert result == "TOOL WORKS"
 
-@pytest.mark.skip("not usefull yet")
+# @pytest.mark.skip("not usefull yet")
 @pytest.mark.requires_llm
 @pytest.mark.parametrize("instantiate_llm", ["chatgpt", ], indirect=True)
 @pytest.mark.parametrize("instruction", [
@@ -132,3 +132,6 @@ def test_run_instruction(instruction, agent_tester, instantiate_llm):
     )
     result = crew.kickoff()
     assert result == "OBJECTIVE COMPLETED"
+
+
+crew.tasks[0].output.result

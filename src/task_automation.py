@@ -6,6 +6,7 @@ from pathlib import Path
 from loguru import logger
 from organization.schemas import AgentModel
 from src.base_task_updater import TaskUpdaterBase
+from src.crew.models import TaskResult, LocalDevelopmentResult
 from src.devops_integrations.devops_factory import DevOpsFactory
 from src.devops_integrations.models import ProjectAuthenticationModel, DevOpsSource
 from src.devops_integrations.pull_requests.pull_request_models import CreatePullRequestInputModel, PullRequestModel
@@ -61,16 +62,19 @@ class TaskAutomation:
             self.git_manager.push_changes(repo_dir, branch_name, work_item.title)
             self.pull_requests_api.reset_pull_request_votes(branch_name, pull_request.id)
 
-            self.reply_to_comments(comment_threads, pull_request)
+            self.reply_to_comments(comment_threads, pull_request, result)
             # self.task_updater.end_agent_task(agent_task, status='completed', token_usage=result.token_usage)
         else:
             self._reply_back_failed_response(work_item)
             # self.task_updater.end_agent_task(agent_task, status='failed', token_usage=result.token_usage)
         logger.debug("completed develop pr flow")
 
-    def reply_to_comments(self, comment_threads, pull_request):
+    def reply_to_comments(self, comment_threads, pull_request, result: LocalDevelopmentResult):
         for thread in comment_threads:
-            self.pull_requests_api.create_comment(pull_request.repository.source_id, pull_request.id, "Task completed.",
+            task_result = [task_result for task_result in result.task_results if task_result.thread_id == thread.id][0]
+            logger.debug(f"task_result: {task_result}")
+            self.pull_requests_api.create_comment(pull_request.repository.source_id, pull_request.id,
+                                                  task_result.output,
                                                   thread_id=thread.id)
 
     def _reply_back_failed_response(self, work_item):

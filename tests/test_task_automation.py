@@ -8,7 +8,7 @@ from organization.schemas import AgentModel
 from organization.services.task_updater_hook import TaskUpdater
 from src.devops_integrations.models import DevOpsSource
 from src.devops_integrations.workitems.ado_workitem_models import WorkItemModel
-from src.local_development_session import LocalDevelopmentResult
+from src.crew.models import LocalDevelopmentResult
 from src.task_automation import TaskAutomation
 from src.util_tools.map_dir import DirectoryStructure
 from tests.run_pytest_in_workspace import run_pytest_in_workspace
