@@ -23,6 +23,7 @@ class PullRequestModel(BaseModel):
     id: int
     title: str
     description: Optional[str] = None
+    created_by_name: str
     source_branch: str
     target_branch: str
     status: str

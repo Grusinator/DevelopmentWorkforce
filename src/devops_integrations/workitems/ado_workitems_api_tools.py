@@ -38,7 +38,7 @@ class CreateWorkItemTool(AdoWorkitemToolBase):
         try:
             input_model = CreateWorkItemInputModel(**kwargs)
             created_id = self._ado_workitems_api.create_work_item(input_model)
-            return {"source_id": created_id}
+            return {"source_id": created_id.source_id}
         except Exception as e:
             logger.error(f"Error creating work item: {e}")
             return {"error": str(e)}

@@ -9,11 +9,11 @@ class MockWorkitemsApi(BaseWorkitemsApi):
     def __init__(self, work_items=None):
         self.work_items = work_items or []
 
-    def create_work_item(self, work_item: CreateWorkItemInputModel) -> int:
+    def create_work_item(self, work_item: CreateWorkItemInputModel) -> WorkItemModel:
         next_id = max([work_item.source_id for work_item in self.work_items], default=0) + 1
         work_item_w_new_id = WorkItemModel(source_id=next_id, **work_item.model_dump())
         self.work_items.append(work_item_w_new_id)
-        return work_item_w_new_id.source_id
+        return work_item_w_new_id
 
     def get_work_item(self, work_item_id: int) -> WorkItemModel:
         for work_item in self.work_items:

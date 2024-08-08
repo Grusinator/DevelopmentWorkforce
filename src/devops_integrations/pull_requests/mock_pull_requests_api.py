@@ -1,3 +1,4 @@
+import os
 from typing import List, Dict
 from src.devops_integrations.pull_requests.base_pull_requests_api import BasePullRequestsApi
 from src.devops_integrations.pull_requests.pull_request_models import CreatePullRequestInputModel, PullRequestModel, \
@@ -21,6 +22,7 @@ class MockPullRequestsApi(BasePullRequestsApi):
             id=pr_id,
             repository=repository,
             status="open",
+            created_by_name=os.getenv("AI_USER_NAME"),
             **pr_input.model_dump()
         )
         self.pull_requests[pr_id] = pull_request
@@ -40,7 +42,7 @@ class MockPullRequestsApi(BasePullRequestsApi):
         if pr_id in self.pull_requests:
             self.pull_requests[pr_id].status = "abandoned"
 
-    def add_pull_request_comment(self, repo_name: str, pr_id: int, content: str) -> int:
+    def create_comment(self, repo_name: str, pr_id: int, content: str) -> int:
         comment_id = self.next_comment_id
         self.next_comment_id += 1
         comment = PullRequestCommentModel(id=comment_id, content=content)

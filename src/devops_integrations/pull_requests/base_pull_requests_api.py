@@ -25,9 +25,6 @@ class BasePullRequestsApi(ABC):
     def abandon_pull_request(self, repo_name: str, pr_id: int) -> None:
         pass
 
-    @abstractmethod
-    def add_pull_request_comment(self, repo_name: str, pr_id: int, content: str) -> int:
-        pass
 
     @abstractmethod
     def get_pull_request_comments(self, repo_name: str, pull_request_id: int) -> List[PullRequestCommentThreadModel]:

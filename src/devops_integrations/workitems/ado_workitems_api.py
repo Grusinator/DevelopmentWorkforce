@@ -3,6 +3,7 @@ from typing import List
 from azure.devops.v7_1.work_item_tracking.models import JsonPatchOperation, WorkItemComment, CommentCreate
 from dotenv import load_dotenv
 
+
 from src.devops_integrations.ado_connection import ADOConnection
 from src.devops_integrations.models import ProjectAuthenticationModel
 from src.devops_integrations.workitems.ado_workitem_models import CreateWorkItemInputModel, WorkItemModel, UpdateWorkItemInputModel, \
@@ -18,7 +19,7 @@ class ADOWorkitemsApi(ADOConnection, BaseWorkitemsApi):
     def __init__(self, auth: ProjectAuthenticationModel):
         super().__init__(auth)
 
-    def create_work_item(self, work_item: CreateWorkItemInputModel) -> int:
+    def create_work_item(self, work_item: CreateWorkItemInputModel) -> WorkItemModel:
         document = [
             JsonPatchOperation(op='add', path='/fields/System.Title', value=work_item.title),
             JsonPatchOperation(op='add', path='/fields/System.Description', value=work_item.description),
@@ -26,7 +27,7 @@ class ADOWorkitemsApi(ADOConnection, BaseWorkitemsApi):
             JsonPatchOperation(op='add', path='/fields/System.AssignedTo', value=work_item.assigned_to),
         ]
         created_work_item = self.wo_client.create_work_item(document, self.auth.project_name, work_item.type)
-        return created_work_item.id
+        return self.to_work_item(created_work_item)
 
     def get_work_item(self, work_item_id: int) -> WorkItemModel:
         work_item = self.wo_client.get_work_item(work_item_id)

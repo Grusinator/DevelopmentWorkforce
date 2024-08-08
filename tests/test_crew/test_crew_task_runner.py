@@ -2,21 +2,8 @@
 import pytest
 
 from src.crew.crew_task_runner import CrewTaskRunner
-from tests.conftest import SimpleWorkItemModel, run_pytest_in_workspace
+from tests.run_pytest_in_workspace import run_pytest_in_workspace
 
-
-@pytest.mark.skip("not usefull yet")
-@pytest.mark.requires_llm
-def test_default_developer_task_runner(workspace_dir, dummy_work_items):
-    runner = CrewTaskRunner(workspace_dir)
-    runner.add_developer_agent()
-
-    for work_item in dummy_work_items:
-        runner.add_task_from_work_item(work_item)
-        runner.add_test_task(work_item)
-
-    result = runner.run()
-    assert result is not None
 
 @pytest.mark.requires_llm
 @pytest.mark.parametrize("work_item_description", [
@@ -26,11 +13,11 @@ def test_default_developer_task_runner(workspace_dir, dummy_work_items):
     # "As a user, I want a Python function that checks if a given string is a palindrome so that I can identify symmetrical words or phrases.",
     # "As a user, I want a Python function that generates the Fibonacci sequence up to a given number of terms so that I can use it for mathematical modeling."
 ])
-def test_parameterized_developer_task_runner(workspace_dir, work_item_description):
+def test_parameterized_developer_task_runner(workspace_dir, work_item_description, work_item_model):
     runner = CrewTaskRunner(workspace_dir)
     runner.add_developer_agent()
-    work_item = SimpleWorkItemModel(description=work_item_description)
-    runner.add_task_from_work_item(work_item)
+    work_item_model.description = work_item_description
+    runner.add_task_from_work_item(work_item_model)
 
     result = runner.run()
 

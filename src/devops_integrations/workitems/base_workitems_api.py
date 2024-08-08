@@ -6,7 +6,7 @@ from src.devops_integrations.workitems.ado_workitem_models import CreateWorkItem
 
 class BaseWorkitemsApi(ABC):
     @abstractmethod
-    def create_work_item(self, work_item: CreateWorkItemInputModel) -> int:
+    def create_work_item(self, work_item: CreateWorkItemInputModel) -> WorkItemModel:
         pass
 
     @abstractmethod

@@ -1,24 +1,23 @@
 from unittest.mock import patch
 
-from organization.services.fetch_new_tasks import TaskFetcherAndScheduler
-from src.devops_integrations.models import DevOpsSource
 from src.devops_integrations.pull_requests.pull_request_models import PullRequestModel, ReviewerModel
 
 
 class TestFetch:
-    def test_fetch_new_workitems(self, work_item_fetcher, mock_agent, get_repository, mock_work_item):
-        with patch('organization.services.fetch_new_tasks.app.send_task') as mock_send_task:
-            work_item_fetcher.fetch_new_workitems(mock_agent, get_repository)
-            mock_send_task.assert_called_once_with(
-                'organization.tasks.execute_task_workitem',
-                args=[mock_agent.model_dump(), get_repository.model_dump(), mock_work_item.model_dump()]
-            )
+    @patch('organization.services.fetch_new_tasks.app.send_task')
+    def test_fetch_new_workitems(self, mock_send_task, work_item_fetcher, agent_model, get_repository, work_item_model):
+        work_item_fetcher.fetch_new_workitems(agent_model, get_repository)
+        args = [agent_model.model_dump(), get_repository.model_dump(), work_item_model.model_dump()]
+        mock_send_task.assert_called_once_with('execute_task_workitem', args=args)
 
-    def test_fetch_pull_requests_waiting_for_author(self, mock_agent, get_repository):
+    @patch('organization.services.fetch_new_tasks.app.send_task')
+    def test_fetch_pull_requests_waiting_for_author(self, mock_send_task, agent_model, get_repository,
+                                                    work_item_fetcher):
         pull_request = PullRequestModel(
             id=1,
             title="test",
             source_branch="feature",
+            created_by_name=agent_model.agent_user_name,
             target_branch="main",
             status="active",
             repository=get_repository,
@@ -29,12 +28,12 @@ class TestFetch:
             )]
         )
 
-        work_item_fetcher = TaskFetcherAndScheduler(mock_agent, get_repository, devops_source=DevOpsSource.MOCK)
         work_item_fetcher.pull_requests_api.pull_requests[1] = pull_request
-        pull_requests = work_item_fetcher.fetch_pull_requests_waiting_for_author(mock_agent, get_repository)
-
+        pull_requests = work_item_fetcher.fetch_pull_requests_waiting_for_author(agent_model, get_repository)
+        args = [agent_model.model_dump(), get_repository.model_dump(), pull_request.model_dump()]
+        mock_send_task.assert_called_once_with('execute_task_pr_feedback', args=args)
         assert isinstance(pull_requests, list)
         for pr in pull_requests:
-            assert pr.status == "Waiting for Author"
-            assert pr.repository_id == get_repository.source_id
-            assert pr.created_by == mock_agent.agent_user_name
+            assert pr.status == "active"
+            assert pr.repository.source_id == get_repository.source_id
+            assert pr.created_by_name == agent_model.agent_user_name

@@ -17,11 +17,11 @@ class TestCeleryTasks:
         fetch_new_tasks_periodically(mock=True)
 
     @patch('organization.tasks.TaskAutomation', autospec=True)
-    def test_execute_task(self, mock_task_automation, agent_in_db, repo_in_db, mock_work_item):
+    def test_execute_task(self, mock_task_automation, agent_in_db, repo_in_db, work_item_model):
         mock_task_automation_instance = mock_task_automation.return_value
         agent = AgentModel.model_validate(agent_in_db).model_dump()
         repo = RepositoryModel.model_validate(repo_in_db).model_dump()
-        work_item = mock_work_item.model_dump()
+        work_item = work_item_model.model_dump()
         execute_task_workitem(agent, repo, work_item, mock=True)
         mock_task_automation.assert_called_once()
         mock_task_automation_instance.develop_on_task.assert_called_once()
@@ -29,10 +29,10 @@ class TestCeleryTasks:
     @pytest.mark.skip(
         "implement this to test the issue, celery_worker fixture removed due to: (unicode error) 'unicodeescape' cod")
     @pytest.mark.django_db
-    def test_execute_task_workitem(self, agent_in_db, repository, mock_work_item):
+    def test_execute_task_workitem(self, agent_in_db, repository, work_item_model):
         agent_md = AgentModel.model_validate(agent_in_db)
         repo_md = RepositoryModel.model_validate(repository)
-        work_item_md = mock_work_item
+        work_item_md = work_item_model
 
         for conn in connections.all():
             conn.close()
