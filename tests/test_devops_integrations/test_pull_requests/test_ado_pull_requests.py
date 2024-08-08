@@ -82,15 +82,14 @@ class TestADOPullRequestsApi:
                                             get_repository):
         pr_id = create_pull_request.id
         initial_comment_text = "This is the initial comment."
-        initial_comment = ado_pull_requests_api.create_comment(get_repository.name, pr_id,
-                                                                         initial_comment_text)
+        initial_comment = ado_pull_requests_api.create_comment(get_repository.source_id, pr_id, initial_comment_text)
 
         comment_threads = ado_pull_requests_api.get_pull_request_comments(get_repository.name, pr_id)
         assert len(comment_threads) == 1
         thread_id = comment_threads[0].id
 
         new_comment_text = "This is a new comment in the existing thread."
-        new_comment = ado_pull_requests_api.create_comment(get_repository.name, pr_id, new_comment_text,
+        new_comment = ado_pull_requests_api.create_comment(get_repository.source_id, pr_id, new_comment_text,
                                                            thread_id=thread_id)
 
         updated_comment_threads = ado_pull_requests_api.get_pull_request_comments(get_repository.name, pr_id)

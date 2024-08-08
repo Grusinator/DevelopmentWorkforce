@@ -117,35 +117,27 @@ class ADOPullRequestsApi(ADOConnection, BasePullRequestsApi):
         return build.status
 
     def create_comment(self, repo_name, pull_request_id: int, text: str, thread_id=None) -> PullRequestCommentModel:
-        # Fetch existing comments
-        existing_threads = self.client.get_threads(
+        new_comment = Comment(content=text)
+        thread = self.client.get_pull_request_thread(
             repository_id=repo_name,
             pull_request_id=pull_request_id,
-            project=self.auth.project_name
+            project=self.auth.project_name,
+            thread_id=thread_id
         )
-        # Check if a thread with the given thread_id exists
-        if thread_id is not None:
-            for thread in existing_threads:
-                if thread.id == thread_id:
-                    # Add the comment to the existing thread
-                    new_comment = Comment(content=text)
-                    thread.comments.append(new_comment)
-                    updated_thread = self.client.update_thread(
-                        thread_id=thread.id, repository_id=repo_name, pull_request_id=pull_request_id,
-                        project=self.auth.project_name, comment_thread=thread)
-                    return self._to_pr_comment(new_comment)
+        if thread.id is None:
+            comment_thread = GitPullRequestCommentThread(comments=[new_comment])
+            thread = self.client.create_thread(
+                comment_thread,
+                repo_name,
+                pull_request_id,
+                project=self.auth.project_name
+            )
+            thread_id = thread.id
 
-        # If no such comment exists, create a new comment
-        new_comment = Comment(content=text)
-        comment_thread = GitPullRequestCommentThread(comments=[new_comment])
-        created_thread = self.client.create_thread(
-            comment_thread,
-            repo_name,
-            pull_request_id,
-            project=self.auth.project_name
-        )
-        created_comment = created_thread.comments[0]
-        return self._to_pr_comment(created_comment)
+        new_comment = self.client.create_comment(new_comment, repo_name, pull_request_id, thread_id,
+                                                 project=self.auth.project_name)
+        return self._to_pr_comment(new_comment)
+
 
     def _to_pr_comment(self, comment: Comment) -> PullRequestCommentModel:
         return PullRequestCommentModel(
