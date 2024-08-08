@@ -3,6 +3,8 @@ from pathlib import Path
 
 from crewai import Task, Crew, Process
 
+from src.devops_integrations.pull_requests.pull_request_models import PullRequestCommentModel, \
+    PullRequestCommentThreadModel
 from src.devops_integrations.workitems.ado_workitem_models import WorkItemModel
 from src.crew.crew_ai_agents import CrewAiAgents
 from src.crew.crew_ai_models import CrewAiModels
@@ -36,13 +38,34 @@ class CrewTaskRunner:
 
         {work_item.description}
 
-        {extra_info}
-
         """
         task = Task(
             description=textwrap.dedent(description).lstrip(),
             agent=self.default_agent,
             expected_output='if succeeded return "SUCCEEDED" otherwise return "FAILED"'
+        )
+        self.tasks.append(task)
+
+    def add_task_handle_comment_thread(self, comment_thread: PullRequestCommentThreadModel, work_item: WorkItemModel):
+        comment_thread_formatted = comment_thread.pretty_format()
+        description = f"""
+                Your main objective is to return a reply to the given comment thread:
+                
+                {comment_thread_formatted}
+
+                the comment is related to this user story, just for context. 
+                do not try to solve the US unless related to the latest comment:
+                
+                {work_item.title}
+
+                {work_item.description}
+                reply as if you were to respond to the comment after trying to solve it. 
+                Feel free write files if needed.
+                """
+        task = Task(
+            description=textwrap.dedent(description).lstrip(),
+            agent=self.default_agent,
+            expected_output='a response to the comment thread'
         )
         self.tasks.append(task)
 

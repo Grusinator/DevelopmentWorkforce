@@ -51,12 +51,13 @@ class TestTaskAutomation:
         print(struct)
 
     @pytest.mark.integration
-    def test_update_pr_from_feedback(self, agent_in_db, get_repository, create_pull_request, create_work_item,
+    def test_update_pr_from_feedback(self, db, agent_in_db, get_repository, create_pull_request, create_work_item,
                                      ado_pull_requests_api, workspace_dir):
-        ado_pull_requests_api.create_comment(create_pull_request.repository.name, create_pull_request.id,
-                                                       "This is a feedback comment.")
+        comment_text = "This is a test feedback comment, i say ping, you say pong. PING!"
+        repository_name = create_pull_request.repository.name
+        ado_pull_requests_api.create_comment(repository_name, create_pull_request.id, comment_text)
         agent_model = AgentModel.model_validate(agent_in_db)
         task_automation = TaskAutomation(repo=get_repository, agent=agent_model, task_updater=TaskUpdater(agent_in_db),
                                          devops_source=DevOpsSource.ADO)
-        task_automation.dev_session = MockDevSession(repo_dir=workspace_dir)
+        # task_automation.dev_session = MockDevSession(repo_dir=workspace_dir)
         task_automation.update_pr_from_feedback(create_pull_request, create_work_item)

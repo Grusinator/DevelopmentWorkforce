@@ -37,6 +37,7 @@ class LocalDevelopmentSession:
         task_context = self.prepare_task_context(work_item, repo_dir, task_extra_info)
         crew_runner = CrewTaskRunner(repo_dir)
         crew_runner.add_developer_agent()
+        [crew_runner.add_task_handle_comment_thread(thread, work_item) for thread in task_extra_info.pr_comments or []]
         crew_runner.add_task_from_work_item(work_item, extra_info=task_context)
         return crew_runner.run()
 

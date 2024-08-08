@@ -48,15 +48,15 @@ def ado_pull_requests_api(auth_model: ProjectAuthenticationModel) -> ADOPullRequ
 
 
 @pytest.fixture
-def mock_create_pull_request():
+def create_pull_request_input_model():
     return CreatePullRequestInputModel(title="Test Pull Request", description="This is a test pull request",
                                        source_branch="feature-branch",
                                        target_branch="main")
 
 
 @pytest.fixture
-def create_pull_request(ado_pull_requests_api, mock_create_pull_request, get_repository):
-    pr = ado_pull_requests_api.create_pull_request(get_repository.name, mock_create_pull_request)
+def create_pull_request(ado_pull_requests_api, create_pull_request_input_model, get_repository):
+    pr = ado_pull_requests_api.create_pull_request(get_repository.name, create_pull_request_input_model)
     yield pr
     if ado_pull_requests_api.get_pull_request(get_repository.source_id, pr.id).status != "abandoned":
         try:

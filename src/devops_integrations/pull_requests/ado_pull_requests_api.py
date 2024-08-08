@@ -132,12 +132,11 @@ class ADOPullRequestsApi(ADOConnection, BasePullRequestsApi):
                 pull_request_id,
                 project=self.auth.project_name
             )
-            thread_id = thread.id
-
-        new_comment = self.client.create_comment(new_comment, repo_name, pull_request_id, thread_id,
-                                                 project=self.auth.project_name)
+            return self._to_pr_comment(thread.comments[0])
+        else:
+            new_comment = self.client.create_comment(new_comment, repo_name, pull_request_id, thread_id,
+                                                     project=self.auth.project_name)
         return self._to_pr_comment(new_comment)
-
 
     def _to_pr_comment(self, comment: Comment) -> PullRequestCommentModel:
         return PullRequestCommentModel(

@@ -43,3 +43,6 @@ class PullRequestCommentThreadModel(BaseModel):
     comments: List[PullRequestCommentModel]
     status: Optional[str] = None
     published_date: Optional[datetime] = None
+
+    def pretty_format(self):
+        return f"{self.status}: {self.published_date}\n" + "\n".join([f"{c.created_by}: {c.text}" for c in self.comments])

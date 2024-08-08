@@ -37,3 +37,4 @@ class TestFetch:
             assert pr.status == "active"
             assert pr.repository.source_id == get_repository.source_id
             assert pr.created_by_name == agent_model.agent_user_name
+            assert pr.repository.git_url is not None
