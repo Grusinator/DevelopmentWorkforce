@@ -13,7 +13,8 @@ from src.devops_integrations.pull_requests.pull_request_models import CreatePull
 from src.devops_integrations.repos.ado_repos_models import RepositoryModel
 from src.devops_integrations.workitems.ado_workitem_models import WorkItemModel, UpdateWorkItemInputModel
 from src.git_manager import GitManager
-from src.local_development_session import LocalDevelopmentSession, TaskExtraInfo
+from src.local_development_session import LocalDevelopmentSession
+from src.models import TaskExtraInfo
 
 
 class TaskAutomation:

@@ -27,3 +27,6 @@ class BaseReposApi(ABC):
     @abstractmethod
     def create_branch(self, repository_id: str, branch_name: str, source_branch: str) -> None:
         pass
+
+    def create_repository(self, repository_name: str, project_name: str) -> None:
+        pass

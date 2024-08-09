@@ -12,11 +12,15 @@ import pytest
 from src.devops_integrations.models import ProjectAuthenticationModel
 from src.devops_integrations.repos.ado_repos_models import RepositoryModel, ProjectModel
 from src.devops_integrations.workitems.ado_workitem_models import WorkItemModel
+import pytest
+from src.devops_integrations.pull_requests.pull_request_models import PullRequestCommentThreadModel, \
+    PullRequestCommentModel, PullRequestModel, ReviewerModel
 
 
-def pytest_configure():
-    from celery.fixups.django import DjangoWorkerFixup
-    DjangoWorkerFixup.install = lambda x: None
+# @pytest.fixture(autouse=False)
+# def pytest_configure():
+#     from celery.fixups.django import DjangoWorkerFixup
+#     DjangoWorkerFixup.install = lambda x: None
 
 
 @pytest.fixture(scope="function")
@@ -95,7 +99,7 @@ def work_item_model(agent_model):
 
 
 @pytest.fixture
-def repository_model() -> RepositoryModel:
+def repository_model(agent_model) -> RepositoryModel:
     repo_url = os.getenv("ADO_REPO_URL")
     repo_name = os.getenv("ADO_REPO_NAME")
 
@@ -109,4 +113,37 @@ def auth_model() -> ProjectAuthenticationModel:
         ado_org_name=os.getenv("ADO_ORGANIZATION_NAME"),
         pat=os.getenv("ADO_PERSONAL_ACCESS_TOKEN"),
         project_name=os.getenv("ADO_PROJECT_NAME")
+    )
+
+@pytest.fixture
+def pull_request_model(repository_model, agent_model):
+    return PullRequestModel(
+            id=1,
+            title="test",
+            source_branch="feature",
+            created_by_name=agent_model.agent_user_name,
+            target_branch="main",
+            status="active",
+            repository=repository_model,
+            reviewers=[ReviewerModel(
+                source_id="test",
+                display_name="",
+                vote=-5
+            )]
+        )
+
+
+@pytest.fixture
+def comment_thread_model(pull_request_model, agent_model):
+    return PullRequestCommentThreadModel(
+        id=1,
+        pull_request_source_id=pull_request_model.id,
+        comments=[
+            PullRequestCommentModel(
+                id=1,
+                created_by=agent_model.agent_user_name,
+                created_date="2021-10-10",
+                text="This is a test comment"
+            )
+        ]
     )

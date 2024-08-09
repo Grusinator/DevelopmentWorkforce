@@ -91,11 +91,12 @@ class ADOPullRequestsApi(ADOConnection, BasePullRequestsApi):
             pull_request_id=pull_request_id,
             project=self.auth.project_name
         )
-        return [self._to_comment_thread(thread) for thread in comment_threads]
+        return [self._to_comment_thread(thread, pull_request_id) for thread in comment_threads]
 
-    def _to_comment_thread(self, thread):
+    def _to_comment_thread(self, thread, pull_request_source_id):
         return PullRequestCommentThreadModel(
             id=thread.id,
+            pull_request_source_id=pull_request_source_id,
             comments=[self._to_pr_comment(comment) for comment in thread.comments],
             status=thread.status,
             published_date=thread.published_date

@@ -4,25 +4,26 @@ from src.devops_integrations.repos.base_repos_api import BaseReposApi
 
 
 class MockReposApi(BaseReposApi):
+    def __init__(self):
+        self.repositories = []
+
     def get_repository_id(self, repo_name: str) -> str:
-        return "mock-repo-id"
+        for repo in self.repositories:
+            if repo.name == repo_name:
+                return repo.id
+        raise ValueError(f"No repository found with name: {repo_name}")
 
     def get_repository(self, repo_name: str) -> RepositoryModel:
-        return RepositoryModel(
-            id="mock-repo-id",
-            name=repo_name,
-            url="http://mock.url/repo"
-        )
+        for repo in self.repositories:
+            if repo.name == repo_name:
+                return repo
+        raise ValueError(f"No repository found with name: {repo_name}")
 
     def get_projects(self) -> List[ProjectModel]:
-        return [
-            ProjectModel(id="mock-project-id", name="Mock Project")
-        ]
+        return [repo.project for repo in self.repositories]
 
     def get_repositories(self, project_id: str) -> List[RepositoryModel]:
-        return [
-            RepositoryModel(id="mock-repo-id", name="Mock Repo", url="http://mock.url/repo")
-        ]
+        return [repo for repo in self.repositories if repo.project.id == project_id]
 
     def branch_exists(self, repository_id: str, branch_name: str) -> bool:
         return branch_name == "existing-branch"

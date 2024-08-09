@@ -73,7 +73,7 @@ class CrewTaskRunner:
             expected_output='a response to the comment thread'
         )
         self.tasks.append(task)
-        task_result = TaskResult(task_id=str(task.id), comment_thread_id=comment_thread.id, work_item_id=work_item.source_id)
+        task_result = TaskResult(task_id=str(task.id), thread_id=comment_thread.id, work_item_id=work_item.source_id)
         self.result.task_results.append(task_result)
 
     def add_test_task(self, work_item: WorkItemModel):

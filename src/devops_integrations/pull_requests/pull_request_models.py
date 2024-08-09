@@ -40,6 +40,7 @@ class PullRequestCommentModel(BaseModel):
 
 class PullRequestCommentThreadModel(BaseModel):
     id: int
+    pull_request_source_id: int
     comments: List[PullRequestCommentModel]
     status: Optional[str] = None
     published_date: Optional[datetime] = None

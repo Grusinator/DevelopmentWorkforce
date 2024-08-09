@@ -1,20 +1,16 @@
 import textwrap
 from pathlib import Path
-from typing import Optional, List
+from typing import List
 
 import loguru
-from pydantic import BaseModel
 
 from src.crew.crew_task_runner import CrewTaskRunner
 from src.crew.models import LocalDevelopmentResult
 from src.devops_integrations.pull_requests.pull_request_models import PullRequestCommentThreadModel
 from src.devops_integrations.workitems.ado_workitem_models import WorkItemModel
+from src.models import TaskExtraInfo
 from src.util_tools.map_dir import DirectoryStructure
 from src.util_tools.vector_db import VectorDB
-
-
-class TaskExtraInfo(BaseModel):
-    pr_comments: Optional[List[PullRequestCommentThreadModel]] = None
 
 
 class LocalDevelopmentSession:

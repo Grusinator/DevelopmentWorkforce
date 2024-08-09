@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 class TaskResult(BaseModel):
     output: Optional[str] = None
-    thread_id: Optional[str] = None
+    thread_id: Optional[int] = None
     work_item_id: Optional[int] = None
     task_id: str
 
