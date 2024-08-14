@@ -59,7 +59,7 @@ class GetWorkItemInputModel(BaseModel):
 class WorkItemCommentModel(BaseModel):
     id: int
     text: str
-    created_by: Optional[str]
+    created_by: str
     created_date: datetime
-    revised_by: Optional[str]
-    revised_date: Optional[datetime]
+    revised_by: Optional[str] = None
+    revised_date: Optional[datetime] = None

@@ -143,7 +143,7 @@ def comment_thread_model(pull_request_model, agent_model):
                 id=1,
                 created_by=agent_model.agent_user_name,
                 created_date="2021-10-10",
-                text="This is a test comment"
+                text="This is a test feedback comment, i say ping, you say pong. PING!"
             )
         ]
     )

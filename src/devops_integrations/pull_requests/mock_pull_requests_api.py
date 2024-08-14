@@ -1,9 +1,13 @@
 import os
+from datetime import datetime
+
 from typing import List
 from src.devops_integrations.pull_requests.base_pull_requests_api import BasePullRequestsApi
 from src.devops_integrations.pull_requests.pull_request_models import CreatePullRequestInputModel, PullRequestModel, \
     PullRequestCommentModel, PullRequestCommentThreadModel
 from src.devops_integrations.repos.ado_repos_models import RepositoryModel
+
+AI_USER_NAME = os.getenv("AI_USER_NAME")
 
 
 class MockPullRequestsApi(BasePullRequestsApi):
@@ -22,7 +26,7 @@ class MockPullRequestsApi(BasePullRequestsApi):
             id=pr_id,
             repository=repository,
             status="open",
-            created_by_name=os.getenv("AI_USER_NAME"),
+            created_by_name=AI_USER_NAME,
             **pr_input.model_dump()
         )
         self.pull_requests.append(pull_request)
@@ -51,7 +55,8 @@ class MockPullRequestsApi(BasePullRequestsApi):
                        thread_id=None) -> PullRequestCommentModel:
         comment_id = self.next_comment_id
         self.next_comment_id += 1
-        comment = PullRequestCommentModel(id=comment_id, content=text)
+        comment = PullRequestCommentModel(id=comment_id, text=text, created_by=AI_USER_NAME,
+                                          created_date=datetime.now())
         thread = next((t for t in self.comment_threads if t.id == thread_id), None)
         if not thread:
             thread = PullRequestCommentThreadModel(id=comment_id, comments=[comment])

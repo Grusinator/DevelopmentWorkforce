@@ -42,13 +42,18 @@ class VectorDB:
                     self.filenames.append(str(file_path))
             except UnicodeDecodeError:
                 print(f"Skipping binary file {file_path}")
-        self.vectors = self.vectorizer.fit_transform(self.documents)
+        if len(self.documents) > 0:
+            self.vectors = self.vectorizer.fit_transform(self.documents)
+        else:
+            self.vectors = []
 
     def load_repo(self, repo_path: Path):
         files = self.find_files(repo_path)
         self.load_files(files, repo_path)
 
     def fetch_most_relevant_docs(self, query: str, n: int = 5) -> Dict[str, str]:
+        if len(self.documents) == 0:
+            return {}
         query_vector = self.vectorizer.transform([query])
         similarities = cosine_similarity(query_vector, self.vectors).flatten()
         relevant_indices = similarities.argsort()[-n:][::-1]

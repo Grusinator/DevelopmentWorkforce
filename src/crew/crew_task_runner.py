@@ -103,20 +103,19 @@ class CrewTaskRunner:
 
         )
         result = self.crew.kickoff()
-        self.result.succeeded = result == "SUCCEEDED"
+        self.result.succeeded = "SUCCEEDED" == self.clean_crew_ai_result_string(result)
         return self.update_task_results()
 
     def update_task_results(self) -> LocalDevelopmentResult:
-        for task in self.crew.tasks:
+        for crew_task in self.crew.tasks:
             try:
-                matching_task = [task_result for task_result in self.result.task_results if task_result == task.id][0]
+                matching_task = [task_result for task_result in self.result.task_results if task_result.task_id == str(crew_task.id)][0]
             except IndexError:
-                matching_task = None
-                logger.error(f"Task {task.id} not found in task results")
-            if matching_task:
-                matching_task.output.result = task.output.result
+                raise IndexError(f"Task {crew_task.id} not found in task results")
             else:
-                task_result = TaskResult(task_id=str(task.id), output=task.output.result)
-                self.result.task_results.append(task_result)
+                matching_task.output = self.clean_crew_ai_result_string(crew_task.output.result)
 
         return self.result
+
+    def clean_crew_ai_result_string(self, result: str) -> str:
+        return result.replace("`", "").lstrip().rstrip()

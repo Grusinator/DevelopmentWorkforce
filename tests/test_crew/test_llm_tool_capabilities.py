@@ -132,6 +132,3 @@ def test_run_instruction(instruction, agent_tester, instantiate_llm):
     )
     result = crew.kickoff()
     assert result == "OBJECTIVE COMPLETED"
-
-
-crew.tasks[0].output.result

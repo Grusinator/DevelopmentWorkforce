@@ -1,3 +1,7 @@
+import os
+
+AI_AGENT_NAME = os.getenv("AI_USER_NAME")
+from datetime import datetime
 from typing import List
 
 from src.devops_integrations.workitems.ado_workitem_models import WorkItemModel, CreateWorkItemInputModel, UpdateWorkItemInputModel, \
@@ -50,7 +54,7 @@ class MockWorkitemsApi(BaseWorkitemsApi):
         return []
 
     def create_comment(self, work_item_id: int, text: str) -> WorkItemCommentModel:
-        return WorkItemCommentModel(id=1, text=text)
+        return WorkItemCommentModel(id=1, text=text, created_by=AI_AGENT_NAME, created_date=datetime.now())
 
     def update_workitem_state(self, work_item_id: int, new_state: str) -> None:
         for work_item in self.work_items:
