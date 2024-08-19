@@ -17,6 +17,7 @@ class LocalDevelopmentSession:
 
     def local_development_on_workitem(self, work_item: WorkItemModel, repo_dir: Path,
                                       task_extra_info: TaskExtraInfo = None) -> LocalDevelopmentResult:
+        task_extra_info = task_extra_info or TaskExtraInfo()
         loguru.logger.info(f"Processing task: {work_item.title}")
         result = self._run_development_crew(work_item, repo_dir, task_extra_info)
         loguru.logger.info(f"Completed task: {work_item.title}")
@@ -25,12 +26,11 @@ class LocalDevelopmentSession:
 
         return result
 
-    def _run_development_crew(self, work_item, repo_dir, task_extra_info) -> LocalDevelopmentResult:
+    def _run_development_crew(self, work_item, repo_dir, task_extra_info: TaskExtraInfo) -> LocalDevelopmentResult:
         task_context = self.prepare_task_context(work_item, repo_dir, task_extra_info)
         crew_runner = CrewTaskRunner(repo_dir)
         crew_runner.add_developer_agent()
-        if task_extra_info and task_extra_info.pr_comments:
-            [crew_runner.add_task_handle_comment_thread(thread, work_item) for thread in task_extra_info.pr_comments]
+        [crew_runner.add_task_handle_comment_thread(thread, work_item) for thread in task_extra_info.pr_comments]
         crew_runner.add_task_from_work_item(work_item, extra_info=task_context)
         result = crew_runner.run()
         return result

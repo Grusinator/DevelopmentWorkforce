@@ -6,4 +6,4 @@ from src.devops_integrations.pull_requests.pull_request_models import PullReques
 
 
 class TaskExtraInfo(BaseModel):
-    pr_comments: Optional[List[PullRequestCommentThreadModel]] = None
+    pr_comments: List[PullRequestCommentThreadModel] = []

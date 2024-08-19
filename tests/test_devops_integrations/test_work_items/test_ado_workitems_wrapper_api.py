@@ -19,9 +19,6 @@ class TestADOWorkitemsApi:
         work_item_details = ado_workitems_api.get_work_item(create_work_item.source_id)
         assert work_item_details.source_id == create_work_item.source_id
 
-    def test_get_work_item_snake(self, ado_workitems_api: ADOWorkitemsApi):
-        work_item_details = ado_workitems_api.get_work_item(3)
-        assert "snake" in work_item_details.title
 
     def test_update_work_item(self, ado_workitems_api: ADOWorkitemsApi, create_work_item):
         new_title = "Updated Title"

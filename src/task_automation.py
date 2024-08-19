@@ -33,7 +33,7 @@ class TaskAutomation:
         self.root_workspace_dir = Path(os.getenv("WORKSPACE_DIR"))
 
     def develop_on_task(self, work_item: WorkItemModel, repo: RepositoryModel):
-        # agent_task_id = self.task_updater.start_agent_task(work_item_id=work_item.source_id, status='in_progress')
+        # agent_task = self.task_updater.start_agent_task(work_item_id=work_item.source_id, status='in_progress')
         work_item_input = UpdateWorkItemInputModel(source_id=work_item.source_id, state="Active")
         self.workitems_api.update_work_item(work_item_input)
 
@@ -42,11 +42,11 @@ class TaskAutomation:
 
         if result.succeeded:
             pr_id = self._push_changes_and_create_pull_request(work_item, repo_dir, branch_name, repo)
-            # self.task_updater.end_agent_task(agent_task_id, status='completed', token_usage=result.token_usage,
+            # self.task_updater.end_agent_task(agent_task, status='completed', token_usage=result.token_usage,
             #                                  pull_request_id=pr_id)
         else:
             self._reply_back_failed_response(work_item)
-            # self.task_updater.end_agent_task(agent_task_id, status='failed', token_usage=result.token_usage)
+            # self.task_updater.end_agent_task(agent_task, status='failed', token_usage=result.token_usage)
         logger.debug("completed develop flow")
 
     def update_pr_from_feedback(self, pull_request: PullRequestModel, work_item: WorkItemModel):

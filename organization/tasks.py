@@ -2,7 +2,7 @@
 from typing import Dict
 
 from celery import shared_task
-from django.db import close_old_connections
+from django.db import close_old_connections, connections
 from loguru import logger
 
 from organization.models import Repository, Agent, WorkItem
@@ -27,6 +27,7 @@ def execute_task_workitem(agent: Dict, repo: Dict, work_item: Dict, mock=False):
     dev_ops_source = DevOpsSource.MOCK if mock else DevOpsSource.ADO
     task_automation = TaskAutomation(repo_md, agent_md, task_updater, devops_source=dev_ops_source)
     task_automation.develop_on_task(work_item_md, repo_md)
+    connections.close_all()
 
 
 @shared_task(name='execute_task_pr_feedback')
@@ -41,10 +42,12 @@ def execute_task_pr_feedback(agent: Dict, repo: Dict, pr: Dict):
     work_item = WorkItem.objects.get(pull_request_source_id=pull_request.id)
     work_item_md = task_automation.workitems_api.get_work_item(work_item.work_item_source_id)
     task_automation.update_pr_from_feedback(pull_request, work_item_md)
+    connections.close_all()
 
 
 @shared_task(name='fetch_new_tasks_periodically')
 def fetch_new_tasks_periodically(mock=False):
+    close_old_connections()
     logger.info("fetching new tasks from devops")
     agents = Agent.objects.filter(status='working')
     for agent in agents:
@@ -56,3 +59,5 @@ def fetch_new_tasks_periodically(mock=False):
             wf = TaskFetcherAndScheduler(agent_md, repo_md, devops_source)
             wf.fetch_new_workitems(agent_md, repo_md)
             wf.fetch_pull_requests_waiting_for_author(agent_md, repo_md)
+
+    connections.close_all()

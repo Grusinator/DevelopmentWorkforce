@@ -7,5 +7,5 @@ class TaskUpdaterBase(ABC):
         pass
 
     @abstractmethod
-    def end_agent_task(self, agent_task_id: object, status=None, token_usage=None, pull_request_id=None):
+    def end_agent_task(self, agent_task: object, status=None, token_usage=None, pull_request_id=None):
         pass
