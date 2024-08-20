@@ -74,6 +74,7 @@ class AgentTask(models.Model):
     say for example one for each pull request review iteration"""
 
     id = models.AutoField(primary_key=True)
+    tag = models.CharField(max_length=50, null=True, blank=True)
     session = models.ForeignKey(AgentWorkSession, on_delete=models.CASCADE, related_name='tasks')
     work_item = models.ForeignKey(WorkItem, on_delete=models.CASCADE, related_name="tasks")
     start_time = models.DateTimeField(auto_now_add=True)

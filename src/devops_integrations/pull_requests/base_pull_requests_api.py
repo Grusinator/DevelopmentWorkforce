@@ -6,7 +6,7 @@ from src.devops_integrations.pull_requests.pull_request_models import CreatePull
 
 class BasePullRequestsApi(ABC):
     @abstractmethod
-    def create_pull_request(self, repository_id: str, pr_input: CreatePullRequestInputModel) -> int:
+    def create_pull_request(self, repository_id: str, pr_input: CreatePullRequestInputModel) -> PullRequestModel:
         pass
 
     @abstractmethod

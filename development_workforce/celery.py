@@ -43,7 +43,7 @@ class CeleryWorker:
 
     def get_task_result(self, task_id):
         """Fetch the result of a task."""
-        return self.app.AsyncResult(task_id).result
+        return self.app.AsyncResult(str(task_id)).result
 
     def connect_task_signals(self, handler):
         """Connect the task success signal to the provided handler."""

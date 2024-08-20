@@ -5,7 +5,7 @@ import pytest
 
 from organization.models import AgentTask
 from organization.services.task_fetcher_and_scheduler import TaskFetcherAndScheduler
-from src.crew.models import LocalDevelopmentResult
+from src.crew.models import LocalDevelopmentResult, AutomatedTaskResult
 from src.task_automation import TaskAutomation
 
 
@@ -48,7 +48,7 @@ class TestCeleryIntegration:
     def test_handle_task_completion_called(self, mock_develop_on_task, fetcher_and_scheduler, agent_model,
                                            repository_model, work_item_model):
         fetcher_and_scheduler._handle_task_completion = Mock()
-        mock_develop_on_task.return_value = LocalDevelopmentResult(succeeded=True, token_usage=42, task_results=[])
+        mock_develop_on_task.return_value = AutomatedTaskResult(succeeded=True, token_usage=42, task_results=[])
         fetcher_and_scheduler.schedule_workitem_task(agent_model, repository_model, work_item_model)
         agent_task = AgentTask.objects.get(work_item__work_item_source_id=work_item_model.source_id)
         assert fetcher_and_scheduler._handle_task_completion.called_once(agent_task)
@@ -56,19 +56,21 @@ class TestCeleryIntegration:
     @patch.object(TaskAutomation, 'develop_on_task')
     def test_task_execution_and_signal_handling(self, mock_develop_on_task, fetcher_and_scheduler, agent_model,
                                                 repository_model, work_item_model):
-        mock_develop_on_task.return_value = LocalDevelopmentResult(succeeded=True, token_usage=42, task_results=[])
+        mock_develop_on_task.return_value = AutomatedTaskResult(succeeded=True, token_usage=42, task_results=[],
+                                                                pr_id=123)
         result = fetcher_and_scheduler.schedule_workitem_task(agent_model, repository_model, work_item_model)
         result.get()
         agent_task = AgentTask.objects.get(work_item__work_item_source_id=work_item_model.source_id)
         assert agent_task.token_usage == 42
         assert agent_task.work_item.status == 'completed'
+        assert agent_task.work_item.pull_request_source_id == '123'
 
     @patch.object(TaskAutomation, 'update_pr_from_feedback')
     def test_task_execution_pr_feedback(self, mock_update_pr_from_feedback, fetcher_and_scheduler, agent_model,
                                         repository_model, work_item_model, pull_request_model):
         # Mock the TaskAutomation.update_pr_from_feedback to return a successful LocalDevelopmentResult
-        mock_update_pr_from_feedback.return_value = LocalDevelopmentResult(succeeded=True, token_usage=10,
-                                                                           task_results=[])
+        mock_update_pr_from_feedback.return_value = AutomatedTaskResult(succeeded=True, token_usage=10,
+                                                                        task_results=[])
 
         # Schedule a PR feedback task and run it
         fetcher_and_scheduler.schedule_pr_feedback_task(agent_model, repository_model, pull_request_model,

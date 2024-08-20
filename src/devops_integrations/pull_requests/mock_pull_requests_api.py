@@ -17,7 +17,7 @@ class MockPullRequestsApi(BasePullRequestsApi):
         self.next_pr_id = 1
         self.next_comment_id = 1
 
-    def create_pull_request(self, repository_id: str, pr_input: CreatePullRequestInputModel) -> int:
+    def create_pull_request(self, repository_id: str, pr_input: CreatePullRequestInputModel) -> PullRequestModel:
         pr_id = self.next_pr_id
         self.next_pr_id += 1
         repository = RepositoryModel(id=repository_id, source_id=repository_id, name="Mock Repo",
@@ -30,7 +30,7 @@ class MockPullRequestsApi(BasePullRequestsApi):
             **pr_input.model_dump()
         )
         self.pull_requests.append(pull_request)
-        return pr_id
+        return pull_request
 
     def get_pull_request(self, repository_id: str, pr_id: int) -> PullRequestModel:
         return next((pr for pr in self.pull_requests if pr.id == pr_id), None)

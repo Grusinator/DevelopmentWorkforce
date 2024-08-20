@@ -30,7 +30,7 @@ class ADOPullRequestsApi(ADOConnection, BasePullRequestsApi):
             source_ref_name=f"refs/heads/{pr_input.source_branch}",
             target_ref_name=f"refs/heads/{pr_input.target_branch}",
             title=pr_input.title,
-            description=pr_input.description
+            description=pr_input.description,
         )
         try:
             created_pr = self.client.create_pull_request(pr, repository_id, self.auth.project_name)
@@ -152,4 +152,5 @@ class ADOPullRequestsApi(ADOConnection, BasePullRequestsApi):
             source_id=reviewer.id,
             display_name=reviewer.display_name,
             vote=reviewer.vote,
+
         )

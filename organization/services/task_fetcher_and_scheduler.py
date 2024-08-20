@@ -2,16 +2,17 @@ from datetime import datetime
 from typing import Dict
 
 from loguru import logger
+
+from development_workforce.celery import celery_worker as default_celery_worker, CeleryWorker
 from organization.models import Agent, AgentTask, WorkItem
 from organization.schemas import AgentModel
-from src.crew.models import LocalDevelopmentResult
+from src.crew.models import AutomatedTaskResult
 from src.devops_integrations.devops_factory import DevOpsFactory
 from src.devops_integrations.models import ProjectAuthenticationModel, DevOpsSource
-from src.devops_integrations.repos.ado_repos_models import RepositoryModel
 from src.devops_integrations.pull_requests.pull_request_models import PullRequestModel
+from src.devops_integrations.repos.ado_repos_models import RepositoryModel
 from src.devops_integrations.workitems.ado_workitem_models import WorkItemModel
 from src.task_automation import TaskAutomation
-from development_workforce.celery import celery_worker as default_celery_worker, CeleryWorker
 
 EXECUTE_TASK_PR_FEEDBACK_NAME = 'execute_task_pr_feedback'
 EXECUTE_TASK_WORKITEM_NAME = 'execute_task_workitem'
@@ -68,22 +69,28 @@ class TaskFetcherAndScheduler:
         work_item_md = self.workitems_api.get_work_item(work_item.source_id)
         return work_item_md
 
-    def schedule_workitem_task(self, agent: AgentModel, repo: RepositoryModel, work_item):
+    def schedule_workitem_task(self, agent: AgentModel, repo: RepositoryModel, work_item: WorkItemModel):
         work_item_obj, _ = WorkItem.objects.get_or_create(
             work_item_source_id=work_item.source_id,
-            defaults={'status': 'active'}
+            defaults=dict(status='active')
         )
 
-        agent_task = AgentTask.objects.create(
-            session=self.agent.active_work_session,
+        agent_task, created = AgentTask.objects.get_or_create(
             work_item=work_item_obj,
+            tag=f"DEV-{work_item.source_id}",
+            defaults=dict(session=self.agent.active_work_session)
         )
 
-        return self.celery_worker.schedule_task(
-            EXECUTE_TASK_WORKITEM_NAME,
-            str(agent_task.id),
-            agent.model_dump(), repo.model_dump(), work_item.model_dump(),
-        )
+        if created:
+            logger.info(f"Task {work_item.source_id} scheduled for execution.")
+            return self.celery_worker.schedule_task(
+                EXECUTE_TASK_WORKITEM_NAME,
+                str(agent_task.id),
+                agent.model_dump(), repo.model_dump(), work_item.model_dump(),
+            )
+        else:
+            logger.info(f"Task {work_item.source_id} already registered")
+            return self.celery_worker.get_task_result(agent_task.id)
 
     def schedule_pr_feedback_task(self, agent: AgentModel, repo: RepositoryModel, pr: PullRequestModel,
                                   work_item: WorkItemModel):
@@ -92,16 +99,21 @@ class TaskFetcherAndScheduler:
             defaults={'status': 'active', 'pull_request_source_id': pr.id}
         )
 
-        agent_task = AgentTask.objects.create(
-            session=self.agent.active_work_session,
+        agent_task, created = AgentTask.objects.get_or_create(
             work_item=work_item_obj,
+            tag=f"PR-{pr.id}",
+            defaults=dict(session=self.agent.active_work_session)
         )
 
-        self.celery_worker.schedule_task(
-            EXECUTE_TASK_PR_FEEDBACK_NAME,
-            str(agent_task.id),
-            agent.model_dump(), repo.model_dump(), pr.model_dump(), work_item.model_dump(),
-        )
+        if created:
+            return self.celery_worker.schedule_task(
+                EXECUTE_TASK_PR_FEEDBACK_NAME,
+                str(agent_task.id),
+                agent.model_dump(), repo.model_dump(), pr.model_dump(), work_item.model_dump(),
+            )
+        else:
+            logger.info(f"Task {work_item.source_id} already registered")
+            return self.celery_worker.get_task_result(agent_task.id)
 
     @staticmethod
     def _handle_task_completion(sender=None, result=None, **kwargs):
@@ -118,17 +130,18 @@ class TaskFetcherAndScheduler:
             logger.error(f"No AgentTask found with task_id: {sender.request.id}")
 
     @staticmethod
-    def complete_agent_task(result: LocalDevelopmentResult, task_id: int):
+    def complete_agent_task(result: AutomatedTaskResult, task_id: int):
         agent_task = AgentTask.objects.get(id=task_id)
-        work_item = agent_task.work_item
+        work_item: WorkItem = agent_task.work_item
         # Determine the status based on the task result
-        status = 'completed' if result.get('succeeded', False) else 'failed'
-        token_usage = result.get('token_usage')
+        task_result = AutomatedTaskResult.model_validate(result)
+        status = 'completed' if task_result.succeeded else 'failed'
         # Update the work_item and agent_task with the results
         work_item.status = status
+        work_item.pull_request_source_id = task_result.pr_id
         work_item.save()
         agent_task.end_time = datetime.now()
-        agent_task.token_usage = token_usage
+        agent_task.token_usage = task_result.token_usage
         agent_task.save()
         logger.info(f"Task {task_id} completed with status: {status}")
 

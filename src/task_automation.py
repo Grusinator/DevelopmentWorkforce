@@ -3,7 +3,7 @@ import uuid
 from pathlib import Path
 from loguru import logger
 from organization.schemas import AgentModel
-from src.crew.models import LocalDevelopmentResult
+from src.crew.models import LocalDevelopmentResult, AutomatedTaskResult
 from src.devops_integrations.devops_factory import DevOpsFactory
 from src.devops_integrations.models import ProjectAuthenticationModel, DevOpsSource
 from src.devops_integrations.pull_requests.pull_request_models import CreatePullRequestInputModel, PullRequestModel
@@ -27,7 +27,7 @@ class TaskAutomation:
         self.user_name = agent.agent_user_name
         self.root_workspace_dir = Path(os.getenv("WORKSPACE_DIR"))
 
-    def develop_on_task(self, work_item: WorkItemModel, repo: RepositoryModel) -> LocalDevelopmentResult:
+    def develop_on_task(self, work_item: WorkItemModel, repo: RepositoryModel) -> AutomatedTaskResult:
         work_item_input = UpdateWorkItemInputModel(source_id=work_item.source_id, state="Active")
         self.workitems_api.update_work_item(work_item_input)
 
@@ -35,17 +35,19 @@ class TaskAutomation:
         result = self.dev_session.local_development_on_workitem(work_item, repo_dir)
 
         if result.succeeded:
-            pr_id = self._push_changes_and_create_pull_request(work_item, repo_dir, branch_name, repo)
-            logger.info(f"Completed development on task {work_item.title}, PR created with ID: {pr_id}")
+            pr = self._push_changes_and_create_pull_request(work_item, repo_dir, branch_name, repo)
+            pr_id = pr.id
+            logger.info(f"Completed development on task {work_item.title}, PR created with ID: {pr.id}")
         else:
             self._reply_back_failed_response(work_item)
             logger.error(f"Failed to complete development on task {work_item.title}")
+            pr_id = None
 
         logger.debug("Completed develop flow")
-        return result
+        return AutomatedTaskResult(pr_id=pr_id, **result.model_dump())
 
     def update_pr_from_feedback(self, pull_request: PullRequestModel,
-                                work_item: WorkItemModel) -> LocalDevelopmentResult:
+                                work_item: WorkItemModel) -> AutomatedTaskResult:
         # fetch repository again since the git url is not being parsed along. have not figured out why
         repository = self.repos_api.get_repository(pull_request.repository.name)
         repo_dir, branch_name = self._setup_development_env(work_item, repository)
@@ -64,7 +66,7 @@ class TaskAutomation:
             logger.error(f"Failed to update PR {pull_request.title}")
 
         logger.debug("Completed PR feedback flow")
-        return result
+        return AutomatedTaskResult(pr_id=pull_request.id, **result.model_dump())
 
     def reply_to_comments(self, comment_threads, pull_request, result: LocalDevelopmentResult):
         for thread in comment_threads:
@@ -80,16 +82,16 @@ class TaskAutomation:
         self.workitems_api.create_comment(work_item.source_id, "Task could not be completed.")
         logger.error(f"Task could not be completed: {work_item.title}")
 
-    def _push_changes_and_create_pull_request(self, work_item, repo_dir, branch_name, repo):
+    def _push_changes_and_create_pull_request(self, work_item, repo_dir, branch_name, repo) -> PullRequestModel:
         self.git_manager.push_changes(repo_dir, branch_name, work_item.title)
         return self._create_pull_request(branch_name, work_item, repo)
 
     def _create_pull_request(self, branch_name, work_item, repo):
         pull_request_input = CreatePullRequestInputModel(title=work_item.title, source_branch=branch_name,
                                                          description=work_item.description)
-        pr_id = self.pull_requests_api.create_pull_request(repo.source_id, pull_request_input)
+        pull_request = self.pull_requests_api.create_pull_request(repo.source_id, pull_request_input)
         logger.info(f"Created pull request for task: {work_item.title}")
-        return pr_id
+        return pull_request.id
 
     def _setup_development_env(self, work_item: WorkItemModel, repo: RepositoryModel):
         logger.debug("repo issue: " + str(repo.__dict__))

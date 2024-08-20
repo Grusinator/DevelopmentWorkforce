@@ -1,9 +1,6 @@
-from pathlib import Path
-
 import pytest
 
 from organization.schemas import AgentModel
-from organization.services.task_updater_hook import TaskUpdater
 from src.devops_integrations.models import DevOpsSource
 from src.devops_integrations.pull_requests.mock_pull_requests_api import MockPullRequestsApi
 from src.mock_local_development_session import MockDevSession
@@ -20,7 +17,7 @@ def mocked_pull_requests_api(pull_request_model, comment_thread_model, repositor
 
 import pytest
 from unittest.mock import MagicMock
-from src.local_development_session import LocalDevelopmentResult, LocalDevelopmentSession
+from src.local_development_session import LocalDevelopmentSession
 
 
 @pytest.fixture
@@ -42,6 +39,7 @@ def task_automation_w_devops_mock(work_item_model, pull_request_model, agent_mod
     task_automation.git_manager = MagicMock()
     task_automation.dev_session = MockDevSession(repo_dir=workspace_dir)
     yield task_automation
+
 
 @pytest.fixture
 def task_automation_all_mocked(workspace_dir, task_automation_w_devops_mock):
@@ -81,8 +79,7 @@ class TestTaskAutomation:
         repository_name = create_pull_request.repository.name
         ado_pull_requests_api.create_comment(repository_name, create_pull_request.id, comment_text)
         agent_model = AgentModel.model_validate(agent_in_db)
-        task_automation = TaskAutomation(repo=get_repository, agent=agent_model, task_updater=TaskUpdater(agent_in_db),
-                                         devops_source=DevOpsSource.ADO)
+        task_automation = TaskAutomation(repo=get_repository, agent=agent_model, devops_source=DevOpsSource.ADO)
 
         task_automation.dev_session = MockDevSession(repo_dir=workspace_dir)
         task_automation.update_pr_from_feedback(create_pull_request, create_work_item)
