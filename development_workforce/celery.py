@@ -1,33 +1,48 @@
-# celery.py
-from __future__ import absolute_import, unicode_literals
 import os
 from celery import Celery
 from celery.schedules import crontab
 
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'development_workforce.settings')
+class CeleryWorker:
+    def __init__(self):
+        self.app = Celery('development_workforce')
+        self._configure()
 
-app = Celery('development_workforce')
-app.config_from_object('django.conf:settings', namespace='CELERY')
+    def _configure(self):
+        # Load configuration from Django settings
+        self.app.config_from_object('django.conf:settings', namespace='CELERY')
 
-app.conf.broker_url = 'redis://localhost:6379/0'
-app.conf.result_backend = 'redis://localhost:6379/0'
+        # Set broker and backend URLs from environment variables
+        broker_url = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
+        result_backend = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
 
-# if settings.DEBUG:
-#     app.conf.broker_url = 'memory://'
-#     app.conf.result_backend = 'cache+memory://'
+        self.app.conf.broker_url = broker_url
+        self.app.conf.result_backend = result_backend
 
-app.autodiscover_tasks()
+        # Optional: Load task schedule (can be moved to Django settings if preferred)
+        self.app.conf.beat_schedule = {
+            'fetch-new-workitems-every-5-minutes': {
+                'task': 'fetch_new_tasks_periodically',
+                'schedule': crontab(minute='*/5'),  # Fetch every 5 minutes
+            },
+        }
+
+        # Autodiscover tasks across installed apps
+        self.app.autodiscover_tasks()
+
+    def add_task(self, task_name, *args, **kwargs):
+        """Queue a task for execution."""
+        return self.app.send_task(task_name, args=args, kwargs=kwargs)
+
+    def get_task_result(self, task_id):
+        """Fetch the result of a task."""
+        return self.app.AsyncResult(task_id).result
+
+    @property
+    def celery_app(self):
+        return self.app
 
 
-@app.task(bind=True)
-def debug_task(self):
-    print('Request: {0!r}'.format(self.request))
-
-
-app.conf.beat_schedule = {
-    'fetch-new-workitems-every-5-minutes': {
-        'task': 'fetch_new_tasks_periodically',
-        'schedule': 7.0,
-    },
-}
+# Initialize CeleryWorker and expose the app globally
+celery_worker = CeleryWorker()
+app = celery_worker.celery_app

@@ -1,12 +1,9 @@
-# task_automation.py
 import os
 import uuid
 from pathlib import Path
-
 from loguru import logger
 from organization.schemas import AgentModel
-from src.base_task_updater import TaskUpdaterBase
-from src.crew.models import TaskResult, LocalDevelopmentResult
+from src.crew.models import LocalDevelopmentResult
 from src.devops_integrations.devops_factory import DevOpsFactory
 from src.devops_integrations.models import ProjectAuthenticationModel, DevOpsSource
 from src.devops_integrations.pull_requests.pull_request_models import CreatePullRequestInputModel, PullRequestModel
@@ -18,9 +15,7 @@ from src.models import TaskExtraInfo
 
 
 class TaskAutomation:
-    def __init__(self, repo: RepositoryModel, agent: AgentModel, task_updater: TaskUpdaterBase,
-                 devops_source=DevOpsSource.ADO):
-        self.task_updater = task_updater
+    def __init__(self, repo: RepositoryModel, agent: AgentModel, devops_source=DevOpsSource.ADO):
         project_auth = ProjectAuthenticationModel(pat=agent.pat, ado_org_name=agent.organization_name,
                                                   project_name=repo.project.name)
         self.devops_factory = DevOpsFactory(project_auth, devops_source)
@@ -33,7 +28,6 @@ class TaskAutomation:
         self.root_workspace_dir = Path(os.getenv("WORKSPACE_DIR"))
 
     def develop_on_task(self, work_item: WorkItemModel, repo: RepositoryModel):
-        # agent_task = self.task_updater.start_agent_task(work_item_id=work_item.source_id, status='in_progress')
         work_item_input = UpdateWorkItemInputModel(source_id=work_item.source_id, state="Active")
         self.workitems_api.update_work_item(work_item_input)
 
@@ -42,41 +36,43 @@ class TaskAutomation:
 
         if result.succeeded:
             pr_id = self._push_changes_and_create_pull_request(work_item, repo_dir, branch_name, repo)
-            # self.task_updater.end_agent_task(agent_task, status='completed', token_usage=result.token_usage,
-            #                                  pull_request_id=pr_id)
+            logger.info(f"Completed development on task {work_item.title}, PR created with ID: {pr_id}")
         else:
             self._reply_back_failed_response(work_item)
-            # self.task_updater.end_agent_task(agent_task, status='failed', token_usage=result.token_usage)
-        logger.debug("completed develop flow")
+            logger.error(f"Failed to complete development on task {work_item.title}")
+
+        logger.debug("Completed develop flow")
+        return result
 
     def update_pr_from_feedback(self, pull_request: PullRequestModel, work_item: WorkItemModel):
         # fetch repository again since the git url is not being parsed along. have not figured out why
         repository = self.repos_api.get_repository(pull_request.repository.name)
-        # agent_task = self.task_updater.start_agent_task(work_item_id=work_item.source_id,
-        #                                                 pull_request_id=pull_request.id, status='in_progress')
         repo_dir, branch_name = self._setup_development_env(work_item, repository)
         comment_threads = self.pull_requests_api.get_pull_request_comments(pull_request.repository.name,
                                                                            pull_request.id)
         extra_info = TaskExtraInfo(pr_comments=comment_threads)
         result = self.dev_session.local_development_on_workitem(work_item, repo_dir, extra_info)
+
         if result.succeeded:
             self.git_manager.push_changes(repo_dir, branch_name, work_item.title)
             self.pull_requests_api.reset_pull_request_votes(branch_name, pull_request.id)
-
             self.reply_to_comments(comment_threads, pull_request, result)
-            # self.task_updater.end_agent_task(agent_task, status='completed', token_usage=result.token_usage)
+            logger.info(f"Completed PR update for {pull_request.title}")
         else:
             self._reply_back_failed_response(work_item)
-            # self.task_updater.end_agent_task(agent_task, status='failed', token_usage=result.token_usage)
-        logger.debug("completed develop pr flow")
+            logger.error(f"Failed to update PR {pull_request.title}")
+
+        logger.debug("Completed PR feedback flow")
+        return result
 
     def reply_to_comments(self, comment_threads, pull_request, result: LocalDevelopmentResult):
         for thread in comment_threads:
-            task_result = [task_result for task_result in result.task_results if task_result.thread_id == thread.id][0]
-            logger.debug(f"task_result: {task_result}")
-            self.pull_requests_api.create_comment(pull_request.repository.source_id, pull_request.id,
-                                                  task_result.output,
-                                                  thread_id=thread.id)
+            task_result = next((task_result for task_result in result.task_results if task_result.thread_id == thread.id), None)
+            if task_result:
+                logger.debug(f"task_result: {task_result}")
+                self.pull_requests_api.create_comment(pull_request.repository.source_id, pull_request.id,
+                                                      task_result.output,
+                                                      thread_id=thread.id)
 
     def _reply_back_failed_response(self, work_item):
         self.workitems_api.create_comment(work_item.source_id, "Task could not be completed.")

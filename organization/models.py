@@ -49,6 +49,7 @@ class AgentRepoConnection(models.Model):
 
 
 class AgentWorkSession(models.Model):
+    """an agent is working continuously on a session. until stopped"""
     agent = models.ForeignKey(Agent, on_delete=models.CASCADE)
     start_time = models.DateTimeField(auto_now_add=True)
     end_time = models.DateTimeField(null=True, blank=True)
@@ -58,6 +59,7 @@ class AgentWorkSession(models.Model):
 
 
 class WorkItem(models.Model):
+    """"""
     id = models.AutoField(primary_key=True)
     work_item_source_id = models.CharField(max_length=255)
     pull_request_source_id = models.CharField(max_length=255, null=True, blank=True)
@@ -67,6 +69,10 @@ class WorkItem(models.Model):
 
 
 class AgentTask(models.Model):
+    """every time an agent does a job its a task. an iteration of a crewai session.
+    There can be many agent tasks (work item iteration) on each work item,
+    say for example one for each pull request review iteration"""
+
     id = models.AutoField(primary_key=True)
     session = models.ForeignKey(AgentWorkSession, on_delete=models.CASCADE, related_name='tasks')
     work_item = models.ForeignKey(WorkItem, on_delete=models.CASCADE, related_name="tasks")

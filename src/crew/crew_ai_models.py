@@ -18,18 +18,18 @@ class CrewAiModels:
         api_key=os.getenv("OPENAI_API_KEY"),
         model_name=os.getenv("OPENAI_MODEL_NAME"),
     )
-    hugging_face = HuggingFaceEndpoint(
-        endpoint_url=os.getenv("HUGGINGFACE_API_BASE"),
-        huggingfacehub_api_token=os.getenv("HUGGINGFACE_API_KEY"),
-        task="text-generation",
-        model_kwargs={
-            "max_new_tokens": 2000,  # Adjust based on input size to keep total under 1024
-            # "top_k": 50,
-            # "temperature": 0.2,
-            "repetition_penalty": 1.1,
-            "max_length": 4000,  # Ensure input + max_new_tokens <= 1024
-        }
-    )
+    # hugging_face = HuggingFaceEndpoint(
+    #     endpoint_url=os.getenv("HUGGINGFACE_API_BASE"),
+    #     huggingfacehub_api_token=os.getenv("HUGGINGFACE_API_KEY"),
+    #     task="text-generation",
+    #     model_kwargs={
+    #         "max_new_tokens": 2000,  # Adjust based on input size to keep total under 1024
+    #         # "top_k": 50,
+    #         # "temperature": 0.2,
+    #         "repetition_penalty": 1.1,
+    #         "max_length": 4000,  # Ensure input + max_new_tokens <= 1024
+    #     }
+    # )
 
     @classmethod
     def get_llm(cls, llm_name):
@@ -37,7 +37,7 @@ class CrewAiModels:
             "ollama_instruct": cls.ollama_instruct,
             "ollama_python": cls.ollama_python,
             "chatgpt": cls.chatgpt,
-            "hugging_face": cls.hugging_face
+            # "hugging_face": cls.hugging_face
         }
         llm = llm_mapping.get(llm_name)
         if llm is None:
