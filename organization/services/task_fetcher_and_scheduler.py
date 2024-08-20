@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Dict
+
 from loguru import logger
 from organization.models import Agent, AgentTask, WorkItem
 from organization.schemas import AgentModel
@@ -9,7 +10,7 @@ from src.devops_integrations.repos.ado_repos_models import RepositoryModel
 from src.devops_integrations.pull_requests.pull_request_models import PullRequestModel
 from src.devops_integrations.workitems.ado_workitem_models import WorkItemModel
 from src.task_automation import TaskAutomation
-from development_workforce.celery import celery_worker, CeleryWorker
+from development_workforce.celery import celery_worker as default_celery_worker, CeleryWorker
 
 EXECUTE_TASK_PR_FEEDBACK_NAME = 'execute_task_pr_feedback'
 EXECUTE_TASK_WORKITEM_NAME = 'execute_task_workitem'
@@ -17,7 +18,7 @@ EXECUTE_TASK_WORKITEM_NAME = 'execute_task_workitem'
 
 class TaskFetcherAndScheduler:
     def __init__(self, agent: AgentModel, repo: RepositoryModel, devops_source: DevOpsSource = DevOpsSource.ADO,
-                 celery_worker_instance: CeleryWorker = celery_worker):
+                 celery_worker: CeleryWorker = default_celery_worker):
         project_auth = ProjectAuthenticationModel(pat=agent.pat, ado_org_name=agent.organization_name,
                                                   project_name=repo.project.name)
         devops_factory = DevOpsFactory(project_auth, devops_source)
@@ -25,16 +26,15 @@ class TaskFetcherAndScheduler:
         self.repos_api = devops_factory.get_repos_api()
         self.pull_requests_api = devops_factory.get_pull_requests_api()
         self.agent = Agent.objects.get(id=agent.id)
-        self.celery_worker = celery_worker_instance
+        self.celery_worker = celery_worker
+        self.setup_tasks_and_signals()
 
+    def setup_tasks_and_signals(self):
         # Connect task completion to handler
         self.celery_worker.connect_task_signals(self._handle_task_completion)
-
         # Register Celery tasks
-        self.celery_worker.register_tasks({
-            EXECUTE_TASK_WORKITEM_NAME: self.execute_task_workitem,
-            EXECUTE_TASK_PR_FEEDBACK_NAME: self.execute_task_pr_feedback,
-        })
+        self.celery_worker.register_task(EXECUTE_TASK_WORKITEM_NAME, self.execute_task_workitem)
+        self.celery_worker.register_task(EXECUTE_TASK_PR_FEEDBACK_NAME, self.execute_task_pr_feedback)
 
     def fetch_new_workitems(self, agent: AgentModel, repo: RepositoryModel):
         new_tasks = self.workitems_api.list_work_items(assigned_to=agent.agent_user_name, state="New")
@@ -77,11 +77,10 @@ class TaskFetcherAndScheduler:
             work_item=work_item_obj,
         )
 
-        celery_worker.add_task(
+        return self.celery_worker.schedule_task(
             EXECUTE_TASK_WORKITEM_NAME,
             str(agent_task.id),
             agent.model_dump(), repo.model_dump(), work_item.model_dump(),
-
         )
 
     def schedule_pr_feedback_task(self, agent: AgentModel, repo: RepositoryModel, pr: PullRequestModel, work_item):
@@ -96,13 +95,14 @@ class TaskFetcherAndScheduler:
             status='in_progress'
         )
 
-        celery_worker.add_task(
+        self.celery_worker.schedule_task(
             EXECUTE_TASK_PR_FEEDBACK_NAME,
             str(agent_task.id),
             agent.model_dump(), repo.model_dump(), pr.model_dump(), work_item.model_dump(),
         )
 
-    def _handle_task_completion(self, sender, result, **kwargs):
+    @staticmethod
+    def _handle_task_completion(sender=None, result=None, **kwargs):
         logger.debug(f"task completion handler called with result: {result}")
 
         # Retrieve the task_id from the sender
@@ -114,7 +114,7 @@ class TaskFetcherAndScheduler:
             work_item = agent_task.work_item
 
             # Determine the status based on the task result
-            status = 'completed' if result.get('success', False) else 'failed'
+            status = 'completed' if result.get('succeeded', False) else 'failed'
             token_usage = result.get('token_usage')
 
             # Update the work_item and agent_task with the results

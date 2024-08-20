@@ -65,6 +65,7 @@ def celery_app():
     # Create an in-memory Celery instance for testing
     app = Celery('test', broker='memory://', backend='cache+memory://')
     app.conf.task_always_eager = True  # Run tasks synchronously
+    app.autodiscover_tasks()
     return app
 
 

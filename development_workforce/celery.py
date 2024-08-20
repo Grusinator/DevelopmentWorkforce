@@ -7,6 +7,7 @@ class CeleryWorker:
     def __init__(self):
         os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'development_workforce.settings')
         self.app = Celery('development_workforce')
+        self.tasks = {}  # Dictionary to keep track of registered tasks
         self._configure()
 
     def _configure(self):
@@ -31,9 +32,13 @@ class CeleryWorker:
         # Autodiscover tasks across installed apps
         self.app.autodiscover_tasks()
 
-    def add_task(self, task_name, task_id, *args, **kwargs):
-        """Queue a task for execution."""
-        return self.app.send_task(task_name, task_id=task_id, args=args, kwargs=kwargs)
+    def schedule_task(self, task_name, task_id, *args, **kwargs):
+        """Queue a task for execution using apply_async."""
+        if task_name in self.tasks:
+            task = self.tasks[task_name]
+            return task.apply_async(task_id=task_id, args=args, kwargs=kwargs)
+        else:
+            raise ValueError(f"Task {task_name} is not registered.")
 
     def get_task_result(self, task_id):
         """Fetch the result of a task."""
@@ -46,6 +51,7 @@ class CeleryWorker:
     def register_task(self, task_name, task_function):
         """Register a task dynamically with Celery."""
         task = self.app.task(task_function, name=task_name)
+        self.tasks[task_name] = task  # Keep track of the task
         return task
 
     def register_tasks(self, tasks):
