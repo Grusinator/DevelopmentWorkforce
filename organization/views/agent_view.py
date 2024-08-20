@@ -8,7 +8,7 @@ from src.devops_integrations.workitems.ado_workitems_api import ADOWorkitemsApi
 from ..models import Agent, Repository, AgentWorkSession, AgentTask, WorkItem
 from ..schemas import AgentModel
 from ..services.services import stop_work_session, start_work_session
-from ..services.fetch_new_tasks import TaskFetcherAndScheduler
+from ..services.task_fetcher_and_scheduler import TaskFetcherAndScheduler
 
 
 @login_required

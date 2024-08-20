@@ -7,7 +7,7 @@ from loguru import logger
 
 from organization.models import Repository, Agent
 from organization.schemas import AgentModel
-from organization.services.fetch_new_tasks import TaskFetcherAndScheduler
+from organization.services.task_fetcher_and_scheduler import TaskFetcherAndScheduler
 from src.devops_integrations.models import DevOpsSource
 from src.devops_integrations.pull_requests.pull_request_models import PullRequestModel
 from src.devops_integrations.repos.ado_repos_models import RepositoryModel

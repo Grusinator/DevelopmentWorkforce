@@ -81,4 +81,4 @@ class AgentTask(models.Model):
     token_usage = models.IntegerField(default=0)
 
     def __str__(self):
-        return f"Task {self.work_item_id} for Session {self.session.id}"
+        return f"Task {self.id}, wo: {self.work_item.work_item_source_id} for Session {self.session.start_time}"

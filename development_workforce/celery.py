@@ -1,10 +1,11 @@
 import os
-from celery import Celery
+from celery import Celery, signals
 from celery.schedules import crontab
 
 
 class CeleryWorker:
     def __init__(self):
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'development_workforce.settings')
         self.app = Celery('development_workforce')
         self._configure()
 
@@ -30,13 +31,27 @@ class CeleryWorker:
         # Autodiscover tasks across installed apps
         self.app.autodiscover_tasks()
 
-    def add_task(self, task_name, *args, **kwargs):
+    def add_task(self, task_name, task_id, *args, **kwargs):
         """Queue a task for execution."""
-        return self.app.send_task(task_name, args=args, kwargs=kwargs)
+        return self.app.send_task(task_name, task_id=task_id, args=args, kwargs=kwargs)
 
     def get_task_result(self, task_id):
         """Fetch the result of a task."""
         return self.app.AsyncResult(task_id).result
+
+    def connect_task_signals(self, handler):
+        """Connect the task success signal to the provided handler."""
+        signals.task_success.connect(handler)
+
+    def register_task(self, task_name, task_function):
+        """Register a task dynamically with Celery."""
+        task = self.app.task(task_function, name=task_name)
+        return task
+
+    def register_tasks(self, tasks):
+        """Register multiple tasks."""
+        for task_name, task_function in tasks.items():
+            self.register_task(task_name, task_function)
 
     @property
     def celery_app(self):

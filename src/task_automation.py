@@ -27,7 +27,7 @@ class TaskAutomation:
         self.user_name = agent.agent_user_name
         self.root_workspace_dir = Path(os.getenv("WORKSPACE_DIR"))
 
-    def develop_on_task(self, work_item: WorkItemModel, repo: RepositoryModel):
+    def develop_on_task(self, work_item: WorkItemModel, repo: RepositoryModel) -> LocalDevelopmentResult:
         work_item_input = UpdateWorkItemInputModel(source_id=work_item.source_id, state="Active")
         self.workitems_api.update_work_item(work_item_input)
 
@@ -44,7 +44,8 @@ class TaskAutomation:
         logger.debug("Completed develop flow")
         return result
 
-    def update_pr_from_feedback(self, pull_request: PullRequestModel, work_item: WorkItemModel):
+    def update_pr_from_feedback(self, pull_request: PullRequestModel,
+                                work_item: WorkItemModel) -> LocalDevelopmentResult:
         # fetch repository again since the git url is not being parsed along. have not figured out why
         repository = self.repos_api.get_repository(pull_request.repository.name)
         repo_dir, branch_name = self._setup_development_env(work_item, repository)
@@ -67,7 +68,8 @@ class TaskAutomation:
 
     def reply_to_comments(self, comment_threads, pull_request, result: LocalDevelopmentResult):
         for thread in comment_threads:
-            task_result = next((task_result for task_result in result.task_results if task_result.thread_id == thread.id), None)
+            task_result = next(
+                (task_result for task_result in result.task_results if task_result.thread_id == thread.id), None)
             if task_result:
                 logger.debug(f"task_result: {task_result}")
                 self.pull_requests_api.create_comment(pull_request.repository.source_id, pull_request.id,
