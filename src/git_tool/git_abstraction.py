@@ -3,7 +3,7 @@ from pathlib import Path
 
 from git import Repo, exc
 
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 
 class GitAbstraction:

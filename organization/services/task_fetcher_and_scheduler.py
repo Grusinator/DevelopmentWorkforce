@@ -40,13 +40,13 @@ class TaskFetcherAndScheduler:
         self.celery_worker.register_task(EXECUTE_TASK_PR_FEEDBACK_NAME, self.execute_task_pr_feedback)
 
     def fetch_new_workitems(self, agent: AgentModel, repo: RepositoryModel):
-        new_tasks = self.workitems_api.list_work_items(assigned_to=agent.agent_user_name, state="New")
-        for task in new_tasks:
-            logger.debug(f"task started: {task}")
-            self.schedule_workitem_task(agent, repo, task)
+        new_work_items = self.workitems_api.list_work_items(assigned_to=agent.agent_user_name, state="New")
+        for work_item in new_work_items:
+            logger.debug(f"task started: {work_item}")
+            self.schedule_workitem_task(agent, repo, work_item)
 
-        if new_tasks:
-            tasks_joined = '\n * '.join([tsk.title for tsk in new_tasks])
+        if new_work_items:
+            tasks_joined = '\n * '.join([tsk.title for tsk in new_work_items])
             logger.info(f"found new work item tasks: {tasks_joined}")
 
     def fetch_pull_requests_waiting_for_author(self, agent: AgentModel, repo: RepositoryModel):
@@ -72,7 +72,7 @@ class TaskFetcherAndScheduler:
     def schedule_workitem_task(self, agent: AgentModel, repo: RepositoryModel, work_item: WorkItemModel):
         work_item_obj, _ = WorkItem.objects.get_or_create(
             work_item_source_id=work_item.source_id,
-            defaults=dict(status='active')
+            defaults=dict(status='pending')
         )
 
         agent_task, created = AgentTask.objects.get_or_create(
@@ -96,7 +96,7 @@ class TaskFetcherAndScheduler:
                                   work_item: WorkItemModel):
         work_item_obj, _ = WorkItem.objects.get_or_create(
             work_item_source_id=work_item.source_id,
-            defaults={'status': 'active', 'pull_request_source_id': pr.id}
+            defaults={'status': 'pending', 'pull_request_source_id': pr.id}
         )
 
         agent_task, created = AgentTask.objects.get_or_create(

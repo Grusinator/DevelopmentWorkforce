@@ -11,7 +11,7 @@ from langchain.callbacks.manager import (
 
 from src.utils import log_inputs
 
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 
 class CreateBranchInput(BaseModel):

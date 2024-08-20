@@ -9,7 +9,7 @@ from langchain_core.tools import BaseTool
 
 from src.utils import log_inputs
 
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 
 class PytestTool(BaseTool):

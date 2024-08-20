@@ -21,16 +21,12 @@ class CeleryWorker:
         self.app.conf.broker_url = broker_url
         self.app.conf.result_backend = result_backend
 
-        # Optional: Load task schedule (can be moved to Django settings if preferred)
-        self.app.conf.beat_schedule = {
-            'fetch-new-workitems-every-5-minutes': {
-                'task': 'fetch_new_tasks_periodically',
-                'schedule': crontab(minute='*/5'),  # Fetch every 5 minutes
-            },
-        }
-
         # Autodiscover tasks across installed apps
         self.app.autodiscover_tasks()
+
+    def setup_cron_job(self, beat_schedule_name, task_name, schedule):
+        """Set up a periodic task using the provided schedule."""
+        self.app.conf.beat_schedule[beat_schedule_name] = {"task": task_name, "schedule": schedule}
 
     def schedule_task(self, task_name, task_id, *args, **kwargs):
         """Queue a task for execution using apply_async."""
