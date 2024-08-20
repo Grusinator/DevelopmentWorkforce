@@ -4,6 +4,7 @@ from typing import Dict
 from loguru import logger
 from organization.models import Agent, AgentTask, WorkItem
 from organization.schemas import AgentModel
+from src.crew.models import LocalDevelopmentResult
 from src.devops_integrations.devops_factory import DevOpsFactory
 from src.devops_integrations.models import ProjectAuthenticationModel, DevOpsSource
 from src.devops_integrations.repos.ado_repos_models import RepositoryModel
@@ -14,6 +15,7 @@ from development_workforce.celery import celery_worker as default_celery_worker,
 
 EXECUTE_TASK_PR_FEEDBACK_NAME = 'execute_task_pr_feedback'
 EXECUTE_TASK_WORKITEM_NAME = 'execute_task_workitem'
+task_names = [EXECUTE_TASK_WORKITEM_NAME, EXECUTE_TASK_PR_FEEDBACK_NAME]
 
 
 class TaskFetcherAndScheduler:
@@ -83,7 +85,8 @@ class TaskFetcherAndScheduler:
             agent.model_dump(), repo.model_dump(), work_item.model_dump(),
         )
 
-    def schedule_pr_feedback_task(self, agent: AgentModel, repo: RepositoryModel, pr: PullRequestModel, work_item):
+    def schedule_pr_feedback_task(self, agent: AgentModel, repo: RepositoryModel, pr: PullRequestModel,
+                                  work_item: WorkItemModel):
         work_item_obj, _ = WorkItem.objects.get_or_create(
             work_item_source_id=work_item.source_id,
             defaults={'status': 'active', 'pull_request_source_id': pr.id}
@@ -92,7 +95,6 @@ class TaskFetcherAndScheduler:
         agent_task = AgentTask.objects.create(
             session=self.agent.active_work_session,
             work_item=work_item_obj,
-            status='in_progress'
         )
 
         self.celery_worker.schedule_task(
@@ -104,30 +106,31 @@ class TaskFetcherAndScheduler:
     @staticmethod
     def _handle_task_completion(sender=None, result=None, **kwargs):
         logger.debug(f"task completion handler called with result: {result}")
+        task_name = sender.name
+        if task_name not in task_names:
+            logger.debug(f"Task {task_name} is not registered with CeleryWorker. Ignoring completion handler.")
+            return
 
-        # Retrieve the task_id from the sender
-        task_id = int(sender.request.id)
-
-        # Fetch the AgentTask based on the task_id
         try:
-            agent_task = AgentTask.objects.get(id=task_id)
-            work_item = agent_task.work_item
+            task_id = int(sender.request.id)
+            TaskFetcherAndScheduler.complete_agent_task(result, task_id)
+        except Exception as e:
+            logger.error(f"No AgentTask found with task_id: {sender.request.id}")
 
-            # Determine the status based on the task result
-            status = 'completed' if result.get('succeeded', False) else 'failed'
-            token_usage = result.get('token_usage')
-
-            # Update the work_item and agent_task with the results
-            work_item.status = status
-            work_item.save()
-
-            agent_task.end_time = datetime.now()
-            agent_task.token_usage = token_usage
-            agent_task.save()
-
-            logger.info(f"Task {task_id} completed with status: {status}")
-        except AgentTask.DoesNotExist:
-            logger.error(f"No AgentTask found with task_id: {task_id}")
+    @staticmethod
+    def complete_agent_task(result: LocalDevelopmentResult, task_id: int):
+        agent_task = AgentTask.objects.get(id=task_id)
+        work_item = agent_task.work_item
+        # Determine the status based on the task result
+        status = 'completed' if result.get('succeeded', False) else 'failed'
+        token_usage = result.get('token_usage')
+        # Update the work_item and agent_task with the results
+        work_item.status = status
+        work_item.save()
+        agent_task.end_time = datetime.now()
+        agent_task.token_usage = token_usage
+        agent_task.save()
+        logger.info(f"Task {task_id} completed with status: {status}")
 
     @staticmethod
     def execute_task_workitem(agent: Dict, repo: Dict, work_item: Dict, mock=False):

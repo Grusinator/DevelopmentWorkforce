@@ -36,6 +36,7 @@ class CeleryWorker:
         """Queue a task for execution using apply_async."""
         if task_name in self.tasks:
             task = self.tasks[task_name]
+            # For some strange reason i cant make send task, trigger a signal when done.
             return task.apply_async(task_id=task_id, args=args, kwargs=kwargs)
         else:
             raise ValueError(f"Task {task_name} is not registered.")
