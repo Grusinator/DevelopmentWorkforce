@@ -1,14 +1,21 @@
+import os
 import subprocess
 from pathlib import Path
 
 from celery.backends import redis
+from dotenv import load_dotenv
 from invoke import task
 from redis import StrictRedis
 
+from src.devops_integrations.models import ProjectAuthenticationModel
+from src.devops_integrations.pull_requests.ado_pull_requests_api import ADOPullRequestsApi
+from src.devops_integrations.repos.ado_repos_api import ADOReposApi
 from src.util_tools.map_dir import DirectoryStructure
 from src.util_tools.read_files import ReadFiles
 
 docker_path = Path("devops/docker")
+
+load_dotenv()
 
 
 @task
@@ -73,3 +80,18 @@ def reset_redis_messages(ctx):
     redis_client = StrictRedis(host='localhost', port=6379, db=0)
     redis_client.flushall()
     print("Redis messages have been reset.")
+
+@task
+def abandon_all_prs(ctx, repo_name=None):
+    auth_context = ProjectAuthenticationModel(
+        pat=os.getenv("ADO_PERSONAL_ACCESS_TOKEN"),
+        ado_org_name=os.getenv("ADO_ORGANIZATION_NAME"),
+        project_name=os.getenv("ADO_PROJECT_NAME")
+    )
+    repo_name = repo_name or os.getenv("ADO_REPO_NAME")
+    repository_id = ADOReposApi(auth_context).get_repository_id(repo_name)
+    ado_pull_requests_api = ADOPullRequestsApi(auth_context)
+    prs = ado_pull_requests_api.list_pull_requests(repository_id=repository_id)
+    for pr in prs:
+        ado_pull_requests_api.abandon_pull_request(repository_id, pr.id)
+    print("All PRs have been abandoned.")

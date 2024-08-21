@@ -67,6 +67,8 @@ class WorkItem(models.Model):
 
     id = models.AutoField(primary_key=True)
     work_item_source_id = models.CharField(max_length=255)
+    title = models.CharField(max_length=255)
+    description = models.TextField(null=True, blank=True)
     pull_request_source_id = models.CharField(max_length=255, null=True, blank=True)
     state = models.CharField(
         max_length=50,
@@ -104,6 +106,7 @@ class AgentTask(models.Model):
     start_time = models.DateTimeField(auto_now_add=True)
     end_time = models.DateTimeField(null=True, blank=True)
     token_usage = models.IntegerField(default=0)
+    agent = models.ForeignKey(Agent, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"Task {self.id}, wo: {self.work_item.work_item_source_id} for Session {self.session.start_time}"

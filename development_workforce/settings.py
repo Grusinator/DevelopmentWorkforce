@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
+from loguru import logger
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -153,8 +154,6 @@ STATIC_ROOT = BASE_DIR / "static"
 CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap4'
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
-
-
 # Allauth settings
 ACCOUNT_EMAIL_VERIFICATION = "none" if DEBUG else "mandatory"
 ACCOUNT_EMAIL_REQUIRED = True
@@ -191,14 +190,14 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 
-# CELERY_BROKER_URL = 'memory://localhost/'
-# CELERY_RESULT_BACKEND = 'cache+memory://'
-# if DEBUG:
-#     CELERY_BROKER_URL = 'memory://'
-#     CELERY_RESULT_BACKEND = 'cache+memory://'
-# else:
-#     CELERY_BROKER_URL = 'redis://localhost:6379/0'
-#     CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+if False:
+    logger.info("Running celery in DEBUG mode")
+    CELERY_BROKER_URL = 'memory://'
+    CELERY_RESULT_BACKEND = 'cache+memory://'
+    CELERY_TASK_ALWAYS_EAGER = True
+else:
+    CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL')
+    CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND')
 
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'

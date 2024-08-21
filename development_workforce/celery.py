@@ -1,6 +1,7 @@
 import os
 
 from celery import Celery, signals
+from loguru import logger
 
 
 class CeleryWorker:
@@ -13,16 +14,14 @@ class CeleryWorker:
     def _configure(self):
         # Load configuration from Django settings
         self.app.config_from_object('django.conf:settings', namespace='CELERY')
-
-        # Set broker and backend URLs from environment variables
-        broker_url = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
-        result_backend = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
-
-        self.app.conf.broker_url = broker_url
-        self.app.conf.result_backend = result_backend
-
-        # Autodiscover tasks across installed apps
+        logger.info(f"Celery backend configuration: {self.app.conf.CELERY_RESULT_BACKEND}")
         self.app.autodiscover_tasks()
+        self.show_discovered_tasks()
+
+    def show_discovered_tasks(self):
+        logger.info("Discovered tasks:")
+        for task_name in self.app.tasks.keys():
+            logger.info(f"- {task_name}")
 
     def setup_cron_job(self, beat_schedule_name, task_name, schedule):
         """Set up a periodic task using the provided schedule."""
@@ -49,6 +48,7 @@ class CeleryWorker:
         """Register a task dynamically with Celery."""
         task = self.app.task(task_function, name=task_name)
         self.tasks[task_name] = task  # Keep track of the task
+        logger.info(f"Task {task_name} registered.")
         return task
 
     def register_tasks(self, tasks):
@@ -64,3 +64,5 @@ class CeleryWorker:
 # Initialize CeleryWorker and expose the app globally
 celery_worker = CeleryWorker()
 app = celery_worker.celery_app
+
+

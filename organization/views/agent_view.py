@@ -27,12 +27,15 @@ def agent_status(request):
             _fetch_new_tasks(agent, repo)
         elif 'stop' in request.POST:
             stop_work_session(agent)
+        elif 'fetch' in request.POST:
+            _fetch_new_tasks(agent, repo)
         return redirect('agent_status')
 
     work_sessions = AgentWorkSession.objects.filter(agent=agent)
 
+    tasks = AgentTask.objects.filter(agent=agent)
     return render(request, 'agent_status.html',
-                  {'agent': agent, 'repositories': repositories, 'work_sessions': work_sessions})
+                  {'agent': agent, 'repositories': repositories, 'work_sessions': work_sessions, 'tasks': tasks})
 
 
 def _fetch_new_tasks(agent, repo):

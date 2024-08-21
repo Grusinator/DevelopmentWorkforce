@@ -29,7 +29,7 @@ class ToolsBuilder:
             self
             # .add_search_tools()
             .add_file_management_tools()
-            .add_pytest_tool()
+            # .add_pytest_tool()
             .build()
         )
 

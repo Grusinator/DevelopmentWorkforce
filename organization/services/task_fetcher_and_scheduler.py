@@ -38,6 +38,7 @@ class TaskFetcherAndScheduler:
         # Register Celery tasks
         self.celery_worker.register_task(EXECUTE_TASK_WORKITEM_NAME, self.execute_task_workitem)
         self.celery_worker.register_task(EXECUTE_TASK_PR_FEEDBACK_NAME, self.execute_task_pr_feedback)
+        self.celery_worker.show_discovered_tasks()
 
     def fetch_new_workitems(self, agent: AgentModel, repo: RepositoryModel):
         state_new = WorkItemStateEnum.PENDING
@@ -91,11 +92,13 @@ class TaskFetcherAndScheduler:
         also tasks will be moved to a different session if the agent is working on a different session,
         so not an accurate log of the task.
         """
-        wo_defaults = {'state': WorkItemStateEnum.PENDING.value}
+
+        wo_defaults = {'state': WorkItemStateEnum.PENDING.value, 'title': work_item.title}
         work_item_obj, _ = WorkItem.objects.update_or_create(work_item_source_id=work_item.source_id, defaults=wo_defaults)
         agent_task, created = AgentTask.objects.update_or_create(
             work_item=work_item_obj,
             tag=agent_task_tag,
+            agent=self.agent,
             defaults=dict(session=self.agent.active_work_session)
         )
         return agent_task, created
@@ -124,9 +127,11 @@ class TaskFetcherAndScheduler:
 
         try:
             task_id = int(sender.request.id)
-            TaskFetcherAndScheduler.complete_agent_task(result, task_id)
         except Exception as e:
+            logger.error(f"Error handling task completion: {e}")
             logger.error(f"No AgentTask found with task_id: {sender.request.id}")
+        else:
+            TaskFetcherAndScheduler.complete_agent_task(result, task_id)
 
     @staticmethod
     def complete_agent_task(result: AutomatedTaskResult, task_id: int):
@@ -169,3 +174,7 @@ class TaskFetcherAndScheduler:
         task_automation = TaskAutomation(repo_md, agent_md)
         result = task_automation.update_pr_from_feedback(pull_request, work_item_md)
         return result.model_dump()
+
+
+execute_task_workitem = TaskFetcherAndScheduler.execute_task_workitem
+default_celery_worker.register_task(execute_task_workitem.__name__, execute_task_workitem)
