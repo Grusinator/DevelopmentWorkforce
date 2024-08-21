@@ -29,9 +29,7 @@ def mocked_local_dev_session(workspace_dir):
 @pytest.fixture
 def task_automation_w_devops_mock(work_item_model, pull_request_model, agent_model, repository_model, workspace_dir,
                                   comment_thread_model):
-    task_updater = MagicMock()
-    task_automation = TaskAutomation(repository_model, agent_model, devops_source=DevOpsSource.MOCK,
-                                     task_updater=task_updater)
+    task_automation = TaskAutomation(repository_model, agent_model, devops_source=DevOpsSource.MOCK)
     task_automation.pull_requests_api.pull_requests.append(pull_request_model)
     task_automation.workitems_api.work_items.append(work_item_model)
     task_automation.repos_api.repositories.append(repository_model)
@@ -50,9 +48,7 @@ def task_automation_all_mocked(workspace_dir, task_automation_w_devops_mock):
 
 @pytest.fixture
 def task_automation_w_ado(work_item_model, pull_request_model, agent_model, repository_model, workspace_dir):
-    task_updater = MagicMock()
-    task_automation = TaskAutomation(repository_model, agent_model, task_updater=task_updater,
-                                     devops_source=DevOpsSource.ADO)
+    task_automation = TaskAutomation(repository_model, agent_model, devops_source=DevOpsSource.ADO)
 
     task_automation.git_manager = MagicMock()
     yield task_automation
@@ -62,10 +58,12 @@ class TestTaskAutomation:
     def test_task_automation_process(self, task_automation_all_mocked, work_item_model, repository_model,
                                      workspace_dir):
         assert len(task_automation_all_mocked.pull_requests_api.pull_requests) == 1
-        task_automation_all_mocked.develop_on_task(work_item_model, repository_model)
+        result = task_automation_all_mocked.develop_on_task(work_item_model, repository_model)
         dummy_file_path = workspace_dir / "dummy_file.txt"
         assert dummy_file_path.exists()
         assert len(task_automation_all_mocked.pull_requests_api.pull_requests) == 2
+        assert result.succeeded
+        assert result.pr_id is not None
 
     def test_pytest_parses_dummy_repo(self, workspace_dir_dummy_repo):
         run_pytest_in_workspace(workspace_dir_dummy_repo)

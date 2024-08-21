@@ -4,14 +4,14 @@ from typing import Dict
 from loguru import logger
 
 from development_workforce.celery import celery_worker as default_celery_worker, CeleryWorker
-from organization.models import Agent, AgentTask, WorkItem
+from organization.models import Agent, AgentTask, WorkItem, TaskStatusEnum
 from organization.schemas import AgentModel
 from src.crew.models import AutomatedTaskResult
 from src.devops_integrations.devops_factory import DevOpsFactory
 from src.devops_integrations.models import ProjectAuthenticationModel, DevOpsSource
 from src.devops_integrations.pull_requests.pull_request_models import PullRequestModel
 from src.devops_integrations.repos.ado_repos_models import RepositoryModel
-from src.devops_integrations.workitems.ado_workitem_models import WorkItemModel
+from src.devops_integrations.workitems.ado_workitem_models import WorkItemModel, WorkItemStateEnum
 from src.task_automation import TaskAutomation
 
 EXECUTE_TASK_PR_FEEDBACK_NAME = 'execute_task_pr_feedback'
@@ -40,7 +40,8 @@ class TaskFetcherAndScheduler:
         self.celery_worker.register_task(EXECUTE_TASK_PR_FEEDBACK_NAME, self.execute_task_pr_feedback)
 
     def fetch_new_workitems(self, agent: AgentModel, repo: RepositoryModel):
-        new_work_items = self.workitems_api.list_work_items(assigned_to=agent.agent_user_name, state="New")
+        state_new = WorkItemStateEnum.PENDING
+        new_work_items = self.workitems_api.list_work_items(assigned_to=agent.agent_user_name, state=state_new)
         for work_item in new_work_items:
             logger.debug(f"task started: {work_item}")
             self.schedule_workitem_task(agent, repo, work_item)
@@ -70,16 +71,7 @@ class TaskFetcherAndScheduler:
         return work_item_md
 
     def schedule_workitem_task(self, agent: AgentModel, repo: RepositoryModel, work_item: WorkItemModel):
-        work_item_obj, _ = WorkItem.objects.get_or_create(
-            work_item_source_id=work_item.source_id,
-            defaults=dict(status='pending')
-        )
-
-        agent_task, created = AgentTask.objects.get_or_create(
-            work_item=work_item_obj,
-            tag=f"DEV-{work_item.source_id}",
-            defaults=dict(session=self.agent.active_work_session)
-        )
+        agent_task, created = self.sync_work_item_and_agent_task(work_item, "DEV")
 
         if created:
             logger.info(f"Task {work_item.source_id} scheduled for execution.")
@@ -92,18 +84,25 @@ class TaskFetcherAndScheduler:
             logger.info(f"Task {work_item.source_id} already registered")
             return self.celery_worker.get_task_result(agent_task.id)
 
-    def schedule_pr_feedback_task(self, agent: AgentModel, repo: RepositoryModel, pr: PullRequestModel,
-                                  work_item: WorkItemModel):
-        work_item_obj, _ = WorkItem.objects.get_or_create(
-            work_item_source_id=work_item.source_id,
-            defaults={'status': 'pending', 'pull_request_source_id': pr.id}
-        )
-
-        agent_task, created = AgentTask.objects.get_or_create(
+    def sync_work_item_and_agent_task(self, work_item: WorkItemModel, agent_task_tag):
+        """Syncs the work item and agent task to the db so that we have an updated record of the task.
+        For now it does not handle it well if there are multiple iterations (tasks) on the same type of tag.
+        eg. DEV and PR. should be handled better later, fx if a pull request has multiple reviews.
+        also tasks will be moved to a different session if the agent is working on a different session,
+        so not an accurate log of the task.
+        """
+        wo_defaults = {'state': WorkItemStateEnum.PENDING.value}
+        work_item_obj, _ = WorkItem.objects.update_or_create(work_item_source_id=work_item.source_id, defaults=wo_defaults)
+        agent_task, created = AgentTask.objects.update_or_create(
             work_item=work_item_obj,
-            tag=f"PR-{pr.id}",
+            tag=agent_task_tag,
             defaults=dict(session=self.agent.active_work_session)
         )
+        return agent_task, created
+
+    def schedule_pr_feedback_task(self, agent: AgentModel, repo: RepositoryModel, pr: PullRequestModel,
+                                  work_item: WorkItemModel):
+        agent_task, created = self.sync_work_item_and_agent_task(work_item, "PR")
 
         if created:
             return self.celery_worker.schedule_task(
@@ -132,18 +131,22 @@ class TaskFetcherAndScheduler:
     @staticmethod
     def complete_agent_task(result: AutomatedTaskResult, task_id: int):
         agent_task = AgentTask.objects.get(id=task_id)
-        work_item: WorkItem = agent_task.work_item
         # Determine the status based on the task result
         task_result = AutomatedTaskResult.model_validate(result)
-        status = 'completed' if task_result.succeeded else 'failed'
+        agent_task_status = TaskStatusEnum.COMPLETED if task_result.succeeded else TaskStatusEnum.FAILED
+
+        work_item_state = WorkItemStateEnum.COMPLETED if task_result.succeeded else WorkItemStateEnum.FAILED
+        work_item: WorkItem = agent_task.work_item
         # Update the work_item and agent_task with the results
-        work_item.status = status
+        work_item.state = work_item_state
         work_item.pull_request_source_id = task_result.pr_id
         work_item.save()
+        # Update the agent task
         agent_task.end_time = datetime.now()
         agent_task.token_usage = task_result.token_usage
+        agent_task.status = agent_task_status
         agent_task.save()
-        logger.info(f"Task {task_id} completed with status: {status}")
+        logger.info(f"Task {task_id} completed with status: {agent_task_status}")
 
     @staticmethod
     def execute_task_workitem(agent: Dict, repo: Dict, work_item: Dict, mock=False):

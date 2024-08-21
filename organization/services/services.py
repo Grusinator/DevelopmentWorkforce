@@ -2,6 +2,7 @@ from django.utils import timezone
 
 from development_workforce.celery import app
 from organization.models import AgentWorkSession
+from organization.services.task_fetcher_and_scheduler import EXECUTE_TASK_WORKITEM_NAME
 
 
 def stop_work_session(agent):
@@ -15,7 +16,7 @@ def stop_work_session(agent):
     active_tasks = app.control.inspect().active() or dict()
     for worker, tasks in active_tasks.items():
         for task in tasks:
-            if task['name'] == 'execute_task_workitem' and task['kwargs']['agent_id'] == agent.source_id:
+            if task['name'] == EXECUTE_TASK_WORKITEM_NAME and task['kwargs']['agent_id'] == agent.source_id:
                 app.control.revoke(task['id'], terminate=True)
 
 

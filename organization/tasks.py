@@ -25,4 +25,4 @@ def fetch_new_tasks_periodically(mock=False):
             wf.fetch_new_workitems(agent_md, repo_md)
             wf.fetch_pull_requests_waiting_for_author(agent_md, repo_md)
 
-celery_worker.setup_cron_job('fetch_new_workitems', fetch_new_tasks_periodically.__name__, 15)
+celery_worker.setup_cron_job('fetch_new_workitems_15_sec', fetch_new_tasks_periodically.__name__, 15)

@@ -6,15 +6,25 @@ from dotenv import load_dotenv
 
 from src.devops_integrations.ado_connection import ADOConnection
 from src.devops_integrations.models import ProjectAuthenticationModel
-from src.devops_integrations.workitems.ado_workitem_models import CreateWorkItemInputModel, WorkItemModel, UpdateWorkItemInputModel, \
-    WorkItemCommentModel
+from src.devops_integrations.workitems.ado_workitem_models import CreateWorkItemInputModel, WorkItemModel, \
+    UpdateWorkItemInputModel, \
+    WorkItemCommentModel, WorkItemStateEnum
 from src.devops_integrations.workitems.base_workitems_api import BaseWorkitemsApi
+
+
 
 load_dotenv()
 
 
 class ADOWorkitemsApi(ADOConnection, BaseWorkitemsApi):
     api_version = "7.1-preview.3"
+    STATE_MAPPER = {
+        "New": WorkItemStateEnum.PENDING,
+        "Active": WorkItemStateEnum.IN_PROGRESS,
+        "Closed": WorkItemStateEnum.COMPLETED,
+        "Resolved": WorkItemStateEnum.COMPLETED,
+        "Removed": WorkItemStateEnum.FAILED,
+    }
 
     def __init__(self, auth: ProjectAuthenticationModel):
         super().__init__(auth)
@@ -25,15 +35,16 @@ class ADOWorkitemsApi(ADOConnection, BaseWorkitemsApi):
             JsonPatchOperation(op='add', path='/fields/System.Description', value=work_item.description),
             JsonPatchOperation(op='add', path='/fields/System.WorkItemType', value=work_item.type),
             JsonPatchOperation(op='add', path='/fields/System.AssignedTo', value=work_item.assigned_to),
+            JsonPatchOperation(op='add', path='/fields/System.State', value=self._get_source_state(work_item.state)),
         ]
         created_work_item = self.wo_client.create_work_item(document, self.auth.project_name, work_item.type)
-        return self.to_work_item(created_work_item)
+        return self._to_work_item(created_work_item)
 
     def get_work_item(self, work_item_id: int) -> WorkItemModel:
         work_item = self.wo_client.get_work_item(work_item_id)
-        return self.to_work_item(work_item)
+        return self._to_work_item(work_item)
 
-    def to_work_item(self, work_item):
+    def _to_work_item(self, work_item):
         return WorkItemModel(
             source_id=work_item.id,
             title=work_item.fields['System.Title'],
@@ -42,9 +53,15 @@ class ADOWorkitemsApi(ADOConnection, BaseWorkitemsApi):
             assigned_to=work_item.fields.get('System.AssignedTo', {}).get('displayName') if work_item.fields.get(
                 'System.AssignedTo') else None,
             tags=work_item.fields.get('System.Tags', '').split('; ') if work_item.fields.get('System.Tags') else [],
-            state=work_item.fields.get('System.State', None),
+            state=self.STATE_MAPPER.get(work_item.fields.get('System.State', None), WorkItemStateEnum.PENDING),
             acceptance_criteria=work_item.fields.get("Microsoft.VSTS.Common.AcceptanceCriteria", None)
         )
+    @classmethod
+    def _get_source_state(cls, state):
+        for key, value in cls.STATE_MAPPER.items():
+            if value == state:
+                return key
+        raise ValueError(f"Invalid state: {state}")
 
     def update_work_item(self, updates: UpdateWorkItemInputModel) -> None:
         document = []
@@ -57,7 +74,8 @@ class ADOWorkitemsApi(ADOConnection, BaseWorkitemsApi):
             document.append(
                 JsonPatchOperation(op='replace', path='/fields/System.AssignedTo', value=updates.assigned_to))
         if updates.state:
-            document.append(JsonPatchOperation(op='replace', path='/fields/System.State', value=updates.state))
+            state = self._get_source_state(updates.state)
+            document.append(JsonPatchOperation(op='replace', path='/fields/System.State', value=state))
         if updates.tags:
             document.append(JsonPatchOperation(op='replace', path='/fields/System.Tags', value="; ".join(updates.tags)))
         if updates.acceptance_criteria:
@@ -71,7 +89,7 @@ class ADOWorkitemsApi(ADOConnection, BaseWorkitemsApi):
         self.wo_client.delete_work_item(work_item_id)
 
     def list_work_items(self, work_item_type: str = None, assigned_to: str = None,
-                        state: str = None) -> List[WorkItemModel]:
+                        state: WorkItemStateEnum = None) -> List[WorkItemModel]:
         query = "SELECT [System.Id], [System.Title], [System.State], [System.AssignedTo], [System.WorkItemType], [System.Description] FROM WorkItems"
         conditions = []
         if work_item_type:
@@ -79,7 +97,8 @@ class ADOWorkitemsApi(ADOConnection, BaseWorkitemsApi):
         if assigned_to:
             conditions.append(f"[System.AssignedTo] = '{assigned_to}'")
         if state:
-            conditions.append(f"[System.State] = '{state}'")
+            source_state = self._get_source_state(state)
+            conditions.append(f"[System.State] = '{source_state}'")
         if conditions:
             query += " WHERE " + " AND ".join(conditions)
         query += " ORDER BY [System.CreatedDate] DESC"

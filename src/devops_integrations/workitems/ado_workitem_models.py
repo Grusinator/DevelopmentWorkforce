@@ -3,6 +3,19 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 from typing import List, Optional
 
+from enum import Enum
+
+
+class WorkItemStateEnum(str, Enum):
+    PENDING = 'pending'  # waiting to be picked up by an agent
+    IN_PROGRESS = 'in_progress'  # has been developed on but pr not completed
+    COMPLETED = 'completed'
+    FAILED = 'failed'
+
+    @classmethod
+    def choices(cls):
+        return [(key.value, key.name.replace("_", " ").title()) for key in cls]
+
 
 class WorkItemBaseModel(BaseModel):
     # Define all fields except 'id'
@@ -18,6 +31,9 @@ class WorkItemBaseModel(BaseModel):
 class WorkItemModel(WorkItemBaseModel):
     # This model includes 'id' and is used in contexts where 'id' is known/required
     source_id: int
+
+    class Config:
+        from_attributes = True
 
     @staticmethod
     def fields():

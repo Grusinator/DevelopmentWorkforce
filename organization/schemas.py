@@ -27,7 +27,7 @@ class AgentWorkSessionModel(BaseModel):
 class AgentModel(BaseModel):
     id: int
     # user: Optional[UserModel] = None
-    pat: str
+    pat: str # SecretStr
     status: str
     organization_name: str
     agent_user_name: str

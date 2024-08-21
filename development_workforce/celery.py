@@ -1,6 +1,6 @@
 import os
+
 from celery import Celery, signals
-from celery.schedules import crontab
 
 
 class CeleryWorker:

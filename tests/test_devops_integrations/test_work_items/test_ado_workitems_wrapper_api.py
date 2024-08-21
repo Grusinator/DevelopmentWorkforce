@@ -1,24 +1,30 @@
 import pytest
 
 from src.devops_integrations.workitems.ado_workitem_models import CreateWorkItemInputModel, \
-    UpdateWorkItemInputModel
+    UpdateWorkItemInputModel, WorkItemStateEnum
 from src.devops_integrations.workitems.ado_workitems_api import ADOWorkitemsApi
 
 
 @pytest.mark.integration
 class TestADOWorkitemsApi:
 
-    def test_create_work_item(self, ado_workitems_api: ADOWorkitemsApi, agent_model):
-        work_item_input = CreateWorkItemInputModel(title="Create Test", description="Test Description", type="Task",
-                                                   assigned_to=agent_model.agent_user_name, state="New")
+    @pytest.mark.parametrize("state", [
+        WorkItemStateEnum.PENDING,
+        WorkItemStateEnum.IN_PROGRESS,
+        WorkItemStateEnum.COMPLETED
+    ])
+    def test_create_work_item(self, ado_workitems_api: ADOWorkitemsApi, agent_model, state):
+        work_item_input = CreateWorkItemInputModel(title="Create Test", description="Test Description", type="User Story",
+                                                   assigned_to=agent_model.agent_user_name,
+                                                   state=state)
         work_item = ado_workitems_api.create_work_item(work_item_input)
         assert isinstance(work_item.source_id, int)
+        assert work_item.state == state
         ado_workitems_api.delete_work_item(work_item.source_id)
 
     def test_get_work_item(self, ado_workitems_api: ADOWorkitemsApi, create_work_item):
         work_item_details = ado_workitems_api.get_work_item(create_work_item.source_id)
         assert work_item_details.source_id == create_work_item.source_id
-
 
     def test_update_work_item(self, ado_workitems_api: ADOWorkitemsApi, create_work_item):
         new_title = "Updated Title"
@@ -43,6 +49,10 @@ class TestADOWorkitemsApi:
 
     def test_list_work_items_assigned_to(self, ado_workitems_api: ADOWorkitemsApi, create_work_item, agent_model):
         work_items = ado_workitems_api.list_work_items(assigned_to=agent_model.agent_user_name)
+        assert any(work_item.source_id == create_work_item.source_id for work_item in work_items)
+
+    def test_list_work_items_state(self, ado_workitems_api: ADOWorkitemsApi, create_work_item, agent_model):
+        work_items = ado_workitems_api.list_work_items(state=WorkItemStateEnum.PENDING)
         assert any(work_item.source_id == create_work_item.source_id for work_item in work_items)
 
     def test_add_and_list_comments(self, ado_workitems_api, create_work_item):

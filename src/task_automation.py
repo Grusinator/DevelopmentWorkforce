@@ -8,7 +8,8 @@ from src.devops_integrations.devops_factory import DevOpsFactory
 from src.devops_integrations.models import ProjectAuthenticationModel, DevOpsSource
 from src.devops_integrations.pull_requests.pull_request_models import CreatePullRequestInputModel, PullRequestModel
 from src.devops_integrations.repos.ado_repos_models import RepositoryModel
-from src.devops_integrations.workitems.ado_workitem_models import WorkItemModel, UpdateWorkItemInputModel
+from src.devops_integrations.workitems.ado_workitem_models import WorkItemModel, UpdateWorkItemInputModel, \
+    WorkItemStateEnum
 from src.git_manager import GitManager
 from src.local_development_session import LocalDevelopmentSession
 from src.models import TaskExtraInfo
@@ -28,7 +29,7 @@ class TaskAutomation:
         self.root_workspace_dir = Path(os.getenv("WORKSPACE_DIR"))
 
     def develop_on_task(self, work_item: WorkItemModel, repo: RepositoryModel) -> AutomatedTaskResult:
-        work_item_input = UpdateWorkItemInputModel(source_id=work_item.source_id, state="Active")
+        work_item_input = UpdateWorkItemInputModel(source_id=work_item.source_id, state=WorkItemStateEnum.IN_PROGRESS)
         self.workitems_api.update_work_item(work_item_input)
 
         repo_dir, branch_name = self._setup_development_env(work_item, repo)
@@ -91,7 +92,7 @@ class TaskAutomation:
                                                          description=work_item.description)
         pull_request = self.pull_requests_api.create_pull_request(repo.source_id, pull_request_input)
         logger.info(f"Created pull request for task: {work_item.title}")
-        return pull_request.id
+        return pull_request
 
     def _setup_development_env(self, work_item: WorkItemModel, repo: RepositoryModel):
         logger.debug("repo issue: " + str(repo.__dict__))

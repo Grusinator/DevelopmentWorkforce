@@ -1,5 +1,10 @@
+from enum import Enum
+
 from django.db import models
 from django.contrib.auth.models import User
+
+from src.devops_integrations.workitems.ado_workitem_models import WorkItemStateEnum, WorkItemModel
+
 
 
 class Project(models.Model):
@@ -59,14 +64,32 @@ class AgentWorkSession(models.Model):
 
 
 class WorkItem(models.Model):
-    """"""
+
     id = models.AutoField(primary_key=True)
     work_item_source_id = models.CharField(max_length=255)
     pull_request_source_id = models.CharField(max_length=255, null=True, blank=True)
-    status = models.CharField(max_length=50, choices=[('pending', 'Pending'), ('in_progress', 'In Progress'),
-                                                      ('completed', 'Completed'), ('failed', 'Failed')],
-                              default='pending')
+    state = models.CharField(
+        max_length=50,
+        choices=WorkItemStateEnum.choices(),
+        default=WorkItemStateEnum.PENDING,
+    )
 
+    @classmethod
+    def from_pydantic(cls, work_item: WorkItemModel):
+        return cls(
+            work_item_source_id=work_item.source_id,
+            pull_request_source_id=work_item.pull_request_source_id,
+            state=work_item.state
+        )
+
+class TaskStatusEnum(str, Enum):
+    PENDING = 'pending'  # waiting to be picked up by an agent
+    COMPLETED = 'completed'
+    FAILED = 'failed'
+
+    @classmethod
+    def choices(cls):
+        return [(key.value, key.name.replace("_", " ").title()) for key in cls]
 
 class AgentTask(models.Model):
     """every time an agent does a job its a task. an iteration of a crewai session.
@@ -74,9 +97,10 @@ class AgentTask(models.Model):
     say for example one for each pull request review iteration"""
 
     id = models.AutoField(primary_key=True)
-    tag = models.CharField(max_length=50, null=True, blank=True)
+    tag = models.CharField(max_length=50, null=True, blank=True, choices=[('DEV', 'Development'), ('PR', 'Pull Request')])
     session = models.ForeignKey(AgentWorkSession, on_delete=models.CASCADE, related_name='tasks')
     work_item = models.ForeignKey(WorkItem, on_delete=models.CASCADE, related_name="tasks")
+    status = models.CharField(max_length=50, choices=TaskStatusEnum.choices(), default=TaskStatusEnum.PENDING)
     start_time = models.DateTimeField(auto_now_add=True)
     end_time = models.DateTimeField(null=True, blank=True)
     token_usage = models.IntegerField(default=0)

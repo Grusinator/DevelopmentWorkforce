@@ -9,7 +9,7 @@ from src.devops_integrations.pull_requests.ado_pull_requests_api import ADOPullR
 from src.devops_integrations.pull_requests.pull_request_models import CreatePullRequestInputModel
 
 from src.devops_integrations.repos.ado_repos_api import ADOReposApi
-from src.devops_integrations.workitems.ado_workitem_models import CreateWorkItemInputModel
+from src.devops_integrations.workitems.ado_workitem_models import CreateWorkItemInputModel, WorkItemStateEnum
 from src.devops_integrations.workitems.ado_workitems_api import ADOWorkitemsApi
 
 
@@ -21,7 +21,8 @@ def ado_workitems_api(auth_model) -> ADOWorkitemsApi:
 @pytest.fixture
 def create_work_item(ado_workitems_api: ADOWorkitemsApi, agent_model):
     work_item_input = CreateWorkItemInputModel(title="Test Work Item", description="This is a test work item",
-                                               type="Task", assigned_to=agent_model.agent_user_name, state="New")
+                                               type="Task", assigned_to=agent_model.agent_user_name,
+                                               state=WorkItemStateEnum.PENDING)
     work_item = ado_workitems_api.create_work_item(work_item_input)
     yield ado_workitems_api.get_work_item(work_item.source_id)
     try:
