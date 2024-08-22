@@ -51,7 +51,7 @@ class TaskAutomation:
                                 work_item: WorkItemModel) -> AutomatedTaskResult:
         # fetch repository again since the git url is not being parsed along. have not figured out why
         repository = self.repos_api.get_repository(pull_request.repository.name)
-        repo_dir, branch_name = self._setup_development_env(work_item, repository)
+        repo_dir, branch_name = self._setup_development_env(work_item, repository, pull_request.source_branch)
         comment_threads = self.pull_requests_api.get_pull_request_comments(pull_request.repository.name,
                                                                            pull_request.id)
         extra_info = TaskExtraInfo(pr_comments=comment_threads)
@@ -94,9 +94,9 @@ class TaskAutomation:
         logger.info(f"Created pull request for task: {work_item.title}")
         return pull_request
 
-    def _setup_development_env(self, work_item: WorkItemModel, repo: RepositoryModel):
+    def _setup_development_env(self, work_item: WorkItemModel, repo: RepositoryModel, source_branch=None):
         logger.debug("repo issue: " + str(repo.__dict__))
-        branch_name = self._create_branch_name(work_item)
+        branch_name = source_branch or self._create_branch_name(work_item)
         repo_dir = self.root_workspace_dir / branch_name
         self.git_manager.clone_and_checkout_branch(repo.git_url, repo_dir, branch_name)
         logger.info(f"Cloned repository to {repo_dir}")

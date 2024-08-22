@@ -10,7 +10,7 @@ from src.util_tools.map_dir import DirectoryStructure
 
 class DirectoryStructureTool(BaseTool):
     name = "map_directory_structure"
-    description = "Maps the directory structure of a given root directory."
+    description = "Maps the directory structure of the current workspace."
     _working_directory: Path
 
     def __init__(self, _working_directory: Path):
@@ -20,8 +20,7 @@ class DirectoryStructureTool(BaseTool):
     def _run(self, args=(), kwargs=None, run_manager: Optional[CallbackManagerForToolRun] = None) -> str:
         try:
             ds = DirectoryStructure(self._working_directory)
-            formatted_structure = ds.get_formatted_directory_structure()
-            return "\n".join(formatted_structure)
+            return ds.get_formatted_directory_structure()
         except Exception as e:
             logger.error(f"Failed to map directory structure. Error: {e}")
             return str(e)

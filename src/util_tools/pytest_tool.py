@@ -12,7 +12,7 @@ from src.utils import log_inputs
 logger = logging.getLogger(__name__)
 
 class PytestTool(BaseTool):
-    name = "run pytests"
+    name = "run_pytest"
     description = "This tool runs pytest in the working directory and generates a JSON report. " \
                   "this tool requires no input, just leave the input field empty: 'Action Input: ' "
     _working_directory: Path
@@ -59,8 +59,11 @@ class PytestTool(BaseTool):
         for line in output_lines:
             logger.debug(line)
 
+        pytest_output = "\n".join(output_lines)
+
         # Load and return the JSON report
         with open(json_report_path, 'r') as report_file:
             report_json = json.load(report_file)
-            return report_json
+
+        return pytest_output + "\n" + json.dumps(report_json)
 

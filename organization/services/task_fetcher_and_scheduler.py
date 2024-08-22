@@ -3,7 +3,7 @@ from typing import Dict
 
 from loguru import logger
 
-from development_workforce.celery import celery_worker as default_celery_worker, CeleryWorker
+from development_workforce.celery import celery_worker as default_celery_worker, CeleryWorker, close_old_connections
 from organization.models import Agent, AgentTask, WorkItem, TaskStatusEnum
 from organization.schemas import AgentModel
 from src.crew.models import AutomatedTaskResult
@@ -30,7 +30,7 @@ class TaskFetcherAndScheduler:
         self.pull_requests_api = devops_factory.get_pull_requests_api()
         self.agent = Agent.objects.get(id=agent.id)
         self.celery_worker = celery_worker
-        self.setup_tasks_and_signals()
+        # self.setup_tasks_and_signals() # This is not needed here, as the tasks are registered at load further below
 
     def setup_tasks_and_signals(self):
         # Connect task completion to handler
@@ -38,9 +38,9 @@ class TaskFetcherAndScheduler:
         # Connect task picked up to handler
         self.celery_worker.connect_task_prerun_signals(self._handle_task_picked_up)
         # Register Celery tasks
-        self.celery_worker.register_task(EXECUTE_TASK_WORKITEM_NAME, self.execute_task_workitem)
-        self.celery_worker.register_task(EXECUTE_TASK_PR_FEEDBACK_NAME, self.execute_task_pr_feedback)
-        self.celery_worker.show_discovered_tasks()
+        self.celery_worker.register_task(self.execute_task_workitem, EXECUTE_TASK_WORKITEM_NAME)
+        self.celery_worker.register_task(self.execute_task_pr_feedback, EXECUTE_TASK_PR_FEEDBACK_NAME)
+        # self.celery_worker.show_discovered_tasks()
 
     def fetch_new_workitems(self, agent: AgentModel, repo: RepositoryModel):
         state_new = WorkItemStateEnum.PENDING
@@ -162,7 +162,7 @@ class TaskFetcherAndScheduler:
         work_item.save()
         # Update the agent task
         agent_task.end_time = datetime.now()
-        agent_task.token_usage = task_result.token_usage
+        agent_task.token_usage = task_result.token_usage or 0
         agent_task.status = agent_task_status
         agent_task.save()
         logger.info(f"Task {task_id} completed with status: {agent_task_status}")
@@ -189,6 +189,8 @@ class TaskFetcherAndScheduler:
         result = task_automation.update_pr_from_feedback(pull_request, work_item_md)
         return result.model_dump()
 
+default_celery_worker.register_task(TaskFetcherAndScheduler.execute_task_workitem)
+default_celery_worker.register_task(TaskFetcherAndScheduler.execute_task_pr_feedback)
 
-execute_task_workitem = TaskFetcherAndScheduler.execute_task_workitem
-default_celery_worker.register_task(execute_task_workitem.__name__, execute_task_workitem)
+default_celery_worker.connect_task_success_signals(TaskFetcherAndScheduler._handle_task_completion)
+default_celery_worker.connect_task_prerun_signals(TaskFetcherAndScheduler._handle_task_picked_up)

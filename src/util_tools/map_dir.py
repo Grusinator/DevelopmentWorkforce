@@ -1,10 +1,16 @@
 from pathlib import Path
 
 
+# space = '    '
+# branch = '│   '
+# tee = '├── '
+# last = '└── '
+
 space = '    '
-branch = '│   '
-tee = '├── '
-last = '└── '
+branch = '|   '
+tee = '|-- '
+last = '`-- '
+
 
 
 # Example, but does not exclude the git folder

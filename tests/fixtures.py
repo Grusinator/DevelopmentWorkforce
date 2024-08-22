@@ -22,6 +22,21 @@ from src.devops_integrations.pull_requests.pull_request_models import PullReques
 #     from celery.fixups.django import DjangoWorkerFixup
 #     DjangoWorkerFixup.install = lambda x: None
 
+import pytest
+from pytest_docker_tools import build
+
+# @pytest.fixture(scope='session')
+# def celery_base_worker_image():
+#     return build(
+#         path='pytest_celery/vendors/worker',
+#         tag='pytest-celery/components/worker:default',
+#         buildargs={
+#             'CELERY_VERSION': '5.2.7',
+#             'CELERY_LOG_LEVEL': 'INFO',
+#             'CELERY_WORKER_NAME': 'celery@%h',
+#             'CELERY_WORKER_QUEUE': 'celery'
+#         }
+#     )
 
 @pytest.fixture(scope="function")
 def create_test_workspace_repo():

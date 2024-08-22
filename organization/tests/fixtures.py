@@ -12,6 +12,14 @@ from src.devops_integrations.models import DevOpsSource
 from src.devops_integrations.workitems.ado_workitem_models import WorkItemModel
 
 
+# import pytest
+#
+# @pytest.fixture(autouse=True)
+# @pytest.mark.django_db(transaction=True)
+# def enable_db_access_for_all_tests():
+#     pass
+#
+
 @pytest.fixture
 def user_in_db(db):
     return User.objects.create(username="test_user", email="test@example.com", password="password")

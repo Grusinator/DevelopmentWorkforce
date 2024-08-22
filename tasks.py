@@ -42,7 +42,7 @@ def start_flower(ctx):
 
 
 @task
-def map_dir(ctx, path="."):
+def list_directory(ctx, path="."):
     struct = DirectoryStructure(path).get_formatted_directory_structure()
     print(struct)
     return struct
@@ -95,3 +95,60 @@ def abandon_all_prs(ctx, repo_name=None):
     for pr in prs:
         ado_pull_requests_api.abandon_pull_request(repository_id, pr.id)
     print("All PRs have been abandoned.")
+
+
+from invoke import task
+import subprocess
+import sys
+
+
+@task
+def find_working_pytest_celery_version(c):
+    """
+    Test different versions of pytest-celery to find a working one.
+    """
+
+    def run_test(version):
+        print(f"Testing pytest-celery version {version}")
+
+        # Uninstall current version
+        c.run(f"{sys.executable} -m pip uninstall -y pytest-celery", warn=True)
+
+        # Install specific version
+        result = c.run(f"{sys.executable} -m pip install pytest-celery=={version}", warn=True)
+
+        if result.failed:
+            print(f"Failed to install pytest-celery {version}")
+            print(result.stderr)
+            return False
+
+        # Run pytest
+        result = c.run("pytest tests/test_crew/test_load_tools.py", warn=True)
+
+        if result.ok:
+            print(f"pytest-celery {version} works!")
+            return True
+        else:
+            print(f"pytest-celery {version} failed")
+            print(result.stderr)
+            return False
+
+    # List of versions to test, from newest to oldest
+    versions = [
+        "1.0.0", "0.1.0", "0.0.9", "0.0.8", "0.0.7", "0.0.6", "0.0.5", "0.0.4", "0.0.3", "0.0.2", "0.0.1"
+    ]
+
+    for version in versions:
+        if run_test(version):
+            print(f"Found working version: {version}")
+            break
+    else:
+        print("No working version found")
+
+
+@task
+def test(c):
+    """
+    Run the test suite.
+    """
+    c.run("pytest -m 'not requires_llm'")

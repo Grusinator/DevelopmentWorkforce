@@ -15,6 +15,7 @@ from src.devops_integrations.workitems.mock_workitems_api import MockWorkitemsAp
 from src.git_tool.git_abstraction import GitAbstraction
 from src.git_tool.git_tool import instantiate_git_tools
 from src.util_tools.invoke_tool import TaskCollector
+from src.util_tools.map_dir_tool import DirectoryStructureTool
 from src.util_tools.pytest_tool import PytestTool
 
 
@@ -29,7 +30,9 @@ class ToolsBuilder:
             self
             # .add_search_tools()
             .add_file_management_tools()
-            # .add_pytest_tool()
+            .add_map_dir_tool()
+            .add_pytest_tool()
+            # .add_invoke_tools()
             .build()
         )
 
@@ -49,9 +52,9 @@ class ToolsBuilder:
         return self
 
     def add_file_management_tools(self):
-        toolkit = FileManagementToolkit(root_dir=str(self.working_directory))
-        file_mgt_tools = toolkit.get_tools()
-        self.tools += file_mgt_tools
+        selected_tools = ["read_file", "write_file", "file_delete", "move_file"]
+        toolkit = FileManagementToolkit(root_dir=str(self.working_directory), selected_tools=selected_tools)
+        self.tools += toolkit.get_tools()
         return self
 
     def add_pytest_tool(self):
@@ -65,15 +68,25 @@ class ToolsBuilder:
         self.tools += git_tools
         return self
 
-    def add_invoke_tools(self):
+    def add_invoke_tools(self, *task_names):
         collection = Collection.from_module(tasks)
         collector = TaskCollector(collection)
-        tools = collector.collect_tasks()
-        self.tools += tools
+        all_tools = collector.collect_tasks()
+        
+        if task_names:
+            selected_tools = [tool for tool in all_tools if tool.name in task_names]
+            self.tools += selected_tools
+        else:
+            self.tools += all_tools
+        
         return self
 
     def build(self):
         return self.tools
+
+    def add_map_dir_tool(self):
+        self.tools.append(DirectoryStructureTool(self.working_directory))
+        return self
 
 
 # Usage example

@@ -83,6 +83,9 @@ class WorkItem(models.Model):
             state=work_item.state
         )
 
+    def __str__(self):
+        return f"{self.source_id} {self.title}"
+
 class TaskStatusEnum(str, Enum):
     PENDING = 'pending'  # waiting to be picked up by an agent
     COMPLETED = 'completed'
@@ -109,4 +112,4 @@ class AgentTask(models.Model):
     agent = models.ForeignKey(Agent, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"Task {self.id}, wo: {self.work_item.title} for Session {self.session.start_time}"
+        return f"Task {self.id} - {self.tag}, wo: {self.work_item.title[:100]}"
