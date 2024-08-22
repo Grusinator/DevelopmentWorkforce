@@ -34,7 +34,9 @@ class TaskFetcherAndScheduler:
 
     def setup_tasks_and_signals(self):
         # Connect task completion to handler
-        self.celery_worker.connect_task_signals(self._handle_task_completion)
+        self.celery_worker.connect_task_success_signals(self._handle_task_completion)
+        # Connect task picked up to handler
+        self.celery_worker.connect_task_prerun_signals(self._handle_task_picked_up)
         # Register Celery tasks
         self.celery_worker.register_task(EXECUTE_TASK_WORKITEM_NAME, self.execute_task_workitem)
         self.celery_worker.register_task(EXECUTE_TASK_PR_FEEDBACK_NAME, self.execute_task_pr_feedback)
@@ -94,7 +96,8 @@ class TaskFetcherAndScheduler:
         """
 
         wo_defaults = {'state': WorkItemStateEnum.PENDING.value, 'title': work_item.title}
-        work_item_obj, _ = WorkItem.objects.update_or_create(work_item_source_id=work_item.source_id, defaults=wo_defaults)
+        work_item_obj, _ = WorkItem.objects.update_or_create(source_id=work_item.source_id,
+                                                             defaults=wo_defaults)
         agent_task, created = AgentTask.objects.update_or_create(
             work_item=work_item_obj,
             tag=agent_task_tag,
@@ -132,6 +135,17 @@ class TaskFetcherAndScheduler:
             logger.error(f"No AgentTask found with task_id: {sender.request.id}")
         else:
             TaskFetcherAndScheduler.complete_agent_task(result, task_id)
+
+    @staticmethod
+    def _handle_task_picked_up(sender=None, result=None, **kwargs):
+        task_id = int(sender.request.id)
+        agent_task = AgentTask.objects.get(id=task_id)
+        agent_task.status = TaskStatusEnum.IN_PROGRESS
+        agent_task.save()
+        work_item = WorkItem.objects.get(source_id=agent_task.work_item.source_id)
+        work_item.state = WorkItemStateEnum.IN_PROGRESS
+        work_item.save()
+        logger.info(f"Task {task_id} picked up. AgentTask and WorkItem statuses updated to IN_PROGRESS.")
 
     @staticmethod
     def complete_agent_task(result: AutomatedTaskResult, task_id: int):

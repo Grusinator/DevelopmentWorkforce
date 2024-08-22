@@ -40,9 +40,13 @@ class CeleryWorker:
         """Fetch the result of a task."""
         return self.app.AsyncResult(str(task_id)).result
 
-    def connect_task_signals(self, handler):
+    def connect_task_success_signals(self, handler):
         """Connect the task success signal to the provided handler."""
         signals.task_success.connect(handler)
+
+    def connect_task_prerun_signals(self, handler):
+        """Connect the task success signal to the provided handler."""
+        signals.task_prerun.connect(handler)
 
     def register_task(self, task_name, task_function):
         """Register a task dynamically with Celery."""

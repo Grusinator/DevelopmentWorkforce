@@ -57,7 +57,7 @@ def work_item_model(agent_model):
 
 @pytest.fixture
 def work_item_in_db(work_item_model):
-    return WorkItem.objects.create(work_item_source_id=work_item_model.source_id, title_id=work_item_model.title)
+    return WorkItem.objects.create(source_id=work_item_model.source_id, title_id=work_item_model.title)
 
 
 @pytest.fixture

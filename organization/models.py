@@ -64,9 +64,8 @@ class AgentWorkSession(models.Model):
 
 
 class WorkItem(models.Model):
-
     id = models.AutoField(primary_key=True)
-    work_item_source_id = models.CharField(max_length=255)
+    source_id = models.CharField(max_length=255)
     title = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
     pull_request_source_id = models.CharField(max_length=255, null=True, blank=True)
@@ -79,7 +78,7 @@ class WorkItem(models.Model):
     @classmethod
     def from_pydantic(cls, work_item: WorkItemModel):
         return cls(
-            work_item_source_id=work_item.source_id,
+            source_id=work_item.source_id,
             pull_request_source_id=work_item.pull_request_source_id,
             state=work_item.state
         )
@@ -87,6 +86,7 @@ class WorkItem(models.Model):
 class TaskStatusEnum(str, Enum):
     PENDING = 'pending'  # waiting to be picked up by an agent
     COMPLETED = 'completed'
+    IN_PROGRESS = 'in_progress'  # has been developed on but pr not completed
     FAILED = 'failed'
 
     @classmethod
@@ -109,4 +109,4 @@ class AgentTask(models.Model):
     agent = models.ForeignKey(Agent, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"Task {self.id}, wo: {self.work_item.work_item_source_id} for Session {self.session.start_time}"
+        return f"Task {self.id}, wo: {self.work_item.title} for Session {self.session.start_time}"
