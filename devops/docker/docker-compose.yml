@@ -3,10 +3,7 @@ version: '3.9'
 services:
   postgres:
     image: postgres:13
-    environment:
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+
     volumes:
       - postgres13_data:/var/lib/postgresql/data
     ports:
@@ -24,7 +21,6 @@ services:
     ports:
       - "11400:11400"
     environment:
-      - OLLAMA_API_KEY=${OLLAMA_API_KEY}
       - OLLAMA_MODEL_PATH=/models
     volumes:
       - ./models:/models
@@ -34,23 +30,20 @@ services:
     build:
       context: ../..
       dockerfile: devops/docker/development-workforce.Dockerfile
-    command: bash -c "gunicorn development_workforce.wsgi:application --bind 0.0.0.0:8000"
+    command: bash -c "python manage.py collectstatic --noinput && gunicorn development_workforce.wsgi:application --bind 0.0.0.0:8000 --timeout 120"
     env_file:
       - ../../.env
     ports:
       - "8000:8000"
     volumes:
-      - .:/app
+      - ../..:/app
     environment:
-      - DEBUG=1
-      - SECRET_KEY=${SECRET_KEY}
-      - DJANGO_ALLOWED_HOSTS=0.0.0.0
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - DEBUG=True
+      - DJANGO_SETTINGS_MODULE=development_workforce.settings
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
       - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
     depends_on:
       - postgres
       - redis
@@ -61,7 +54,7 @@ services:
       dockerfile: devops/docker/development-workforce.Dockerfile
     command: celery -A development_workforce worker --loglevel=info
     volumes:
-      - .:/app
+      - ../..:/app
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
@@ -69,15 +62,16 @@ services:
     depends_on:
       - redis
       - web
+      
 
-  flower:
-    image: mher/flower:latest
-    command: flower --broker=redis://redis:6379/0 --port=5555
-    ports:
-      - "5555:5555"
-    depends_on:
-      - redis
-      - celery_worker
+  # flower:
+  #   image: mher/flower:latest
+  #   command: flower --broker=redis://redis:6379/0 --port=5555
+  #   ports:
+  #     - "5555:5555"
+  #   depends_on:
+  #     - redis
+  #     - celery_worker
 
 volumes:
   postgres13_data:

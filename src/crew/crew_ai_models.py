@@ -22,12 +22,10 @@ class CrewAiModels:
     #     endpoint_url=os.getenv("HUGGINGFACE_API_BASE"),
     #     huggingfacehub_api_token=os.getenv("HUGGINGFACE_API_KEY"),
     #     task="text-generation",
+    #     max_new_tokens=2000,  # Moved from model_kwargs
+    #     repetition_penalty=1.1,  # Moved from model_kwargs
     #     model_kwargs={
-    #         "max_new_tokens": 2000,  # Adjust based on input size to keep total under 1024
-    #         # "top_k": 50,
-    #         # "temperature": 0.2,
-    #         "repetition_penalty": 1.1,
-    #         "max_length": 4000,  # Ensure input + max_new_tokens <= 1024
+    #         "max_length": 4000,  # This can stay in model_kwargs
     #     }
     # )
 

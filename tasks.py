@@ -27,6 +27,22 @@ def docker_run(ctx, env=""):
 
 
 @task
+def docker_compose_up(c):
+    """
+    Run docker-compose up with the correct file path.
+    """
+    c.run("docker-compose -f devops/docker/docker-compose.yml up --build")
+
+@task
+def docker_compose_down(c):
+    """
+    Run docker-compose down with the correct file path.
+    """
+    c.run("docker-compose -f devops/docker/docker-compose.yml down")
+
+
+
+@task
 def start_worker(ctx):
     ctx.run("celery -A development_workforce worker --loglevel=info -E --pool=solo")
 
@@ -97,9 +113,6 @@ def abandon_all_prs(ctx, repo_name=None):
     print("All PRs have been abandoned.")
 
 
-from invoke import task
-import subprocess
-import sys
 
 
 @task

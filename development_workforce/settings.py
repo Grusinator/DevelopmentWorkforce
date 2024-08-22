@@ -26,11 +26,14 @@ SECRET_KEY = "django-insecure-b&3a27#y3y@pcd&)e_+wo3e+(1ffuuo)-so=izb4mc2u!+l0t6
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
+logger.info(f"DEBUG: {DEBUG}")
 
 ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
     "c41e-45-10-152-239.ngrok-free.app",
+    '[::1]', 
+    'web'
 ]
 
 load_dotenv()
@@ -115,10 +118,24 @@ WSGI_APPLICATION = "development_workforce.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
+#     }
+# }
+
+
+#Postgres db
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("POSTGRES_DB"),
+        "USER": os.getenv("POSTGRES_USER"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
+        "HOST": os.getenv("POSTGRES_HOST", "postgres"),  # Use 'postgres' as default for Docker
+        "PORT": os.getenv("POSTGRES_PORT", "5432"),
     }
 }
 
@@ -146,7 +163,6 @@ MEDIA_URL = '/media/'
 
 STATICFILES_DIRS = [
     BASE_DIR / 'core/static',
-    BASE_DIR / 'svelte-app' / 'public'
 ]
 STATIC_ROOT = BASE_DIR / "static"
 # MEDIA_ROOT = os.path.join(ENV_PATH, "media/")

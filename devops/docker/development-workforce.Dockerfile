@@ -1,31 +1,19 @@
 FROM python:3.10
 
-# Install Python and pip
+# Install system dependencies
 RUN apt-get update && apt-get install -y nginx build-essential cmake
 
-# Create a virtual environment
-RUN python3 -m venv /opt/venv
-
 # Set the working directory
-WORKDIR /workspace
+WORKDIR /app
 
-# Copy the requirements file and the project code from your host to the container
+# Copy the requirements file
 COPY requirements.txt .
-# make build context find the venv first, equivalent to activating and install Python dependencies
-ENV PATH="/opt/venv/bin:$PATH"
+
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy the project code
 COPY . .
-
-# Environment variables (these should be set securely in real deployments)
-ENV GITHUB_TOKEN=replace-with-your-token
-ENV OPENAI_API_KEY=replace-with-your-token
-ENV OPENAI_ORG_ID=replace-with-your-token
-ENV OPENAI_PROJECT_ID=replace-with-your-token
-ENV DJANGO_SECRET=replace-with-your-token
-ENV DJANGO_DEBUG=False
-ENV DJANGO_ALLOWED_HOSTS="None"
-
 
 # Collect static files
 RUN python manage.py collectstatic --noinput
@@ -33,7 +21,8 @@ RUN python manage.py collectstatic --noinput
 # Configure Nginx
 COPY devops/docker/nginx.conf /etc/nginx/nginx.conf
 
-# Start the server
-CMD ["bash", "-c", "gunicorn development_workforce.wsgi:application --bind 0.0.0.0:8000"]
-
+# Expose the port the app runs on
 EXPOSE 8000
+
+# Command to run the application
+CMD ["gunicorn", "development_workforce.wsgi:application", "--bind", "0.0.0.0:8000"]
