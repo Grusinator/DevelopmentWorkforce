@@ -189,8 +189,14 @@ class TaskFetcherAndScheduler:
         result = task_automation.update_pr_from_feedback(pull_request, work_item_md)
         return result.model_dump()
 
-default_celery_worker.register_task(TaskFetcherAndScheduler.execute_task_workitem)
-default_celery_worker.register_task(TaskFetcherAndScheduler.execute_task_pr_feedback)
 
-default_celery_worker.connect_task_success_signals(TaskFetcherAndScheduler._handle_task_completion)
-default_celery_worker.connect_task_prerun_signals(TaskFetcherAndScheduler._handle_task_picked_up)
+
+    @classmethod
+    def setup_celery_connections(cls, celery_worker):
+        celery_worker.register_task(cls.execute_task_workitem)
+        celery_worker.register_task(cls.execute_task_pr_feedback)
+        celery_worker.connect_task_success_signals(cls._handle_task_completion)
+        celery_worker.connect_task_prerun_signals(cls._handle_task_picked_up)
+
+
+TaskFetcherAndScheduler.setup_celery_connections(default_celery_worker)

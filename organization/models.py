@@ -101,7 +101,7 @@ class AgentTask(models.Model):
     There can be many agent tasks (work item iteration) on each work item,
     say for example one for each pull request review iteration"""
 
-    id = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True) # should be converted to uuid to align with crewai
     tag = models.CharField(max_length=50, null=True, blank=True, choices=[('DEV', 'Development'), ('PR', 'Pull Request')])
     session = models.ForeignKey(AgentWorkSession, on_delete=models.CASCADE, related_name='tasks')
     work_item = models.ForeignKey(WorkItem, on_delete=models.CASCADE, related_name="tasks")

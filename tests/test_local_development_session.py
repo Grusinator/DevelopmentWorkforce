@@ -52,3 +52,15 @@ class TestLocalDevelopmentSession:
         assert result.task_results[0].output == "UNDERSTOOD"
         assert result.task_results[1].output == "SUCCEEDED"
         assert result.succeeded
+
+    @pytest.mark.requires_llm
+    def test_local_development_result_dummy(self, workspace_dir_dummy_repo, repository_model, work_item_model,
+                                      comment_thread_model):
+        session = LocalDevelopmentSession()
+        work_item_model.description = "just respond with 'SUCCEEDED'"
+        extra_info = TaskExtraInfo()
+        result: LocalDevelopmentResult = session.local_development_on_workitem(work_item_model,
+                                                                               Path(workspace_dir_dummy_repo),
+                                                                               extra_info)
+        assert result.succeeded
+        assert result.token_usage > 0

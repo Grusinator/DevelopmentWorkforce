@@ -11,6 +11,9 @@ from src.devops_integrations.pull_requests.pull_request_models import CreatePull
 from src.devops_integrations.repos.ado_repos_api import ADOReposApi
 from src.devops_integrations.workitems.ado_workitem_models import CreateWorkItemInputModel, WorkItemStateEnum
 from src.devops_integrations.workitems.ado_workitems_api import ADOWorkitemsApi
+from src.git_manager import GitManager
+
+FEATURE_BRANCH = "feature-branch"
 
 
 @pytest.fixture
@@ -51,12 +54,12 @@ def ado_pull_requests_api(auth_model: ProjectAuthenticationModel) -> ADOPullRequ
 @pytest.fixture
 def create_pull_request_input_model():
     return CreatePullRequestInputModel(title="Test Pull Request", description="This is a test pull request",
-                                       source_branch="feature-branch",
+                                       source_branch=FEATURE_BRANCH,
                                        target_branch="main")
 
 
 @pytest.fixture
-def create_pull_request(ado_pull_requests_api, create_pull_request_input_model, get_repository):
+def create_pull_request(ado_pull_requests_api, create_pull_request_input_model, get_repository, setup_feature_branch):
     pr = ado_pull_requests_api.create_pull_request(get_repository.name, create_pull_request_input_model)
     yield pr
     if ado_pull_requests_api.get_pull_request(get_repository.source_id, pr.id).status != "abandoned":
@@ -86,21 +89,20 @@ def setup_main_branch(ado_pull_requests_api: ADOPullRequestsApi, ado_repos_api: 
 
 
 @pytest.fixture
-def setup_feature_branch(ado_pull_requests_api: ADOPullRequestsApi, ado_repos_api, setup_main_branch, get_repository):
-    feature_branch = 'feature-branch'
+def setup_feature_branch(ado_repos_api, setup_main_branch, get_repository, agent_model, workspace_dir):
+    feature_branch_name = FEATURE_BRANCH
+    git_manager = GitManager(agent_model.pat)
+    git_manager.clone_and_checkout_branch(get_repository.git_url, workspace_dir, setup_main_branch)
 
-    if not ado_repos_api.branch_exists(get_repository.source_id, feature_branch):
-        ado_repos_api.create_branch(get_repository.source_id, feature_branch, 'main')
+    (workspace_dir / "test_file.txt").write_text("Test content")
 
+    git_manager.push_changes(workspace_dir, feature_branch_name, "Test commit on feature branch")
+
+    return feature_branch_name
 
 @pytest.fixture
-def open_pull_request(ado_pull_requests_api: ADOPullRequestsApi, setup_feature_branch, get_repository):
-    pr_input = CreatePullRequestInputModel(
-        source_branch="feature-branch",
-        target_branch="main",
-        title="Create Test PR",
-        description="Test PR Description"
-    )
+def open_pull_request(ado_pull_requests_api: ADOPullRequestsApi, get_repository, create_pull_request_input_model):
+    pr_input = create_pull_request_input_model
 
     prs = ado_pull_requests_api.list_pull_requests(get_repository.source_id)
     open_pr = next((pr for pr in prs if pr.title == pr_input.title and pr.status == 'active'), None)

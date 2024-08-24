@@ -3,7 +3,7 @@
 # sentence-transformers==2.2.0
 # llm>=0.1
 azure-devops
-crewai
+crewai==0.11.1
 duckduckgo-search
 huggingface-hub
 python-dotenv

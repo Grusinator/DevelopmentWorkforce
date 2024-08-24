@@ -34,3 +34,5 @@ Thumbs.db
 *.env
 
 test_workspace/*
+static/*
+media/*

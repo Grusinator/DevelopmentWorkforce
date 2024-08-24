@@ -36,6 +36,7 @@ def agent_in_db(db, user_in_db, agent_model):
     agent = Agent.objects.create(user=user_in_db, pat=agent_model.pat, status="working",
                                  organization_name=agent_model.organization_name,
                                  agent_user_name=agent_model.agent_user_name)
+    agent_model.id = agent.id
     work_session = AgentWorkSession.objects.create(agent=agent)
     agent.active_work_session = work_session
     agent.save()
@@ -87,7 +88,9 @@ def test_celery_worker(celery_app):
 @pytest.fixture
 def fetcher_and_scheduler(agent_in_db, agent_model, repository_model, work_item_model, pull_request_model,
                           test_celery_worker):
-    fetcher_and_scheduler = TaskFetcherAndScheduler(agent_model, repository_model, DevOpsSource.MOCK, test_celery_worker)
+    fetcher_and_scheduler = TaskFetcherAndScheduler(agent_model, repository_model, DevOpsSource.MOCK,
+                                                    test_celery_worker)
+    fetcher_and_scheduler.setup_celery_connections(test_celery_worker)
     fetcher_and_scheduler.workitems_api.work_items = [work_item_model]
     fetcher_and_scheduler.repos_api.repositories = [repository_model]
     fetcher_and_scheduler.pull_requests_api.pull_requests = []

@@ -59,6 +59,9 @@ services:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - DJANGO_SETTINGS_MODULE=development_workforce.settings
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - WORKSPACE_DIR=/app/workspace
     depends_on:
       - redis
       - web

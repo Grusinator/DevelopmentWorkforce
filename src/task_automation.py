@@ -24,7 +24,7 @@ class TaskAutomation:
         self.repos_api = self.devops_factory.get_repos_api()
         self.pull_requests_api = self.devops_factory.get_pull_requests_api()
         self.dev_session = LocalDevelopmentSession()
-        self.git_manager = GitManager()
+        self.git_manager = GitManager(agent.pat)
         self.user_name = agent.agent_user_name
         self.root_workspace_dir = Path(os.getenv("WORKSPACE_DIR"))
 

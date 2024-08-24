@@ -34,7 +34,7 @@ class TestTaskFetcherAndScheduler:
         else:
             fetcher_and_scheduler.celery_worker.schedule_task.assert_not_called()
 
-    def test_fetch_pull_requests_waiting_for_author_gets_scheduled(self, fetcher_and_scheduler, agent_model,
+    def test_fetch_pull_requests_waiting_for_author_gets_scheduled(self, fetcher_and_scheduler, agent_in_db, agent_model,
                                                                    repository_model,
                                                                    pull_request_model, work_item_model):
         fetcher_and_scheduler.celery_worker = Mock()
@@ -44,7 +44,8 @@ class TestTaskFetcherAndScheduler:
         pull_requests = fetcher_and_scheduler.fetch_pull_requests_waiting_for_author(agent_model, repository_model)
         args = [agent_model.model_dump(), repository_model.model_dump(), pull_request_model.model_dump(),
                 work_item_model.model_dump()]
-        fetcher_and_scheduler.celery_worker.schedule_task.assert_called_once_with('execute_task_pr_feedback', "1",
+        task_id = str(AgentTask.objects.get(work_item__source_id=work_item_model.source_id).id)
+        fetcher_and_scheduler.celery_worker.schedule_task.assert_called_once_with('execute_task_pr_feedback', task_id,
                                                                                   *args)
         assert isinstance(pull_requests, list)
         for pr in pull_requests:
@@ -61,7 +62,7 @@ class TestTaskFetcherAndScheduler:
 
     @patch.object(TaskAutomation, 'develop_on_task')
     def test_handle_task_completion_called(self, mock_develop_on_task, fetcher_and_scheduler, agent_model,
-                                           repository_model, work_item_model):
+                                           repository_model, work_item_model, celery_app):
         fetcher_and_scheduler._handle_task_completion = Mock()
         mock_develop_on_task.return_value = AutomatedTaskResult(succeeded=True, token_usage=42, task_results=[])
         fetcher_and_scheduler.schedule_workitem_task(agent_model, repository_model, work_item_model)
