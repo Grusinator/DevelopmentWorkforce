@@ -10,29 +10,22 @@ from organization.schemas import AgentModel
 from organization.services.task_fetcher_and_scheduler import TaskFetcherAndScheduler
 from src.devops_integrations.models import DevOpsSource
 from src.devops_integrations.workitems.ado_workitem_models import WorkItemModel
+from src.git_manager import GitManager
 
-
-# import pytest
-#
-# @pytest.fixture(autouse=True)
-# @pytest.mark.django_db(transaction=True)
-# def enable_db_access_for_all_tests():
-#     pass
-#
 
 @pytest.fixture
-def user_in_db(db):
+def user_in_db(transactional_db):
     return User.objects.create(username="test_user", email="test@example.com", password="password")
 
 
 @pytest.fixture
-def project_in_db(db):
+def project_in_db(transactional_db):
     proj_name = os.getenv("ADO_PROJECT_NAME")
     return Project.objects.create(name=proj_name, source_id="proj_123")
 
 
 @pytest.fixture
-def agent_in_db(db, user_in_db, agent_model):
+def agent_in_db(transactional_db, user_in_db, agent_model):
     agent = Agent.objects.create(user=user_in_db, pat=agent_model.pat, status="working",
                                  organization_name=agent_model.organization_name,
                                  agent_user_name=agent_model.agent_user_name)
@@ -44,12 +37,17 @@ def agent_in_db(db, user_in_db, agent_model):
 
 
 @pytest.fixture
-def repo_in_db(db, project_in_db):
+def repo_in_db(transactional_db, project_in_db):
     return Repository.objects.create(
         name=os.getenv("ADO_REPO_NAME"),
         source_id="123456",
         project=project_in_db
     )
+
+
+@pytest.fixture
+def git_manager(agent_model):
+    return GitManager(pat=agent_model.pat)
 
 
 @pytest.fixture

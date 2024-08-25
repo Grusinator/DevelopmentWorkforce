@@ -97,7 +97,36 @@ class GitManager:
             logger.error(f"Failed to push changes: {e}")
             raise
 
-    def delete_branch(self, repo_path, branch_name):
+    def delete_remote_branch(self, repo_path, branch_name):
         repo = git.Repo(str(repo_path))
-        repo.git.branch('-D', branch_name)
-        return True
+        origin = repo.remote(name='origin')
+
+        # Check if we're on the branch we're trying to delete
+        if repo.active_branch.name == branch_name:
+            # Checkout 'main' or another existing branch
+            main_branch = 'main' if 'main' in repo.branches else 'master'
+            if main_branch in repo.branches:
+                repo.git.checkout(main_branch)
+            else:
+                # If neither 'main' nor 'master' exists, checkout the first available branch
+                for branch in repo.branches:
+                    if branch.name != branch_name:
+                        repo.git.checkout(branch.name)
+                        break
+                else:
+                    raise ValueError(f"Cannot delete the only branch: {branch_name}")
+
+        # Delete the remote branch
+        try:
+            origin.push(f':{branch_name}')
+        except GitCommandError as e:
+            logger.warning(f"Failed to delete remote branch: {e}")
+
+        # Delete the local branch
+        if branch_name in repo.branches:
+            try:
+                repo.git.branch('-D', branch_name)
+            except GitCommandError as e:
+                logger.warning(f"Failed to delete local branch: {e}")
+
+        logger.info(f"Deleted branch: {branch_name}")

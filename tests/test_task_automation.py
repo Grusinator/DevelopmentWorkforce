@@ -71,7 +71,7 @@ class TestTaskAutomation:
         print(struct)
 
     @pytest.mark.integration
-    def test_update_pr_from_feedback_integration(self, db, agent_in_db, get_repository, create_pull_request,
+    def test_update_pr_from_feedback_integration(self, transactional_db, agent_in_db, get_repository, create_pull_request,
                                                  create_work_item, ado_pull_requests_api, workspace_dir):
         comment_text = "This is a test feedback comment"
         repository_name = create_pull_request.repository.name

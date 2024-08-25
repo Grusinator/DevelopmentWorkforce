@@ -85,7 +85,8 @@ def setup_main_branch(ado_pull_requests_api: ADOPullRequestsApi, ado_repos_api: 
     main_branch = 'main'
 
     if not ado_repos_api.branch_exists(get_repository.source_id, main_branch):
-        pytest.skip(f"Main branch '{main_branch}' does not exist.")
+        raise ValueError(f"Main branch '{main_branch}' does not exist in the repository.")
+    return main_branch
 
 
 @pytest.fixture
@@ -98,7 +99,9 @@ def setup_feature_branch(ado_repos_api, setup_main_branch, get_repository, agent
 
     git_manager.push_changes(workspace_dir, feature_branch_name, "Test commit on feature branch")
 
-    return feature_branch_name
+    yield feature_branch_name
+    git_manager.delete_remote_branch(workspace_dir, feature_branch_name)
+
 
 @pytest.fixture
 def open_pull_request(ado_pull_requests_api: ADOPullRequestsApi, get_repository, create_pull_request_input_model):
