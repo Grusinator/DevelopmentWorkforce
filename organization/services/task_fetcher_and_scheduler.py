@@ -6,6 +6,10 @@ from loguru import logger
 from development_workforce.celery import celery_worker as default_celery_worker, CeleryWorker, close_old_connections
 from organization.models import Agent, AgentTask, WorkItem, TaskStatusEnum
 from organization.schemas import AgentModel
+
+from organization.services.job_scheduler.base_job_scheduler import BaseJobScheduler
+from organization.services.job_scheduler.eager_job_scheduler import EagerJobScheduler
+from organization.services.kubernetes_job_scheduler import KubernetesJobScheduler
 from src.crew.models import AutomatedTaskResult
 from src.devops_integrations.devops_factory import DevOpsFactory
 from src.devops_integrations.models import ProjectAuthenticationModel, DevOpsSource
@@ -21,7 +25,7 @@ task_names = [EXECUTE_TASK_WORKITEM_NAME, EXECUTE_TASK_PR_FEEDBACK_NAME]
 
 class TaskFetcherAndScheduler:
     def __init__(self, agent: AgentModel, repo: RepositoryModel, devops_source: DevOpsSource = DevOpsSource.ADO,
-                 celery_worker: CeleryWorker = default_celery_worker):
+                 job_scheduler: BaseJobScheduler = EagerJobScheduler()):
         project_auth = ProjectAuthenticationModel(pat=agent.pat, ado_org_name=agent.organization_name,
                                                   project_name=repo.project.name)
         devops_factory = DevOpsFactory(project_auth, devops_source)
@@ -29,18 +33,7 @@ class TaskFetcherAndScheduler:
         self.repos_api = devops_factory.get_repos_api()
         self.pull_requests_api = devops_factory.get_pull_requests_api()
         self.agent = Agent.objects.get(id=agent.id)
-        self.celery_worker = celery_worker
-        # self.setup_tasks_and_signals() # This is not needed here, as the tasks are registered at load further below
-
-    def setup_tasks_and_signals(self):
-        # Connect task completion to handler
-        self.celery_worker.connect_task_success_signals(self._handle_task_completion)
-        # Connect task picked up to handler
-        self.celery_worker.connect_task_prerun_signals(self._handle_task_picked_up)
-        # Register Celery tasks
-        self.celery_worker.register_task(self.execute_task_workitem, EXECUTE_TASK_WORKITEM_NAME)
-        self.celery_worker.register_task(self.execute_task_pr_feedback, EXECUTE_TASK_PR_FEEDBACK_NAME)
-        # self.celery_worker.show_discovered_tasks()
+        self.job_scheduler = job_scheduler
 
     def fetch_new_workitems(self, agent: AgentModel, repo: RepositoryModel):
         state_new = WorkItemStateEnum.PENDING
@@ -78,14 +71,16 @@ class TaskFetcherAndScheduler:
 
         if created:
             logger.info(f"Task {work_item.source_id} scheduled for execution.")
-            return self.celery_worker.schedule_task(
+            return self.job_scheduler.schedule_job(
                 EXECUTE_TASK_WORKITEM_NAME,
                 str(agent_task.id),
-                agent.model_dump(), repo.model_dump(), work_item.model_dump(),
+                agent=agent.model_dump(),
+                repo=repo.model_dump(),
+                work_item=work_item.model_dump(),
             )
         else:
             logger.info(f"Task {work_item.source_id} already registered")
-            return self.celery_worker.get_task_result(agent_task.id)
+            return self.job_scheduler.get_job_result(str(agent_task.id))
 
     def sync_work_item_and_agent_task(self, work_item: WorkItemModel, agent_task_tag):
         """Syncs the work item and agent task to the db so that we have an updated record of the task.
@@ -111,14 +106,17 @@ class TaskFetcherAndScheduler:
         agent_task, created = self.sync_work_item_and_agent_task(work_item, "PR")
 
         if created:
-            return self.celery_worker.schedule_task(
+            return self.job_scheduler.schedule_job(
                 EXECUTE_TASK_PR_FEEDBACK_NAME,
                 str(agent_task.id),
-                agent.model_dump(), repo.model_dump(), pr.model_dump(), work_item.model_dump(),
+                agent=agent.model_dump(),
+                repo=repo.model_dump(),
+                pr=pr.model_dump(),
+                work_item=work_item.model_dump(),
             )
         else:
             logger.info(f"Task {work_item.source_id} already registered")
-            return self.celery_worker.get_task_result(agent_task.id)
+            return self.job_scheduler.get_job_result(str(agent_task.id))
 
     @staticmethod
     def _handle_task_completion(sender=None, result=None, **kwargs):
@@ -188,15 +186,3 @@ class TaskFetcherAndScheduler:
         task_automation = TaskAutomation(repo_md, agent_md)
         result = task_automation.update_pr_from_feedback(pull_request, work_item_md)
         return result.model_dump()
-
-
-
-    @classmethod
-    def setup_celery_connections(cls, celery_worker):
-        celery_worker.register_task(cls.execute_task_workitem)
-        celery_worker.register_task(cls.execute_task_pr_feedback)
-        celery_worker.connect_task_success_signals(cls._handle_task_completion)
-        celery_worker.connect_task_prerun_signals(cls._handle_task_picked_up)
-
-
-TaskFetcherAndScheduler.setup_celery_connections(default_celery_worker)

@@ -30,6 +30,7 @@ python-dotenv
 invoke
 django-ninja
 django-allauth
+kubernetes
 
 django-crispy-forms
 crispy-bootstrap4
