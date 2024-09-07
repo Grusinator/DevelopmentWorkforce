@@ -10,11 +10,11 @@ from src.job_runner.base_job_runner import BaseJobRunner
 
 
 class KubernetesJobRunner(BaseJobRunner):
-    def store_result(self, result: AutomatedTaskResult):
+    def store_result(self, job_id, result: AutomatedTaskResult):
         config.load_incluster_config()
         v1 = client.CoreV1Api()
 
-        job_id = os.environ.get('JOB_ID')
+
         result_data = {
             'task_id': job_id,
             'result': result.model_dump()
@@ -29,6 +29,7 @@ class KubernetesJobRunner(BaseJobRunner):
 
     def run(self):
         job_name = os.getenv('JOB_NAME')
+        job_id = os.environ.get('JOB_ID')
         encoded_args = os.getenv('ENCODED_ARGS')
 
         if not job_name or not encoded_args:
@@ -36,7 +37,7 @@ class KubernetesJobRunner(BaseJobRunner):
             sys.exit(1)
 
         try:
-            result = self.run_job(job_name, encoded_args)
+            result = self.run_job(job_name, job_id, encoded_args)
             logger.info(f"Job {job_name} completed successfully with result: {result}")
         except Exception as e:
             logger.error(f"Job {job_name} failed with error: {e}")

@@ -5,17 +5,16 @@ import json
 import base64
 from typing import Dict, Any
 
-from organization.services.job_scheduler.base_job_scheduler import JobScheduler
+from organization.services.job_scheduler.base_job_scheduler import BaseJobScheduler
 
-class KubernetesJobScheduler(JobScheduler):
+class KubernetesJobScheduler(BaseJobScheduler):
     def __init__(self):
         config.load_kube_config()
         self.batch_v1 = client.BatchV1Api()
         self.core_v1 = client.CoreV1Api()
 
     def schedule_job(self, job_name: str, job_id: str, *args, **kwargs) -> str:
-        job_args = json.dumps({"args": args, "kwargs": kwargs})
-        encoded_args = base64.b64encode(job_args.encode()).decode()
+        encoded_args = self.encode_args(args, kwargs)
 
         job = client.V1Job(
             metadata=client.V1ObjectMeta(name=f"{job_name}-{job_id}"),

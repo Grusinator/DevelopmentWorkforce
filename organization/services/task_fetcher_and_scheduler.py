@@ -3,13 +3,11 @@ from typing import Dict
 
 from loguru import logger
 
-from development_workforce.celery import celery_worker as default_celery_worker, CeleryWorker, close_old_connections
 from organization.models import Agent, AgentTask, WorkItem, TaskStatusEnum
 from organization.schemas import AgentModel
 
 from organization.services.job_scheduler.base_job_scheduler import BaseJobScheduler
 from organization.services.job_scheduler.eager_job_scheduler import EagerJobScheduler
-from organization.services.kubernetes_job_scheduler import KubernetesJobScheduler
 from src.crew.models import AutomatedTaskResult
 from src.devops_integrations.devops_factory import DevOpsFactory
 from src.devops_integrations.models import ProjectAuthenticationModel, DevOpsSource
