@@ -14,6 +14,8 @@ from src.devops_integrations.models import ProjectAuthenticationModel, DevOpsSou
 from src.devops_integrations.pull_requests.pull_request_models import PullRequestModel
 from src.devops_integrations.repos.ado_repos_models import RepositoryModel
 from src.devops_integrations.workitems.ado_workitem_models import WorkItemModel, WorkItemStateEnum
+from src.job_runner.pr_feedback_task import ExecuteTaskPRFeedbackInputModel
+from src.job_runner.work_item_task import ExecuteTaskWorkItemInputModel
 from src.task_automation import TaskAutomation
 
 EXECUTE_TASK_PR_FEEDBACK_NAME = 'execute_task_pr_feedback'
@@ -50,8 +52,13 @@ class TaskFetcherAndScheduler:
         waiting_for_author_prs = [pr for pr in pull_requests if any(reviewer.vote == -5 for reviewer in pr.reviewers)]
 
         for pr in waiting_for_author_prs:
-            work_item_md = self.get_work_item_related_to_pr(pr)
-            self.schedule_pr_feedback_task(agent, repo, pr, work_item_md)
+            try:
+                work_item_md = self.get_work_item_related_to_pr(pr)
+            except WorkItem.DoesNotExist:
+                logger.error(f"Work item not found for PR {pr}")
+                continue
+            else:
+                self.schedule_pr_feedback_task(agent, repo, pr, work_item_md)
 
         if waiting_for_author_prs:
             joined_prs = '\n * '.join([_pr.title for _pr in waiting_for_author_prs])
@@ -72,9 +79,11 @@ class TaskFetcherAndScheduler:
             return self.job_scheduler.schedule_job(
                 EXECUTE_TASK_WORKITEM_NAME,
                 str(agent_task.id),
-                agent=agent.model_dump(),
-                repo=repo.model_dump(),
-                work_item=work_item.model_dump(),
+                input_model=ExecuteTaskWorkItemInputModel(
+                    agent=agent,
+                    repo=repo,
+                    work_item=work_item
+                )
             )
         else:
             logger.info(f"Task {work_item.source_id} already registered")
@@ -107,10 +116,12 @@ class TaskFetcherAndScheduler:
             return self.job_scheduler.schedule_job(
                 EXECUTE_TASK_PR_FEEDBACK_NAME,
                 str(agent_task.id),
-                agent=agent.model_dump(),
-                repo=repo.model_dump(),
-                pr=pr.model_dump(),
-                work_item=work_item.model_dump(),
+                input_model=ExecuteTaskPRFeedbackInputModel(
+                    agent=agent,
+                    repo=repo,
+                    pr=pr,
+                    work_item=work_item
+                )
             )
         else:
             logger.info(f"Task {work_item.source_id} already registered")

@@ -3,7 +3,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-from celery.backends import redis
 from dotenv import load_dotenv
 from invoke import task
 from redis import StrictRedis

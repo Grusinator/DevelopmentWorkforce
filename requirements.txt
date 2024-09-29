@@ -16,7 +16,6 @@ pytest
 pytest-coverage
 pytest-dotenv
 pytest-json-report
-pytest-celery
 pytest-django
 pytest-regressions
 
@@ -38,7 +37,7 @@ django_extensions
 psycopg2-binary
 pgvector
 Pillow # Profile picture
-celery
+
 gunicorn
 flower
 scikit-learn

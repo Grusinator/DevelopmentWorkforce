@@ -1,37 +1,25 @@
-import base64
-import json
 from abc import ABC, abstractmethod
 from typing import Any
 
-from organization.schemas import AgentModel
+from pydantic import BaseModel
+
 from src.crew.models import AutomatedTaskResult
-from src.devops_integrations.repos.ado_repos_models import RepositoryModel
 
 
 class BaseExecuteTask(ABC):
     name: str
+    input_model: BaseModel
 
     def __init__(self):
         if not hasattr(self, 'name'):
             raise NotImplementedError("Derived classes must define a 'name' class field")
-
-    def args_as_string_decode(self, encoded_args: str):
-        job_args = json.loads(base64.b64decode(encoded_args).decode())
-        args = job_args['args']
-        kwargs = job_args['kwargs']
-        return args, kwargs
-
-
-    @abstractmethod
-    def _decode_and_validate_args(self, encoded_args: str) -> Any:
-        pass
-
+        if not hasattr(self, 'input_model') and issubclass(self.input_model, BaseModel):
+            raise NotImplementedError("Derived classes must define a 'input_model' class field")
 
     @abstractmethod
     def _execute(self, *args: Any, **kwargs: Any) -> AutomatedTaskResult:
         pass
 
-
     def run(self, encoded_args: str) -> AutomatedTaskResult:
-        args, kwargs = self._decode_and_validate_args(encoded_args)
-        return self._execute(*args, **kwargs)
+        input_model = self.input_model.model_validate_json(encoded_args)
+        return self._execute(input_model)

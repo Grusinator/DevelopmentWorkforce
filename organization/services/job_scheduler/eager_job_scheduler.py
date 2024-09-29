@@ -15,10 +15,9 @@ class EagerJobScheduler(BaseJobScheduler):
         self.results = {}
         self.runner = EagerJobRunner()
 
-    def schedule_job(self, job_name: str, job_id: str, *args, **kwargs) -> str:
-
-        encoded_args = self.encode_args(args, kwargs)
-        self.runner.run_job(job_name, job_id, encoded_args)
+    def schedule_job(self, job_name: str, job_id: str, input_model: BaseModel) -> str:
+        input_model_json = input_model.model_dump_json()
+        self.runner.run_job(job_name, job_id, input_model_json)
         return job_id
 
     def get_job_result(self, job_id: str) -> AutomatedTaskResult:

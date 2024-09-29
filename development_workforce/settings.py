@@ -119,25 +119,25 @@ WSGI_APPLICATION = "development_workforce.wsgi.application"
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.sqlite3",
-#         "NAME": BASE_DIR / "db.sqlite3",
-#     }
-# }
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
+}
 
 
 #Postgres db
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("POSTGRES_DB"),
-        "USER": os.getenv("POSTGRES_USER"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
-        "HOST": os.getenv("POSTGRES_HOST", "postgres"),  # Use 'postgres' as default for Docker
-        "PORT": os.getenv("POSTGRES_PORT", "5432"),
-    }
-}
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": os.getenv("POSTGRES_DB"),
+#         "USER": os.getenv("POSTGRES_USER"),
+#         "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
+#         "HOST": os.getenv("POSTGRES_HOST", "postgres"),  # Use 'postgres' as default for Docker
+#         "PORT": os.getenv("POSTGRES_PORT", "5432"),
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -172,8 +172,8 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 # Allauth settings
 ACCOUNT_EMAIL_VERIFICATION = "none" if DEBUG else "mandatory"
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_EMAIL_REQUIRED = False
+# ACCOUNT_AUTHENTICATION_METHOD = "email"
 SOCIALACCOUNT_STORE_TOKENS = True
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -205,19 +205,6 @@ STATIC_URL = "static/"
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
-
-if False:
-    logger.info("Running celery in DEBUG mode")
-    CELERY_BROKER_URL = 'memory://'
-    CELERY_RESULT_BACKEND = 'cache+memory://'
-    CELERY_TASK_ALWAYS_EAGER = True
-else:
-    CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL')
-    CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND')
-
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

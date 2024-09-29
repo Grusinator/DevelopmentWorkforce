@@ -4,7 +4,7 @@ import pytest
 
 from organization.services.job_scheduler.eager_job_scheduler import EagerJobScheduler
 from src.crew.models import AutomatedTaskResult
-from src.job_runner.work_item_task import ExecuteTaskWorkItemHandler
+from src.job_runner.work_item_task import ExecuteTaskWorkItemHandler, ExecuteTaskWorkItemInputModel
 
 
 class TestEagerJobScheduler:
@@ -17,6 +17,7 @@ class TestEagerJobScheduler:
     def test_schedule_workitem_job(self, repository_model, agent_model, work_item_model):
         scheduler = EagerJobScheduler()
         scheduler.runner.task_handlers[0]._execute = MagicMock(return_value=AutomatedTaskResult(succeeded=True))
-        scheduler.schedule_job(ExecuteTaskWorkItemHandler.name, "testid", agent_model, repository_model, work_item_model)
+        input_model = ExecuteTaskWorkItemInputModel(agent=agent_model, repo=repository_model, work_item=work_item_model)
+        scheduler.schedule_job(ExecuteTaskWorkItemHandler.name, "testid", input_model)
         result = scheduler.get_job_result("testid")
-        assert result.succeeded == "succeeded"
+        assert result.succeeded == True

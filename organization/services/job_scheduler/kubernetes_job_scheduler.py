@@ -1,9 +1,5 @@
-import kubernetes
 from kubernetes import client, config
-
-import json
-import base64
-from typing import Dict, Any
+from pydantic import BaseModel
 
 from organization.services.job_scheduler.base_job_scheduler import BaseJobScheduler
 from src.crew.models import AutomatedTaskResult
@@ -15,8 +11,8 @@ class KubernetesJobScheduler(BaseJobScheduler):
         self.batch_v1 = client.BatchV1Api()
         self.core_v1 = client.CoreV1Api()
 
-    def schedule_job(self, job_name: str, job_id: str, *args, **kwargs) -> str:
-        encoded_args = self.encode_args(args, kwargs)
+    def schedule_job(self, job_name: str, job_id: str, input_model: BaseModel) -> str:
+        input_model_json = input_model.model_dump_json()
 
         job = client.V1Job(
             metadata=client.V1ObjectMeta(name=f"{job_name.replace('_', '-')}-{job_id}"),
@@ -28,7 +24,7 @@ class KubernetesJobScheduler(BaseJobScheduler):
                                 name="task-automation",
                                 image="task-automation:latest",
                                 command=["python", "run_job.py"],
-                                args=[job_name, encoded_args],
+                                args=[job_name, input_model_json],
                                 env=[
                                     client.V1EnvVar(name="JOB_ID", value=job_id),
                                 ]
