@@ -1,6 +1,7 @@
-import pytest
 import json
 import logging
+import os
+import subprocess
 from pathlib import Path
 from typing import Optional
 
@@ -11,15 +12,18 @@ from src.utils import log_inputs
 
 logger = logging.getLogger(__name__)
 
+
 class PytestTool(BaseTool):
     name = "run_pytest"
     description = "This tool runs pytest in the working directory and generates a JSON report. " \
                   "this tool requires no input, just leave the input field empty: 'Action Input: ' "
     _working_directory: Path
+    activate_env_command = "conda activate ai_agent"
 
     def __init__(self, _working_directory: Path):
         super().__init__()
-        object.__setattr__(self, '_working_directory', _working_directory)
+        object.__setattr__(self, '_working_directory',
+                           _working_directory)  # has to be like this to not mess with langchain
 
     @log_inputs
     def _run(self, args=(), kwargs=None, run_manager: Optional[CallbackManagerForToolRun] = None) -> dict:
@@ -30,40 +34,33 @@ class PytestTool(BaseTool):
             return {"error": str(e)}
 
     def run_pytest(self):
+
+        env = os.environ.copy()
+        env['PYTHONPATH'] = str(self._working_directory) + os.pathsep + env.get('PYTHONPATH', '')
+
         json_report_path = self._working_directory / 'pytest_report.json'
-
-        # Use a list to collect the output for logging
-        output_lines = []
-
-        # Custom plugin to capture and store output
-        class CaptureOutputPlugin:
-            def pytest_runtest_logreport(self, report):
-                if report.outcome == "passed":
-                    output_lines.append(f"PASSED: {report.nodeid}")
-                elif report.outcome == "failed":
-                    output_lines.append(f"FAILED: {report.nodeid}")
-                elif report.outcome == "skipped":
-                    output_lines.append(f"SKIPPED: {report.nodeid}")
-
-            def pytest_terminal_summary(self, terminalreporter, exitstatus):
-                output_lines.append("=== Test Summary ===")
-                output_lines.extend(terminalreporter.stats)
-
-        # Run pytest with the custom plugin
-        pytest.main(
-            [str(self._working_directory), '--json-report', f'--json-report-file={json_report_path}'],
-            plugins=[CaptureOutputPlugin()]
+        command = f'{self.activate_env_command} && pytest {self._working_directory} --json-report --json-report-file={json_report_path}'
+        result = subprocess.run(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            cwd=str(self._working_directory),
+            shell=True,
+            env=env
         )
+        report_json = self.load_json_report(json_report_path)
 
-        # Log the captured output
-        for line in output_lines:
-            logger.debug(line)
+        return {
+            'output': result.stdout,
+            'error_output': result.stderr,
+            'report': report_json
+        }
 
-        pytest_output = "\n".join(output_lines)
-
-        # Load and return the JSON report
-        with open(json_report_path, 'r') as report_file:
-            report_json = json.load(report_file)
-
-        return pytest_output + "\n" + json.dumps(report_json)
-
+    def load_json_report(self, json_report_path):
+        if json_report_path.exists():
+            with open(json_report_path, 'r') as report_file:
+                report_json = json.load(report_file)
+        else:
+            report_json = {}
+        return report_json
