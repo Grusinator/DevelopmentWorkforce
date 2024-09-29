@@ -44,13 +44,3 @@ class KubernetesJobScheduler(BaseJobScheduler):
         config_map = self.core_v1.read_namespaced_config_map(name=f"result-{job_id}", namespace="default")
         result_json = config_map.data["result"]
         return AutomatedTaskResult.model_validate(result_json)
-
-    def connect_job_completion_handler(self, handler):
-        # Implement logic to watch for job completion and call the handler
-        # This could involve setting up a Kubernetes watch on Jobs
-        pass
-
-    def connect_job_start_handler(self, handler):
-        # Implement logic to watch for job start and call the handler
-        # This could involve setting up a Kubernetes watch on Jobs
-        pass

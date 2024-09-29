@@ -1,6 +1,3 @@
-import base64
-import json
-
 from pydantic import BaseModel
 
 from organization.schemas import AgentModel
@@ -9,6 +6,8 @@ from src.devops_integrations.repos.ado_repos_models import RepositoryModel
 from src.devops_integrations.workitems.ado_workitem_models import WorkItemModel
 from src.job_runner.base_execute_task import BaseExecuteTask
 from src.task_automation import TaskAutomation
+
+
 class ExecuteTaskWorkItemInputModel(BaseModel):
     agent: AgentModel
     repo: RepositoryModel

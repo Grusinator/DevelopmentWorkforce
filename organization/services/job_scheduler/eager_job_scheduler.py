@@ -1,6 +1,5 @@
-# Import necessary modules
-from typing import Dict, Any
-from loguru import logger
+import asyncio
+
 from pydantic import BaseModel
 
 from organization.services.job_scheduler.base_job_scheduler import BaseJobScheduler
@@ -12,19 +11,17 @@ class EagerJobScheduler(BaseJobScheduler):
     def __init__(self, mock=False):
         super().__init__()
         self.mock = mock
-        self.results = {}
         self.runner = EagerJobRunner()
 
-    def schedule_job(self, job_name: str, job_id: str, input_model: BaseModel) -> str:
+    async def schedule_job(self, job_name: str, job_id: str, input_model: BaseModel):
         input_model_json = input_model.model_dump_json()
-        self.runner.run_job(job_name, job_id, input_model_json)
+        await asyncio.to_thread(self.runner.run_job, job_name, job_id, input_model_json)
         return job_id
 
-    def get_job_result(self, job_id: str) -> AutomatedTaskResult:
-        return self.runner.results.get(job_id)
+    async def get_job_result(self, job_id: str) -> AutomatedTaskResult:
+        # Poll for the result asynchronously
+        while job_id not in self.runner.results.keys():
+            await asyncio.sleep(1)  # Non-blocking wait
 
-    def connect_job_completion_handler(self, handler):
-        logger.info("Job completion handler connected")
+        return self.runner.results[job_id]
 
-    def connect_job_start_handler(self, handler):
-        logger.info("Job start handler connected")

@@ -2,7 +2,6 @@ from django.utils import timezone
 
 # from development_workforce.celery import app
 from organization.models import AgentWorkSession
-from organization.services.task_fetcher_and_scheduler import EXECUTE_TASK_WORKITEM_NAME
 
 
 def stop_work_session(agent):
