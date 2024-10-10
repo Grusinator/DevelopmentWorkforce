@@ -23,7 +23,7 @@ def ado_workitems_api(auth_model) -> ADOWorkitemsApi:
 
 @pytest.fixture
 def create_work_item(ado_workitems_api: ADOWorkitemsApi, agent_model):
-    work_item_input = CreateWorkItemInputModel(title="Test Work Item", description="This is a test work item",
+    work_item_input = CreateWorkItemInputModel(title="Test Work Item", description="This is a test work item, write a dummy file called test_file.txt",
                                                type="Task", assigned_to=agent_model.agent_user_name,
                                                state=WorkItemStateEnum.PENDING)
     work_item = ado_workitems_api.create_work_item(work_item_input)

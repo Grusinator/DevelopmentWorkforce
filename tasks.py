@@ -113,6 +113,9 @@ def abandon_all_prs(ctx, repo_name=None):
     print("All PRs have been abandoned.")
 
 
+@task
+def build_worker_image(ctx):
+    ctx.run("docker build -f devops/docker/job.Dockerfile -t task-automation:latest .")
 
 
 @task

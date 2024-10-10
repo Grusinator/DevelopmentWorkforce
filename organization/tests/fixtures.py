@@ -1,10 +1,8 @@
 import os
 
 import pytest
-from celery import Celery
 from django.contrib.auth.models import User
 
-from development_workforce.celery import CeleryWorker
 from organization.models import Project, Agent, AgentWorkSession, Repository, WorkItem
 from organization.schemas import AgentModel
 from organization.services.task_fetcher_and_scheduler import TaskFetcherAndScheduler
@@ -68,27 +66,8 @@ def work_item_in_db(work_item_model):
 
 
 @pytest.fixture
-def celery_app():
-    # Create an in-memory Celery instance for testing
-    app = Celery('test', broker='memory://', backend='cache+memory://')
-    app.conf.task_always_eager = True  # Run tasks synchronously
-    app.autodiscover_tasks()
-    return app
-
-
-@pytest.fixture
-def test_celery_worker(celery_app):
-    worker = CeleryWorker()
-    worker.app = celery_app
-    return worker
-
-
-@pytest.fixture
-def fetcher_and_scheduler(agent_in_db, agent_model, repository_model, work_item_model, pull_request_model,
-                          test_celery_worker):
-    fetcher_and_scheduler = TaskFetcherAndScheduler(agent_model, repository_model, DevOpsSource.MOCK,
-                                                    test_celery_worker)
-    fetcher_and_scheduler.setup_celery_connections(test_celery_worker)
+def fetcher_and_scheduler(agent_in_db, agent_model, repository_model, work_item_model, pull_request_model):
+    fetcher_and_scheduler = TaskFetcherAndScheduler(agent_model, repository_model, DevOpsSource.MOCK )
     fetcher_and_scheduler.workitems_api.work_items = [work_item_model]
     fetcher_and_scheduler.repos_api.repositories = [repository_model]
     fetcher_and_scheduler.pull_requests_api.pull_requests = []

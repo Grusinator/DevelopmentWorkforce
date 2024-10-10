@@ -10,10 +10,10 @@ from src.job_runner.base_job_runner import BaseJobRunner
 
 
 class KubernetesJobRunner(BaseJobRunner):
-    def store_result(self, job_id, result: AutomatedTaskResult):
+    namespace = "default"
+    def _store_result(self, job_id, result: AutomatedTaskResult):
         config.load_incluster_config()
         v1 = client.CoreV1Api()
-
 
         result_data = {
             'task_id': job_id,
@@ -21,11 +21,11 @@ class KubernetesJobRunner(BaseJobRunner):
         }
 
         config_map = client.V1ConfigMap(
-            metadata=client.V1ObjectMeta(name=f"result-{job_id}"),
+            metadata=client.V1ObjectMeta(name=f"job-result-{job_id}"),
             data={"result": json.dumps(result_data)}
         )
 
-        v1.create_namespaced_config_map(namespace="default", body=config_map)
+        v1.create_namespaced_config_map(namespace=self.namespace, body=config_map)
 
     def run(self):
         job_name = os.getenv('JOB_NAME')

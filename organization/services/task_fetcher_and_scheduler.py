@@ -8,6 +8,7 @@ from organization.models import Agent, AgentTask, WorkItem, TaskStatusEnum
 from organization.schemas import AgentModel
 from organization.services.job_scheduler.base_job_scheduler import BaseJobScheduler
 from organization.services.job_scheduler.eager_job_scheduler import EagerJobScheduler
+from organization.services.job_scheduler.kubernetes_job_scheduler import KubernetesJobScheduler
 from src.crew.models import AutomatedTaskResult
 from src.devops_integrations.devops_factory import DevOpsFactory
 from src.devops_integrations.models import ProjectAuthenticationModel, DevOpsSource
@@ -20,7 +21,7 @@ from src.job_runner.work_item_task import ExecuteTaskWorkItemInputModel, Execute
 
 class TaskFetcherAndScheduler:
     def __init__(self, agent: AgentModel, repo: RepositoryModel, devops_source: DevOpsSource = DevOpsSource.ADO,
-                 job_scheduler: BaseJobScheduler = EagerJobScheduler()):
+                 job_scheduler: BaseJobScheduler = KubernetesJobScheduler()):
         project_auth = ProjectAuthenticationModel(pat=agent.pat, ado_org_name=agent.organization_name,
                                                   project_name=repo.project.name)
         devops_factory = DevOpsFactory(project_auth, devops_source)
@@ -71,7 +72,7 @@ class TaskFetcherAndScheduler:
 
         if created:
             logger.info(f"Task {work_item.source_id} scheduled for execution.")
-            await self.job_scheduler.schedule_job(
+            self.job_scheduler.schedule_job(
                 ExecuteTaskWorkItemHandler.name,
                 str(agent_task.id),
                 input_model=ExecuteTaskWorkItemInputModel(
@@ -110,7 +111,7 @@ class TaskFetcherAndScheduler:
         agent_task, created = await sync_to_async(self.sync_work_item_and_agent_task)(work_item, "PR")
 
         if created:
-            await self.job_scheduler.schedule_job(
+            self.job_scheduler.schedule_job(
                 ExecuteTaskPRFeedbackHandler.name,
                 str(agent_task.id),
                 input_model=ExecuteTaskPRFeedbackInputModel(

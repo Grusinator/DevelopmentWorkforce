@@ -14,6 +14,7 @@ class LocalDevelopmentResult(BaseModel):
     succeeded: bool
     token_usage: Optional[int] = None
     task_results: Optional[List[TaskResult]] = []
+    error_message: Optional[str] = None
 
 
 class AutomatedTaskResult(LocalDevelopmentResult):

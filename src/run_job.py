@@ -1,3 +1,5 @@
+import os
+
 from src.job_runner.kubernetes_job_runner import KubernetesJobRunner
 
 if __name__ == "__main__":

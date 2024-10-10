@@ -18,7 +18,6 @@ class PytestTool(BaseTool):
     description = "This tool runs pytest in the working directory and generates a JSON report. " \
                   "this tool requires no input, just leave the input field empty: 'Action Input: ' "
     _working_directory: Path
-    activate_env_command = "conda activate ai_agent"
 
     def __init__(self, _working_directory: Path):
         super().__init__()
@@ -39,7 +38,7 @@ class PytestTool(BaseTool):
         env['PYTHONPATH'] = str(self._working_directory) + os.pathsep + env.get('PYTHONPATH', '')
 
         json_report_path = self._working_directory / 'pytest_report.json'
-        command = f'{self.activate_env_command} && pytest {self._working_directory} --json-report --json-report-file={json_report_path}'
+        command = f'pytest {self._working_directory} --json-report --json-report-file={json_report_path}'
         result = subprocess.run(
             command,
             stdout=subprocess.PIPE,

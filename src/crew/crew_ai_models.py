@@ -6,14 +6,14 @@ from langchain_openai import ChatOpenAI
 
 
 class CrewAiModels:
-    ollama_instruct = Ollama(
-        model=os.getenv("OLLAMA_MODEL_NAME"),
-        base_url=os.getenv("OLLAMA_API_BASE")
-    )
-    ollama_python = Ollama(
-        model=os.getenv("OLLAMA_MODEL_NAME_2"),
-        base_url=os.getenv("OLLAMA_API_BASE_2")
-    )
+    # ollama_instruct = Ollama(
+    #     model=os.getenv("OLLAMA_MODEL_NAME"),
+    #     base_url=os.getenv("OLLAMA_API_BASE")
+    # )
+    # ollama_python = Ollama(
+    #     model=os.getenv("OLLAMA_MODEL_NAME_2"),
+    #     base_url=os.getenv("OLLAMA_API_BASE_2")
+    # )
     chatgpt = ChatOpenAI(
         api_key=os.getenv("OPENAI_API_KEY"),
         model_name=os.getenv("OPENAI_MODEL_NAME"),
@@ -32,8 +32,8 @@ class CrewAiModels:
     @classmethod
     def get_llm(cls, llm_name):
         llm_mapping = {
-            "ollama_instruct": cls.ollama_instruct,
-            "ollama_python": cls.ollama_python,
+            # "ollama_instruct": cls.ollama_instruct,
+            # "ollama_python": cls.ollama_python,
             "chatgpt": cls.chatgpt,
             # "hugging_face": cls.hugging_face
         }

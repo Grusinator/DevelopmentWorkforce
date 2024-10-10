@@ -16,7 +16,6 @@ import pytest
 from src.devops_integrations.pull_requests.pull_request_models import PullRequestCommentThreadModel, \
     PullRequestCommentModel, PullRequestModel, ReviewerModel
 
-
 # @pytest.fixture(autouse=False)
 # def pytest_configure():
 #     from celery.fixups.django import DjangoWorkerFixup
@@ -24,6 +23,7 @@ from src.devops_integrations.pull_requests.pull_request_models import PullReques
 
 import pytest
 from pytest_docker_tools import build
+
 
 # @pytest.fixture(scope='session')
 # def celery_base_worker_image():
@@ -118,8 +118,9 @@ def repository_model(agent_model) -> RepositoryModel:
     repo_url = os.getenv("ADO_REPO_URL")
     repo_name = os.getenv("ADO_REPO_NAME")
 
-    project_model = ProjectModel(id=2, name="test", source_id="test")
-    return RepositoryModel(id=2, source_id="test", name=repo_name, git_url=repo_url, project=project_model)
+    project_model = ProjectModel(id=2, name="TestProject1", source_id="TestProject1")
+    repo_s_id = "8937dfb3-4a35-4ed9-a73f-88255fd1e228"
+    return RepositoryModel(id=2, source_id=repo_s_id, name=repo_name, git_url=repo_url, project=project_model)
 
 
 @pytest.fixture
@@ -130,22 +131,23 @@ def auth_model() -> ProjectAuthenticationModel:
         project_name=os.getenv("ADO_PROJECT_NAME")
     )
 
+
 @pytest.fixture
 def pull_request_model(repository_model, agent_model):
     return PullRequestModel(
-            id=1,
-            title="test",
-            source_branch="feature",
-            created_by_name=agent_model.agent_user_name,
-            target_branch="main",
-            status="active",
-            repository=repository_model,
-            reviewers=[ReviewerModel(
-                source_id="test",
-                display_name="",
-                vote=-5
-            )]
-        )
+        id=1,
+        title="test",
+        source_branch="feature",
+        created_by_name=agent_model.agent_user_name,
+        target_branch="main",
+        status="active",
+        repository=repository_model,
+        reviewers=[ReviewerModel(
+            source_id="test",
+            display_name="",
+            vote=-5
+        )]
+    )
 
 
 @pytest.fixture
